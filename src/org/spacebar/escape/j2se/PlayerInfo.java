@@ -51,7 +51,7 @@ public class PlayerInfo {
         } else if (magic.equals(PLAYERTEXT_MAGIC)) {
             decodeTextFormat(in);
         } else {
-            throw new IOException("Bad magic");
+            throw new IOException("Bad magic: '" + magic + "'");
         }
     }
 

@@ -168,7 +168,8 @@ public class TestSolutions {
 
     private static void getAllStuff(File f, Map<MD5, Level> levels, Map<Level, MD5> md5s,
             Map<Level, File> levelsToFiles) throws IOException {
-        if (f.isDirectory()) {
+//    	System.out.println("checking " + f);
+    	if (f.isDirectory()) {
             File files[] = f.listFiles(ff);
 
             for (int i = 0; i < files.length; i++) {

@@ -128,7 +128,7 @@ public class LevelCanvas extends DoubleBufferCanvas {
             initLevelSurface();
             theLevel.dirty.setAllDirty();
         }
-        System.out.println(theLevel.dirty);
+//        System.out.println(theLevel.dirty);
         if (theLevel.dirty.isAnyDirty()) {
             paintLevelToSurface();
         }
