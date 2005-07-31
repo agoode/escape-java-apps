@@ -66,7 +66,8 @@ public class PlayCanvas extends LevelCanvas {
         };
         addAction("ENTER", "restart", a);
         addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {
+            @Override
+			public void mouseClicked(MouseEvent e) {
                 a.actionPerformed(new ActionEvent(e.getSource(),
                         ActionEvent.ACTION_PERFORMED, "restart"));
             }
@@ -112,7 +113,8 @@ public class PlayCanvas extends LevelCanvas {
 
                 // XXX: race condition
                 new Thread() {
-                    public void run() {
+                    @Override
+					public void run() {
                         if (Message.quick(PlayCanvas.this, "You've died.",
                                 -Characters.FONT_HEIGHT * 8, "Try again",
                                 "Quit", Characters.PICS + Characters.SKULLICON)) {
@@ -130,7 +132,8 @@ public class PlayCanvas extends LevelCanvas {
 
                 // XXX: race condition
                 new Thread() {
-                    public void run() {
+                    @Override
+					public void run() {
                         Message.quick(PlayCanvas.this, "You solved it!!",
                                 -Characters.FONT_HEIGHT * 8, "Continue", null,
                                 Characters.PICS + Characters.THUMBICON);

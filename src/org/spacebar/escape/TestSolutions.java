@@ -15,7 +15,7 @@ import org.spacebar.escape.j2se.PlayerInfo;
 
 public class TestSolutions {
 
-    private static Set rejectures = new HashSet();
+    private static Set<MD5> rejectures = new HashSet<MD5>();
     static {
         rejectures.add(new MD5("75b45c8e3fb338ba80cf69352e425508"));
     }
@@ -50,9 +50,9 @@ public class TestSolutions {
         try {
             // given a directory, search all player files and all level
             // files and try the solutions on all of them
-            Map levels = new HashMap();
-            Map md5s = new HashMap();
-            Map levelsToFiles = new HashMap();
+            Map<MD5, Level> levels = new HashMap<MD5, Level>();
+            Map<Level, MD5> md5s = new HashMap<Level, MD5>();
+            Map<Level, File> levelsToFiles = new HashMap<Level, File>();
 
             System.out.print("Loading...");
             System.out.flush();
@@ -69,15 +69,15 @@ public class TestSolutions {
                         new FileInputStream(pf)));
 
                 System.out.println("*** Player: " + pi);
-                Map s = pi.getSolutions();
+                Map<MD5, List<Solution>> s = pi.getSolutions();
 
-                Map levelsToSolutions = new HashMap();
+                Map<Level, List<Solution>> levelsToSolutions = new HashMap<Level, List<Solution>>();
 
                 // the levels we have solutions for
-                for (Iterator iterator = s.keySet().iterator(); iterator
+                for (Iterator<MD5> iterator = s.keySet().iterator(); iterator
                         .hasNext();) {
-                    MD5 md5 = (MD5) iterator.next();
-                    Level l = (Level) levels.get(md5);
+                    MD5 md5 = iterator.next();
+                    Level l = levels.get(md5);
 
                     if (l == null) {
                         System.out.println(" " + md5 + " ?");
@@ -85,7 +85,7 @@ public class TestSolutions {
                         continue; // solution for unknown level?
                     }
 
-                    List sols = (List) s.get(md5);
+                    List<Solution> sols = s.get(md5);
                     levelsToSolutions.put(l, sols);
                     String str = getStringForLevel(l, levelsToFiles);
                     maxLevelString = Math.max(maxLevelString, str.length());
@@ -94,10 +94,10 @@ public class TestSolutions {
                 final int mls = maxLevelString;
 
                 // the solutions for this level
-                for (Iterator i = levelsToSolutions.keySet().iterator(); i
+                for (Iterator<Level> i = levelsToSolutions.keySet().iterator(); i
                         .hasNext();) {
-                    Level l = (Level) i.next();
-                    List sols = (List) levelsToSolutions.get(l);
+                    Level l = i.next();
+                    List sols = levelsToSolutions.get(l);
 
                     for (Iterator iter = sols.iterator(); iter.hasNext();) {
                         final Solution sol = (Solution) iter.next();
@@ -161,13 +161,13 @@ public class TestSolutions {
         }
     }
 
-    private static String getStringForLevel(Level l, Map levelsToFiles) {
-        File f = (File) levelsToFiles.get(l);
+    private static String getStringForLevel(Level l, Map<Level, File> levelsToFiles) {
+        File f = levelsToFiles.get(l);
         return l.toString() + " [" + f.getName() + "]";
     }
 
-    private static void getAllStuff(File f, Map levels, Map md5s,
-            Map levelsToFiles) throws IOException {
+    private static void getAllStuff(File f, Map<MD5, Level> levels, Map<Level, MD5> md5s,
+            Map<Level, File> levelsToFiles) throws IOException {
         if (f.isDirectory()) {
             File files[] = f.listFiles(ff);
 

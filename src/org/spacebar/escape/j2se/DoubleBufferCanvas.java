@@ -19,7 +19,8 @@ abstract public class DoubleBufferCanvas extends BufferCanvas {
         super(c);
     }
 
-    public void bufferRepaint() {
+    @Override
+	public void bufferRepaint() {
         if (backBuffer != null) {
             renderOffscreen();
 //            repaint();
@@ -43,7 +44,8 @@ abstract public class DoubleBufferCanvas extends BufferCanvas {
         }
     }
 
-    final protected void paintComponent(Graphics g) {
+    @Override
+	final protected void paintComponent(Graphics g) {
         if (backBuffer == null || backBuffer.getHeight() != getHeight()
                 || backBuffer.getWidth() != getWidth()) {
             initBackBuffer();

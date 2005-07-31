@@ -78,7 +78,8 @@ public class LevelCanvas extends DoubleBufferCanvas {
         setLevel(l);
     }
 
-    synchronized protected void bufferPaint(Graphics2D g) {
+    @Override
+	synchronized protected void bufferPaint(Graphics2D g) {
         int w = getWidth();
         int h = getHeight();
 

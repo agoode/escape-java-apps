@@ -29,13 +29,16 @@ abstract public class SingleBufferCanvas extends BufferCanvas {
 //        setDoubleBuffered(true);
     }
 
-    abstract protected void bufferPaint(Graphics2D g);
+    @Override
+	abstract protected void bufferPaint(Graphics2D g);
 
-    protected void bufferRepaint() {
+    @Override
+	protected void bufferRepaint() {
         repaint();
     }
 
-    protected void paintComponent(Graphics g) {
+    @Override
+	protected void paintComponent(Graphics g) {
         bufferPaint((Graphics2D) g);
     }
 }

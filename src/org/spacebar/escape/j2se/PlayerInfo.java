@@ -20,7 +20,7 @@ public class PlayerInfo {
 
     static final private String RAT_MARKER = "-- ratings";
 
-    static final private String PREF_MARKER = "-- prefs";
+//    static final private String PREF_MARKER = "-- prefs";
 
     static final private int IGNORED_FIELDS = 8;
 
@@ -32,12 +32,12 @@ public class PlayerInfo {
 
     String name;
 
-    Map solutions = new HashMap();
+    Map<MD5, List<Solution>> solutions = new HashMap<MD5, List<Solution>>();
 
     /**
      * @return Returns the solutions.
      */
-    public Map getSolutions() {
+    public Map<MD5, List<Solution>> getSolutions() {
         return solutions;
     }
 
@@ -155,15 +155,16 @@ public class PlayerInfo {
         // XXX
     }
 
-    public String toString() {
+    @Override
+	public String toString() {
         return getName() + " #" + getWebID() + ", " + getSolutions().size()
                 + " solutions";
     }
 
     private void addSolution(MD5 md5, Solution s, boolean append) {
-        List v = (List) solutions.get(md5);
+        List<Solution> v = solutions.get(md5);
         if (v == null) {
-            v = new ArrayList();
+            v = new ArrayList<Solution>();
             solutions.put(md5, v);
         }
 

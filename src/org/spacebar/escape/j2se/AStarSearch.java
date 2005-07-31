@@ -20,7 +20,7 @@ import org.spacebar.escape.common.Level;
  * Window - Preferences - Java - Code Style - Code Templates
  */
 public class AStarSearch implements Runnable {
-    PriorityQueue open = new PriorityQueue();
+    PriorityQueue<AStarNode> open = new PriorityQueue<AStarNode>();
     Set closed = new HashSet();
     List solution;
     

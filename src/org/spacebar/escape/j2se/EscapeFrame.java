@@ -106,7 +106,8 @@ public class EscapeFrame extends Frame {
 
         pc = new PlayCanvas(l, c);
         escapeSimulator = new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
+            @Override
+			public void windowClosing(WindowEvent e) {
                 // simulate press of ESCAPE
                 KeyEvent ke = new KeyEvent(EscapeFrame.this,
                         KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0,

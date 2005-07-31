@@ -24,17 +24,18 @@ public class ListenableLevel extends Level {
         super(l);
     }
 
-    List moveListeners = new ArrayList();
+    List<MoveListener> moveListeners = new ArrayList<MoveListener>();
     
-    public boolean move(int d, Effects e) {
+    @Override
+	public boolean move(int d, Effects e) {
         boolean r = super.move(d, e);
         afterMove(r);
         return r;
     }
 
     private void afterMove(boolean success) {
-        for (Iterator i = moveListeners.iterator(); i.hasNext();) {
-            MoveListener ml = (MoveListener) i.next();
+        for (Iterator<MoveListener> i = moveListeners.iterator(); i.hasNext();) {
+            MoveListener ml = i.next();
             ml.moveOccurred(success);
         }
     }

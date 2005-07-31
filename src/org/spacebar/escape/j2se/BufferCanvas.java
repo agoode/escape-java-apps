@@ -30,7 +30,8 @@ public abstract class BufferCanvas extends JComponent {
 
     protected abstract void bufferPaint(Graphics2D g);
     protected abstract void bufferRepaint();
-    protected abstract void paintComponent(Graphics g);
+    @Override
+	protected abstract void paintComponent(Graphics g);
     
     public Overlay getOverlay() {
         return overlay;
