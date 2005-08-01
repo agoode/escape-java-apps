@@ -73,7 +73,6 @@ public class EscapeFrame extends Frame {
         setLevel(l);
         setSolution(s);
         setVisible(true);
-
     }
 
     private void setSolution(Solution s) {

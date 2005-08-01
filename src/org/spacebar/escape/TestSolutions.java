@@ -17,7 +17,9 @@ public class TestSolutions {
 
     private static Set<MD5> rejectures = new HashSet<MD5>();
     static {
-        rejectures.add(new MD5("75b45c8e3fb338ba80cf69352e425508"));
+//        rejectures.add(new MD5("75b45c8e3fb338ba80cf69352e425508"));
+    	rejectures.add(new MD5("a76ee47cd952e5bb05a20ca4738810b1"));
+//    	rejectures.add(new MD5("5b76e676e670fe3395b57553bfacb59a"));
     }
 
     private static FileFilter ff = new FileFilter() {

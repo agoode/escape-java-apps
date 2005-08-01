@@ -24,7 +24,7 @@ abstract public class DoubleBufferCanvas extends BufferCanvas {
         if (backBuffer != null) {
             renderOffscreen();
 //            repaint();
-            paintImmediately(getBounds());
+            paintImmediately(0, 0, getWidth(), getHeight());
             getToolkit().sync();
         }
     }
