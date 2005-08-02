@@ -23,6 +23,11 @@ import org.spacebar.escape.common.*;
  */
 public class PlayCanvas extends LevelCanvas {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -750705744787835548L;
+
     Solution solution = new Solution();
 
     Solution playbackSolution;
@@ -49,6 +54,11 @@ public class PlayCanvas extends LevelCanvas {
 
         // bizarro
         addAction("Y", "toggleAlt", new AbstractAction() {
+            /**
+             * 
+             */
+            private static final long serialVersionUID = -9122008143870876969L;
+
             public void actionPerformed(ActionEvent e) {
                 swapWithBizarro();
                 bufferRepaint();
@@ -57,6 +67,11 @@ public class PlayCanvas extends LevelCanvas {
 
         // restart
         final Action a = new AbstractAction() {
+            /**
+             * 
+             */
+            private static final long serialVersionUID = 3479463800906928396L;
+
             public void actionPerformed(ActionEvent e) {
                 reset();
                 if (playbackSolution != null) {
@@ -75,6 +90,11 @@ public class PlayCanvas extends LevelCanvas {
 
         // quit
         addAction("ESCAPE", "exit", new AbstractAction() {
+            /**
+             * 
+             */
+            private static final long serialVersionUID = -1136341560716643432L;
+
             public void actionPerformed(ActionEvent e) {
                 theWayOut.invoke();
             }
@@ -92,6 +112,10 @@ public class PlayCanvas extends LevelCanvas {
     }
 
     private class Mover extends AbstractAction {
+        /**
+         * 
+         */
+        private static final long serialVersionUID = -7996463184871845733L;
         final int dir;
 
         public Mover(int dir) {
@@ -145,6 +169,10 @@ public class PlayCanvas extends LevelCanvas {
     }
 
     private class Scaler extends AbstractAction {
+        /**
+         * 
+         */
+        private static final long serialVersionUID = -384344919400600482L;
         final boolean smaller;
 
         public Scaler(boolean smaller) {

@@ -25,6 +25,11 @@ import org.spacebar.escape.common.*;
  */
 public class LevelCanvas extends DoubleBufferCanvas {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 6295616802465884961L;
+
     final static Effects effects;
 
     private final static int FONT_MARGIN = 2;

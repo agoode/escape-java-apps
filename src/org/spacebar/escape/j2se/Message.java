@@ -139,6 +139,10 @@ public class Message implements Overlay {
     }
 
     private class Asker extends AbstractAction {
+        /**
+         * 
+         */
+        private static final long serialVersionUID = 2753611570452405013L;
         final boolean action;
 
         Asker(boolean action) {

@@ -28,6 +28,11 @@ import org.spacebar.escape.common.Solution;
  * Preferences - Java - Code Style - Code Templates
  */
 public class EscapeFrame extends Frame {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -4932606803805701505L;
+
     public final static int STARTW = 800;
 
     public final static int STARTH = 600;
