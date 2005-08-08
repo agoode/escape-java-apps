@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 <svg
-   xmlns:xml="http://www.w3.org/XML/1998/namespace"
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://web.resource.org/cc/"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -11,8 +10,8 @@
    xmlns:sodipodi="http://inkscape.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    sodipodi:docname="grids.svg"
-   sodipodi:docbase="/home/adam/workspace/Escape/src/org/spacebar/escape/j2se/resources"
-   inkscape:version="0.41"
+   sodipodi:docbase="/home/adam/workspace/Escape-j2se/src/org/spacebar/escape/j2se/resources"
+   inkscape:version="0.42"
    sodipodi:version="0.32"
    id="svg1859"
    height="297mm"
@@ -958,8 +957,8 @@
   </defs>
   <sodipodi:namedview
      inkscape:grid-bbox="true"
-     inkscape:window-y="34"
-     inkscape:window-x="27"
+     inkscape:window-y="8"
+     inkscape:window-x="21"
      inkscape:window-height="940"
      inkscape:window-width="1495"
      inkscape:grid-points="false"
@@ -970,9 +969,9 @@
      showgrid="true"
      inkscape:current-layer="layer1"
      inkscape:document-units="px"
-     inkscape:cy="273.56259"
-     inkscape:cx="643.05231"
-     inkscape:zoom="4.0000000"
+     inkscape:cy="933.04651"
+     inkscape:cx="457.15607"
+     inkscape:zoom="8.0000000"
      inkscape:pageshadow="2"
      inkscape:pageopacity="0.0"
      borderopacity="1.0"
@@ -983,40 +982,28 @@
      inkscape:guide-bbox="true" />
   <metadata
      id="metadata4">
-    <rdf:RDF
-       id="RDF5">
+    <rdf:RDF>
       <cc:Work
-         id="Work6"
          rdf:about="">
-        <dc:format
-           id="format7">image/svg+xml</dc:format>
+        <dc:format>image/svg+xml</dc:format>
         <dc:type
-           rdf:resource="http://purl.org/dc/dcmitype/StillImage"
-           id="type9" />
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
         <cc:license
-           rdf:resource="http://creativecommons.org/licenses/GPL/2.0/"
-           id="license32194" />
+           rdf:resource="http://creativecommons.org/licenses/GPL/2.0/" />
       </cc:Work>
       <cc:License
-         id="License32196"
          rdf:about="http://creativecommons.org/licenses/GPL/2.0/">
         <cc:permits
-           id="permits32198"
            rdf:resource="http://web.resource.org/cc/Reproduction" />
         <cc:permits
-           id="permits32200"
            rdf:resource="http://web.resource.org/cc/Distribution" />
         <cc:requires
-           id="requires32202"
            rdf:resource="http://web.resource.org/cc/Notice" />
         <cc:permits
-           id="permits32204"
            rdf:resource="http://web.resource.org/cc/DerivativeWorks" />
         <cc:requires
-           id="requires32206"
            rdf:resource="http://web.resource.org/cc/ShareAlike" />
         <cc:requires
-           id="requires32208"
            rdf:resource="http://web.resource.org/cc/SourceCode" />
       </cc:License>
     </rdf:RDF>
@@ -6821,6 +6808,39 @@
          id="path13995"
          d="M 503.70706,843.62054 L 510.91411,843.27629 L 511.25836,836.06924 L 511.60261,828.86218 L 511.80130,836.61218 L 512.00000,844.36218 L 504.25000,844.16348 L 496.50000,843.96479 L 503.70706,843.62054 z M 500.36948,836.36218 C 500.48772,833.19141 500.78220,832.85341 503.50000,832.76895 C 506.20685,832.68483 506.23704,832.71502 503.80896,833.07791 C 501.65515,833.39981 501.03019,834.11714 500.67844,836.67114 C 500.25387,839.75393 500.24339,839.74345 500.36948,836.36218 z "
          style="fill:#fe9f48" />
+    </g>
+    <g
+       id="g7325"
+       transform="translate(-17.00000,71.00000)">
+      <path
+         style="fill:#fbf9f6"
+         d="M 449.00000,69.362183 L 449.00000,53.362183 L 465.00000,53.362183 L 481.00000,53.362183 L 481.00000,69.362183 L 481.00000,85.362183 L 465.00000,85.362183 L 449.00000,85.362183 L 449.00000,69.362183 z "
+         id="path7330" />
+      <path
+         style="fill:#ce0516"
+         d="M 462.89831,83.497302 C 461.12761,83.259079 459.61157,82.798658 458.15254,82.056006 C 452.91754,79.391367 449.76470,73.974676 450.14602,68.300476 C 450.35468,65.195447 451.14025,63.031973 452.99343,60.458641 C 454.50070,58.365643 457.30349,56.280225 459.72637,55.449001 C 466.42579,53.150606 473.40529,55.451666 477.25761,61.228850 C 478.31843,62.819722 478.90922,64.319794 479.37523,66.605656 C 480.30440,71.163384 478.66348,76.132419 475.09238,79.574994 C 473.22685,81.373372 471.09962,82.522972 468.32203,83.233830 C 467.10595,83.545056 464.27534,83.682562 462.89831,83.497302 z M 477.87659,71.637615 C 478.10048,71.226235 478.06168,66.631342 477.83274,66.444499 C 477.69823,66.334728 474.15853,66.303340 464.71409,66.328173 L 451.77966,66.362183 C 451.77966,66.362183 451.73576,71.631092 451.77237,71.724920 C 451.82581,71.861844 454.39467,71.895516 464.78758,71.895516 C 477.45075,71.895516 477.73932,71.889831 477.87659,71.637615 z "
+         id="path7327"
+         sodipodi:nodetypes="cssssssssccsccssc" />
+    </g>
+    <g
+       id="g7342">
+      <path
+         transform="matrix(1.001957,0.000000,0.000000,1.001957,5.385495,1.885782)"
+         d="M 473.68750 106.26843 A 15.968750 15.968750 0 1 1  441.75000,106.26843 A 15.968750 15.968750 0 1 1  473.68750 106.26843 z"
+         sodipodi:ry="15.968750"
+         sodipodi:rx="15.968750"
+         sodipodi:cy="106.26843"
+         sodipodi:cx="457.71875"
+         id="path7332"
+         style="fill:#ce0516;fill-opacity:1.0000000;stroke:none"
+         sodipodi:type="arc" />
+      <rect
+         y="105.36218"
+         x="450.50000"
+         height="6.0000000"
+         width="27.000000"
+         id="rect7340"
+         style="fill:#fbf9f6;fill-opacity:1.0000000;stroke:none" />
     </g>
   </g>
 </svg>
