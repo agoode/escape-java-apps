@@ -13,7 +13,6 @@ import java.util.List;
 
 import org.spacebar.escape.common.BitInputStream;
 import org.spacebar.escape.common.Effects;
-import org.spacebar.escape.common.Level;
 
 public class ListenableLevel extends Level {
 

@@ -6,11 +6,11 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import org.spacebar.escape.common.BitInputStream;
-import org.spacebar.escape.common.Level;
 import org.spacebar.escape.common.Misc;
 import org.spacebar.escape.common.Solution;
 import org.spacebar.escape.common.hash.MD5;
 import org.spacebar.escape.j2se.EscapeFrame;
+import org.spacebar.escape.j2se.Level;
 import org.spacebar.escape.j2se.PlayerInfo;
 
 public class TestSolutions {

@@ -14,6 +14,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 
 import org.spacebar.escape.common.*;
+import org.spacebar.escape.j2se.Level;
 
 /**
  * @author agoode

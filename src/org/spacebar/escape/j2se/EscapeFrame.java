@@ -18,7 +18,6 @@ import java.io.InputStream;
 import javax.imageio.ImageIO;
 
 import org.spacebar.escape.common.Continuation;
-import org.spacebar.escape.common.Level;
 import org.spacebar.escape.common.Solution;
 
 /**
