@@ -27,8 +27,8 @@ public class Level extends org.spacebar.escape.common.Level {
     	FNV32 hash = new FNV32();
     
     	// player
-    	hash.fnv32(getPlayerX());
-    	hash.fnv32(getPlayerY());
+    	hash.fnv32(player.getX());
+    	hash.fnv32(player.getY());
     
     	// tiles, oTiles
     	for (int i = 0; i < tiles.length; i++) {
@@ -45,6 +45,62 @@ public class Level extends org.spacebar.escape.common.Level {
     	}
     
     	return hash.hval;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+    	if (this == obj) {
+    		return true;
+    	}
+    
+    	if (obj instanceof Level) {
+    		Level l = (Level) obj;
+    
+    		// metadata
+    		if (!author.equals(l.author)) {
+    			return false;
+    		}
+    		if (!title.equals(l.title)) {
+    			return false;
+    		}
+    		if (width != l.width) {
+    			return false;
+    		}
+    		if (height != l.height) {
+    			return false;
+    		}
+    
+    		// tiles
+    		for (int i = 0; i < tiles.length; i++) {
+    			if (tiles[i] != l.tiles[i] || oTiles[i] != l.oTiles[i]
+    					|| dests[i] != l.dests[i] || flags[i] != l.flags[i]) {
+    				return false;
+    			}
+    		}
+    
+    		// entities
+    		if (!player.equals(l.player)) {
+    			return false;
+    		}
+    
+    		try {
+    			for (int i = 0; i < bots.length; i++) {
+    				if (!bots[i].equals(l.bots[i])) {
+    					return false;
+    				}
+    			}
+    		} catch (ArrayIndexOutOfBoundsException e) {
+    			return false;
+    		}
+    	}
+    	return true;
+    }
+
+    @Override
+    public String toString() {
+    	return "[\"" + title + "\" by " + author + " (" + width + "x" + height
+    			+ ")" + " player: (" + this.player.getX() + ","
+    			+ this.player.getY() + ")]";
     }
 
 }
