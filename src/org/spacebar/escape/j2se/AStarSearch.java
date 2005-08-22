@@ -1,8 +1,5 @@
 /*
  * Created on Jan 23, 2005
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
  */
 package org.spacebar.escape.j2se;
 
@@ -15,9 +12,6 @@ import org.spacebar.escape.common.Level;
 
 /**
  * @author adam
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
  */
 public class AStarSearch implements Runnable {
     PriorityQueue<AStarNode> open = new PriorityQueue<AStarNode>();

@@ -57,7 +57,6 @@ public class ResourceUtil {
         } catch (UnsupportedAudioFileException e) {
             e.printStackTrace();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
         }
         return a;
     }
