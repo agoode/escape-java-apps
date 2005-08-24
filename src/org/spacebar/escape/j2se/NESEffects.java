@@ -135,4 +135,9 @@ public class NESEffects implements Effects {
             System.out.println(name + ": " + event.getType());
         }
     }
+
+    public void requestRedraw() {
+        // TODO Auto-generated method stub
+        
+    }
 }
