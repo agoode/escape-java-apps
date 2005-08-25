@@ -22,16 +22,10 @@ public class AStarSearch implements Runnable {
 
     Set<AStarNode> closed = new HashSet<AStarNode>();
 
-    final Heuristic h;
-
-    final ChildrenGenerator cg;
-
     final int moveLimit;
 
-    public AStarSearch(Level l, Heuristic h, ChildrenGenerator cg, int moveLimit) {
-        this.h = h;
+    public AStarSearch(Level l, int moveLimit) {
         this.moveLimit = moveLimit;
-        this.cg = cg;
 
         // construct initial node
         AStarNode start = new AStarNode(null, Entity.DIR_NONE, l, 0);
@@ -57,6 +51,37 @@ public class AStarSearch implements Runnable {
         AStarNode a = open.remove();
         openMap.remove(a.level);
         return a;
+    }
+
+    int h(AStarNode node) {
+        // default heuristic -- override
+        Level l = node.level;
+        return 0;
+    }
+
+    List<AStarNode> generateChildren(AStarNode node) {
+        // default children generation -- override
+        List<AStarNode> l = new ArrayList<AStarNode>();
+        Level level = node.level;
+
+        if (!level.isDead() && !level.isWon() || node.g == moveLimit) {
+            for (int i = Entity.FIRST_DIR; i <= Entity.LAST_DIR; i++) {
+                Level lev = new Level(level);
+                testChild(node, l, i, lev);
+            }
+        }
+
+        return l;
+
+    }
+
+    protected void testChild(AStarNode node, List<AStarNode> l, int i, Level lev) {
+        if (lev.move(i)) {
+            // System.out.println(" child");
+            l.add(new AStarNode(node, i, lev, node.g + 1)); // cost
+            // of
+            // move is 1
+        }
     }
 
     class AStarNode {
@@ -89,7 +114,7 @@ public class AStarSearch implements Runnable {
             dirToGetHere = dir;
             this.level = l;
             this.g = g;
-            f = g + h.computeHeuristic(l);
+            f = g + h(this);
         }
 
         boolean isGoal() {
@@ -130,7 +155,7 @@ public class AStarSearch implements Runnable {
             } else {
                 // System.out.println("adding to closed list");
                 closed.add(a);
-                List<AStarNode> children = cg.generateChildren(a);
+                List<AStarNode> children = generateChildren(a);
                 for (AStarNode node : children) {
                     AStarNode oldNode = getFromOpen(node);
                     if (oldNode == null) {
@@ -195,15 +220,14 @@ public class AStarSearch implements Runnable {
             Level l = new Level(
                     new BitInputStream(new FileInputStream(args[0])));
 
-            Heuristic h = new Heuristic() {
-                public int computeHeuristic(Level l) {
-                    return countSpheres(l);
+            AStarSearch search = new AStarSearch(l, 200) {
+                @Override
+                public int h(AStarNode node) {
+                    return countSpheres(node.level);
                 }
-            };
 
-            ChildrenGenerator cg = new ChildrenGenerator() {
-                public List<AStarNode> generateChildren(AStarNode node,
-                        int moveLimit) {
+                @Override
+                public List<AStarNode> generateChildren(AStarNode node) {
                     List<AStarNode> l = new ArrayList<AStarNode>();
                     Level level = node.level;
 
@@ -233,20 +257,8 @@ public class AStarSearch implements Runnable {
 
                     return l;
                 }
-
-                private void testChild(AStarNode node, List<AStarNode> l,
-                        int i, Level lev) {
-                    if (lev.move(i)) {
-                        // System.out.println(" child");
-                        l.add(new AStarNode(node, i, lev, node.g + 1)); // cost
-                        // of
-                        // move is 1
-                    }
-                }
-
             };
 
-            AStarSearch search = new AStarSearch(l, h, cg, 200);
             search.run();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
