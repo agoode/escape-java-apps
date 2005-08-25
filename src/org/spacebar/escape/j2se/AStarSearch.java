@@ -3,12 +3,13 @@
  */
 package org.spacebar.escape.j2se;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
 
-import org.spacebar.escape.common.Level;
+import org.spacebar.escape.common.Entity;
 
 /**
  * @author adam
@@ -18,20 +19,17 @@ public class AStarSearch implements Runnable {
     Set closed = new HashSet();
     List solution;
     
-    public AStarSearch(Level l, int px, int py) {
-        AStarNode start = new AStarNode(l, px, py, 0);
+    public AStarSearch(Level l) {
+        AStarNode start = new AStarNode(l, 0);
         open.add(start);
     }
     
     class AStarNode implements Comparable {
-        Level l;
-        int px, py;
+        Level level;
         int f;
         
-        AStarNode(Level l, int px, int py, int cost) {
-            this.l = l;
-            this.px = px;
-            this.py = py;
+        AStarNode(Level l, int cost) {
+            this.level = l;
             f = heuristic() + cost;
         }
         
@@ -42,6 +40,19 @@ public class AStarSearch implements Runnable {
         public int compareTo(Object o) {
             AStarNode a = (AStarNode) o;
             return f - a.f;
+        }
+        
+        List<AStarNode> getChildren() {
+            List<AStarNode> l = new ArrayList<AStarNode>();
+            
+            for (int i = Entity.FIRST_DIR; i < Entity.LAST_DIR; i++) {
+                Level lev = new Level(level);
+                if (lev.move(i)) {
+                    l.add(new AStarNode(lev, f + 1));
+                }
+            }
+            
+            return l;
         }
     }
 

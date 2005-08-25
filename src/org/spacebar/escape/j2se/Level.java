@@ -102,5 +102,4 @@ public class Level extends org.spacebar.escape.common.Level {
     			+ ")" + " player: (" + this.player.getX() + ","
     			+ this.player.getY() + ")]";
     }
-
 }
