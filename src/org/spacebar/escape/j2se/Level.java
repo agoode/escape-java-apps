@@ -56,6 +56,7 @@ public class Level extends org.spacebar.escape.common.Level {
     	if (obj instanceof Level) {
     		Level l = (Level) obj;
     
+            /*
     		// metadata
     		if (!author.equals(l.author)) {
     			return false;
@@ -69,7 +70,8 @@ public class Level extends org.spacebar.escape.common.Level {
     		if (height != l.height) {
     			return false;
     		}
-    
+    		*/
+            
     		// tiles
     		for (int i = 0; i < tiles.length; i++) {
     			if (tiles[i] != l.tiles[i] || oTiles[i] != l.oTiles[i]
