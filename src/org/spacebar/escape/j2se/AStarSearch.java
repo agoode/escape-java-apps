@@ -54,6 +54,7 @@ public class AStarSearch implements Runnable {
     }
 
     private synchronized AStarNode removeFromOpen() {
+        // System.out.println("AStarSearch.removeFromOpen()");
         assert (open.size() == openMap.size());
         AStarNode a = open.remove();
         // if (!openMap.containsValue(a)) {
@@ -63,8 +64,42 @@ public class AStarSearch implements Runnable {
         // }
         assert (openMap.containsValue(a));
         AStarNode result = openMap.remove(a.level);
+        assert (!openMap.containsValue(a));
         assert (a.level.equals(result.level));
+        assert (open.size() == openMap.size());
+        sanityCheckOpen();
         return a;
+    }
+
+    private void sanityCheckOpen() {
+        List<AStarNode> extraOpenItems = new ArrayList<AStarNode>();
+        List<AStarNode> extraOpenMapItems = new ArrayList<AStarNode>();
+        
+        
+        for (AStarNode node : open) {
+            if (!openMap.containsValue(node)) {
+                extraOpenItems.add(node);
+            }
+        }
+        for (AStarNode node : openMap.values()) {
+            if (!open.contains(node)) {
+                extraOpenMapItems.add(node);
+            }
+        }
+
+        boolean bad = false;
+        if (!extraOpenItems.isEmpty()) {
+            System.out.println("extra items in open: " + extraOpenItems);
+            bad = true;
+        }
+        if (!extraOpenMapItems.isEmpty()) {
+            System.out.println("extra items in openMap: " + extraOpenMapItems);
+            bad = true;
+        }
+
+        if (bad) {
+            throw new RuntimeException("Sanity check failed");
+        }
     }
 
     int h(Level l) {
@@ -200,33 +235,28 @@ public class AStarSearch implements Runnable {
     public void run() {
         long time = 0;
         while (!open.isEmpty()) {
-            if (System.currentTimeMillis() - time > 100) {
+            if (System.currentTimeMillis() - time > 0) {
                 System.out.println("Open nodes: " + open.size()
                         + ", closed nodes: " + closed.size());
                 // System.out.println("best h: " + bestH);
                 time = System.currentTimeMillis();
             }
             AStarNode a = removeFromOpen();
-            System.out.println("getting node from open list, f: " + a.f);
-            a.level.print(System.out);
-            System.out.println();
+            // System.out.println("getting node from open list, f: " + a.f);
+            // a.level.print(System.out);
+            // System.out.println();
             if (a.isGoal()) {
                 // GOAL
                 solution = constructSolution(a);
                 return;
             } else {
-                System.out.println("adding to closed list");
+                // System.out.println("adding to closed list");
                 closed.add(a.level);
                 List<AStarNode> children = generateChildren(a);
                 for (AStarNode node : children) {
                     AStarNode oldNode = getFromOpen(node);
-                    if (oldNode == null) {
+                    if (oldNode == null || node.g < oldNode.g) {
                         updateOpen(node);
-                    } else {
-                        // better cost from here?
-                        if (node.g < oldNode.g) {
-                            updateOpen(node);
-                        }
                     }
                 }
             }
@@ -349,7 +379,7 @@ public class AStarSearch implements Runnable {
             l.print(System.out);
 
             AStarSearch search = new AStarSearch(l);
-            for (int i = 10; i <= 100000; i += 10) {
+            for (int i = 1000; i <= 1000; i += 10) {
                 System.out.print("trying in " + i + " moves, ");
                 search.initialize();
                 search.setMoveLimit(i);
@@ -367,7 +397,10 @@ public class AStarSearch implements Runnable {
 
                 // wait
                 for (int j = 0; j < threads.length; j++) {
+                    System.out.println("--> waiting for thread " + threads[j]);
                     threads[j].join();
+                    System.out.println(" <-- " + threads[j].getName()
+                            + " joined");
                 }
 
                 if (search.solutionFound()) {
