@@ -8,7 +8,7 @@ import org.spacebar.escape.common.hash.FNV32;
 
 public class Level extends org.spacebar.escape.common.Level {
 
-    public Level(org.spacebar.escape.common.Level l) {
+    public Level(Level l) {
         super(l);
     }
 
@@ -33,7 +33,9 @@ public class Level extends org.spacebar.escape.common.Level {
     	// tiles, oTiles
     	for (int i = 0; i < tiles.length; i++) {
     		hash.fnv32(tiles[i]);
-    		hash.fnv32(oTiles[i]);
+            hash.fnv32(oTiles[i]);
+            hash.fnv32(flags[i]);
+            hash.fnv32(dests[i]);
     	}
     
     	// bots
@@ -44,7 +46,7 @@ public class Level extends org.spacebar.escape.common.Level {
     		hash.fnv32(b.getY());
     	}
     
-    	return hash.hval;
+        return hash.hval;
     }
 
     @Override

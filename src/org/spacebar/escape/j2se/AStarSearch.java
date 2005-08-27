@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.PriorityBlockingQueue;
 
 import org.spacebar.escape.common.BitInputStream;
 import org.spacebar.escape.common.Entity;
@@ -15,53 +16,91 @@ import org.spacebar.escape.common.Entity;
  * @author adam
  */
 public class AStarSearch implements Runnable {
-    PriorityQueue<AStarNode> open = new PriorityQueue<AStarNode>(11,
-            new AStarPQComparator());
+    PriorityBlockingQueue<AStarNode> open = new PriorityBlockingQueue<AStarNode>(
+            11, new AStarPQComparator());
 
-    Map<Level, AStarNode> openMap = new HashMap<Level, AStarNode>();
+    Map<Level, AStarNode> openMap = Collections
+            .synchronizedMap(new HashMap<Level, AStarNode>());
 
-    Set<Level> closed = new HashSet<Level>();
+    Set<Level> closed = Collections.synchronizedSet(new HashSet<Level>());
 
-    final int moveLimit;
+    int moveLimit = Integer.MAX_VALUE;
 
-    public AStarSearch(Level l, int moveLimit) {
-        this.moveLimit = moveLimit;
+    private AStarNode start;
 
-        // construct initial node
-        AStarNode start = new AStarNode(null, Entity.DIR_NONE, l, 0);
-
-        // add to open list
-        updateOpen(start);
+    public void setMoveLimit(int moves) {
+        moveLimit = moves;
     }
 
-    private void updateOpen(AStarNode a) {
+    public AStarSearch(Level l) {
+        // construct initial node
+        start = new AStarNode(null, Entity.DIR_NONE, l, 0);
+    }
+
+    private synchronized void updateOpen(AStarNode a) {
         if (openMap.containsKey(a.level)) {
             open.remove(a);
         }
 
         open.add(a);
         openMap.put(a.level, a);
+        assert (open.size() == openMap.size());
+        assert (openMap.containsKey(new Level(a.level)));
     }
 
     private AStarNode getFromOpen(AStarNode a) {
-        return openMap.get(a.level);
+        AStarNode node = openMap.get(a.level);
+        return node;
     }
 
-    private AStarNode removeFromOpen() {
+    private synchronized AStarNode removeFromOpen() {
+        assert (open.size() == openMap.size());
         AStarNode a = open.remove();
-        openMap.remove(a.level);
+        // if (!openMap.containsValue(a)) {
+        // System.out.println(open);
+        // System.out.println(openMap);
+        // System.exit(0);
+        // }
+        assert (openMap.containsValue(a));
+        AStarNode result = openMap.remove(a.level);
+        assert (a.level.equals(result.level));
         return a;
     }
 
-    int h(AStarNode node) {
+    int h(Level l) {
         // default heuristic -- override
-        Level l = node.level;
-        return manhattan(l);
+        int m = manhattan(l);
+        bestH = Math.min(bestH, m);
+        return m;
     }
 
     private int manhattan(Level l) {
-        
-        return 0;
+        int dist = Integer.MAX_VALUE;
+        boolean found = false;
+
+        final int px = l.getPlayerX();
+        final int py = l.getPlayerY();
+        for (int y = 0; y < l.getHeight(); y++) {
+            for (int x = 0; x < l.getWidth(); x++) {
+                int t = l.tileAt(x, y);
+                // if (t == Level.T_EXIT || t == Level.T_0 || t == Level.T_1
+                // || t == Level.T_BROKEN || t == Level.T_BSPHERE
+                // || t == Level.T_BSTEEL || t == Level.T_BUTTON
+                // || t == Level.T_GOLD || t == Level.T_GREEN
+                // || t == Level.T_GREY || t == Level.T_GSPHERE
+                // || t == Level.T_GSTEEL || t == Level.T_HEARTFRAMER
+                // || t == Level.T_ON || t == Level.T_PANEL
+                // || t == Level.T_RED || t == Level.T_RSPHERE
+                // || t == Level.T_RSTEEL || t == Level.T_SPHERE
+                // || t == Level.T_TRANSPONDER || t == Level.T_TRANSPORT) {
+                if (t == Level.T_EXIT) {
+                    int d = Math.abs(x - px) + Math.abs(y - py);
+                    dist = Math.min(dist, d);
+                    found = true;
+                }
+            }
+        }
+        return found ? dist : 0;
     }
 
     List<AStarNode> generateChildren(AStarNode node) {
@@ -69,11 +108,12 @@ public class AStarSearch implements Runnable {
         List<AStarNode> l = new ArrayList<AStarNode>();
         Level level = node.level;
 
-        if (!level.isDead() && !level.isWon() || node.g == moveLimit) {
+        if (!level.isDead() && !level.isWon() && node.g < moveLimit) {
             for (int i = Entity.FIRST_DIR; i <= Entity.LAST_DIR; i++) {
                 Level lev = new Level(level);
                 testChild(node, l, i, lev);
             }
+            // System.out.println("----------");
         }
 
         return l;
@@ -87,6 +127,7 @@ public class AStarSearch implements Runnable {
                 l.add(new AStarNode(node, i, lev, node.g + 1)); // cost
                 // of
                 // move is 1
+                // lev.print(System.out);
             }
         }
     }
@@ -116,16 +157,26 @@ public class AStarSearch implements Runnable {
             return false;
         }
 
+        @Override
+        public String toString() {
+            return "(f: " + f + "," + level.toString() + ")";
+        }
+
         AStarNode(AStarNode parent, int dir, Level l, int g) {
             this.parent = parent;
             dirToGetHere = dir;
             this.level = l;
             this.g = g;
-            f = g + h(this);
+            int parentF = parent == null ? 0 : parent.f;
+            f = Math.max(parentF, g + h(l)); // pathmax!
         }
 
         boolean isGoal() {
-            return !level.isDead() && level.isWon();
+            boolean result = !level.isDead() && level.isWon();
+            if (result) {
+                System.out.println("GOAL");
+            }
+            return result;
         }
 
     }
@@ -142,25 +193,29 @@ public class AStarSearch implements Runnable {
         }
     }
 
+    int bestH;
+
+    private List<Integer> solution;
+
     public void run() {
-        long time = System.currentTimeMillis();
+        long time = 0;
         while (!open.isEmpty()) {
-            if (System.currentTimeMillis() - time > 1000) {
+            if (System.currentTimeMillis() - time > 100) {
                 System.out.println("Open nodes: " + open.size()
                         + ", closed nodes: " + closed.size());
-                System.out.println("minimum spheres: " + minSpheres);
+                // System.out.println("best h: " + bestH);
                 time = System.currentTimeMillis();
             }
             AStarNode a = removeFromOpen();
-            // System.out.println("getting node from open list, f: " + a.f);
-            // a.level.print(System.out);
-            // System.out.println();
+            System.out.println("getting node from open list, f: " + a.f);
+            a.level.print(System.out);
+            System.out.println();
             if (a.isGoal()) {
                 // GOAL
-                constructSolution(a);
+                solution = constructSolution(a);
                 return;
             } else {
-                // System.out.println("adding to closed list");
+                System.out.println("adding to closed list");
                 closed.add(a.level);
                 List<AStarNode> children = generateChildren(a);
                 for (AStarNode node : children) {
@@ -176,11 +231,25 @@ public class AStarSearch implements Runnable {
                 }
             }
         }
-        System.out.println("No goal found.");
+        System.out.println("closed nodes: " + closed.size());
+        solution = null;
     }
 
-    private void constructSolution(AStarNode a) {
-        System.out.println("moves: " + a.g);
+    public void initialize() {
+        // init lists
+        open.clear();
+        openMap.clear();
+        closed.clear();
+
+        // add to open list
+        updateOpen(start);
+
+        // init
+        bestH = Integer.MAX_VALUE;
+
+    }
+
+    private List<Integer> constructSolution(AStarNode a) {
         List<Integer> moves = new ArrayList<Integer>();
         while (a != null) {
             moves.add(a.dirToGetHere);
@@ -189,9 +258,23 @@ public class AStarSearch implements Runnable {
         Collections.reverse(moves);
         moves.remove(0);
 
+        return moves;
+    }
+
+    public boolean solutionFound() {
+        return solution != null;
+    }
+
+    public void printSolution() {
+        if (solution == null) {
+            System.out.println("No solution found");
+            return;
+        }
+
+        System.out.println("moves: " + solution.size());
         int lastMove = Entity.DIR_NONE;
         int moveCount = 0;
-        for (Integer move : moves) {
+        for (Integer move : solution) {
             if (move != lastMove) {
                 if (lastMove != Entity.DIR_NONE) {
                     System.out.print(moveCount
@@ -206,8 +289,6 @@ public class AStarSearch implements Runnable {
         System.out.println(moveCount + Entity.directionToString(lastMove));
     }
 
-    int minSpheres = Integer.MAX_VALUE;
-
     int countSpheres(Level l) {
         // number of spheres
         int count = 0;
@@ -216,8 +297,8 @@ public class AStarSearch implements Runnable {
                 count++;
             }
         }
-        if (count < minSpheres) {
-            minSpheres = count;
+        if (count < bestH) {
+            bestH = count;
         }
         return count;
     }
@@ -227,10 +308,10 @@ public class AStarSearch implements Runnable {
             Level l = new Level(
                     new BitInputStream(new FileInputStream(args[0])));
 
-            AStarSearch search = new AStarSearch(l, 200) {
+            AStarSearch search2 = new AStarSearch(l) {
                 @Override
-                public int h(AStarNode node) {
-                    return countSpheres(node.level);
+                public int h(Level l) {
+                    return countSpheres(l);
                 }
 
                 @Override
@@ -238,8 +319,7 @@ public class AStarSearch implements Runnable {
                     List<AStarNode> l = new ArrayList<AStarNode>();
                     Level level = node.level;
 
-                    if (!level.isDead() && !level.isWon()
-                            || node.g == moveLimit) {
+                    if (!level.isDead() && !level.isWon() && node.g < moveLimit) {
                         if (countSpheres(level) == 0) {
                             for (int i = Entity.FIRST_DIR; i <= Entity.LAST_DIR; i++) {
                                 Level lev = new Level(level);
@@ -266,10 +346,40 @@ public class AStarSearch implements Runnable {
                 }
             };
 
-            search.run();
+            l.print(System.out);
+
+            AStarSearch search = new AStarSearch(l);
+            for (int i = 10; i <= 100000; i += 10) {
+                System.out.print("trying in " + i + " moves, ");
+                search.initialize();
+                search.setMoveLimit(i);
+
+                // Thread threads[] = new Thread[Runtime.getRuntime()
+                // .availableProcessors()];
+                Thread threads[] = new Thread[1];
+                System.out.println(threads.length + " threads");
+
+                // run
+                for (int j = 0; j < threads.length; j++) {
+                    threads[j] = new Thread(search);
+                    threads[j].start();
+                }
+
+                // wait
+                for (int j = 0; j < threads.length; j++) {
+                    threads[j].join();
+                }
+
+                if (search.solutionFound()) {
+                    search.printSolution();
+                    break;
+                }
+            }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
