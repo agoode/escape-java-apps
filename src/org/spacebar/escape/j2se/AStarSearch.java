@@ -7,7 +7,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.PriorityBlockingQueue;
 
 import org.spacebar.escape.common.BitInputStream;
 import org.spacebar.escape.common.Entity;
@@ -16,13 +15,12 @@ import org.spacebar.escape.common.Entity;
  * @author adam
  */
 public class AStarSearch implements Runnable {
-    PriorityBlockingQueue<AStarNode> open = new PriorityBlockingQueue<AStarNode>(
-            11, new AStarPQComparator());
+    PriorityQueue<AStarNode> open = new PriorityQueue<AStarNode>(11,
+            new AStarPQComparator());
 
-    Map<Level, AStarNode> openMap = Collections
-            .synchronizedMap(new HashMap<Level, AStarNode>());
+    Map<Level, AStarNode> openMap = new HashMap<Level, AStarNode>();
 
-    Set<Level> closed = Collections.synchronizedSet(new HashSet<Level>());
+    Set<Level> closed = new HashSet<Level>();
 
     int moveLimit = Integer.MAX_VALUE;
 
@@ -38,21 +36,19 @@ public class AStarSearch implements Runnable {
     }
 
     private void updateOpen(AStarNode a) {
-        synchronized (open) {
-            assert sanityCheck();
-            if (openMap.containsKey(a.level)) {
-                open.removeAll(Collections.singleton(a));
-                assert !open.contains(a);
-                openMap.remove(a.level);
-            }
-            assert sanityCheck();
-
-            open.add(a);
-            openMap.put(a.level, a);
-            assert open.size() == openMap.size();
-            assert openMap.containsKey(new Level(a.level));
-            assert sanityCheck();
+        assert sanityCheck();
+        if (openMap.containsKey(a.level)) {
+            open.removeAll(Collections.singleton(a));
+            assert !open.contains(a);
+            openMap.remove(a.level);
         }
+        assert sanityCheck();
+
+        open.add(a);
+        openMap.put(a.level, a);
+        assert open.size() == openMap.size();
+        assert openMap.containsKey(new Level(a.level));
+        assert sanityCheck();
     }
 
     private AStarNode getFromOpen(AStarNode a) {
@@ -63,47 +59,34 @@ public class AStarSearch implements Runnable {
     }
 
     private AStarNode removeFromOpen() {
-        synchronized (open) {
-            assert sanityCheck();
-            // System.out.println("AStarSearch.removeFromOpen()");
-            assert open.size() == openMap.size();
-            AStarNode a;
-            while (true) {
-                try {
-                    a = open.take();
-                    break;
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+        assert sanityCheck();
+        // System.out.println("AStarSearch.removeFromOpen()");
+        assert open.size() == openMap.size();
+        AStarNode a;
+        a = open.remove();
 
-            assert openMap.containsValue(a);
-            AStarNode result = openMap.remove(a.level);
-            assert !openMap.containsValue(a);
-            assert a.level.equals(result.level);
-            assert open.size() == openMap.size();
-            assert sanityCheck();
-            return a;
-        }
+        assert openMap.containsValue(a);
+        AStarNode result = openMap.remove(a.level);
+        assert !openMap.containsValue(a);
+        assert a.level.equals(result.level);
+        assert open.size() == openMap.size();
+        assert sanityCheck();
+        return a;
     }
 
     private boolean sanityCheck() {
         List<AStarNode> extraOpenItems = new ArrayList<AStarNode>();
         List<AStarNode> extraOpenMapItems = new ArrayList<AStarNode>();
 
-        synchronized (open) {
-            for (AStarNode node : open) {
-                if (!openMap.containsValue(node)) {
-                    extraOpenItems.add(node);
-                }
+        for (AStarNode node : open) {
+            if (!openMap.containsValue(node)) {
+                extraOpenItems.add(node);
             }
         }
 
-        synchronized (openMap) {
-            for (AStarNode node : openMap.values()) {
-                if (!open.contains(node)) {
-                    extraOpenMapItems.add(node);
-                }
+        for (AStarNode node : openMap.values()) {
+            if (!open.contains(node)) {
+                extraOpenMapItems.add(node);
             }
         }
 
@@ -407,25 +390,8 @@ public class AStarSearch implements Runnable {
                 search.initialize();
                 search.setMoveLimit(i);
 
-                Thread threads[] = new Thread[Runtime.getRuntime()
-                        .availableProcessors()];
-                // Thread threads[] = new Thread[1];
-                System.out.println(threads.length + " threads");
-
-                // run
-                for (int j = 0; j < threads.length; j++) {
-                    threads[j] = new Thread(search);
-                    threads[j].start();
-                }
-
-                // wait
-                for (int j = 0; j < threads.length; j++) {
-                    System.out.println("--> waiting for thread " + threads[j]);
-                    threads[j].join();
-                    System.out.println(" <-- " + threads[j].getName()
-                            + " joined");
-                }
-
+                search.run();
+                
                 if (search.solutionFound()) {
                     search.printSolution();
                     break;
@@ -434,8 +400,6 @@ public class AStarSearch implements Runnable {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
