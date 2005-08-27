@@ -37,53 +37,73 @@ public class AStarSearch implements Runnable {
         start = new AStarNode(null, Entity.DIR_NONE, l, 0);
     }
 
-    private synchronized void updateOpen(AStarNode a) {
-        if (openMap.containsKey(a.level)) {
-            open.remove(a);
-        }
+    private void updateOpen(AStarNode a) {
+        synchronized (open) {
+            assert sanityCheck();
+            if (openMap.containsKey(a.level)) {
+                open.removeAll(Collections.singleton(a));
+                assert !open.contains(a);
+                openMap.remove(a.level);
+            }
+            assert sanityCheck();
 
-        open.add(a);
-        openMap.put(a.level, a);
-        assert (open.size() == openMap.size());
-        assert (openMap.containsKey(new Level(a.level)));
+            open.add(a);
+            openMap.put(a.level, a);
+            assert open.size() == openMap.size();
+            assert openMap.containsKey(new Level(a.level));
+            assert sanityCheck();
+        }
     }
 
     private AStarNode getFromOpen(AStarNode a) {
+        assert sanityCheck();
         AStarNode node = openMap.get(a.level);
+        assert sanityCheck();
         return node;
     }
 
-    private synchronized AStarNode removeFromOpen() {
-        // System.out.println("AStarSearch.removeFromOpen()");
-        assert (open.size() == openMap.size());
-        AStarNode a = open.remove();
-        // if (!openMap.containsValue(a)) {
-        // System.out.println(open);
-        // System.out.println(openMap);
-        // System.exit(0);
-        // }
-        assert (openMap.containsValue(a));
-        AStarNode result = openMap.remove(a.level);
-        assert (!openMap.containsValue(a));
-        assert (a.level.equals(result.level));
-        assert (open.size() == openMap.size());
-        sanityCheckOpen();
-        return a;
+    private AStarNode removeFromOpen() {
+        synchronized (open) {
+            assert sanityCheck();
+            // System.out.println("AStarSearch.removeFromOpen()");
+            assert open.size() == openMap.size();
+            AStarNode a;
+            while (true) {
+                try {
+                    a = open.take();
+                    break;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            assert openMap.containsValue(a);
+            AStarNode result = openMap.remove(a.level);
+            assert !openMap.containsValue(a);
+            assert a.level.equals(result.level);
+            assert open.size() == openMap.size();
+            assert sanityCheck();
+            return a;
+        }
     }
 
-    private void sanityCheckOpen() {
+    private boolean sanityCheck() {
         List<AStarNode> extraOpenItems = new ArrayList<AStarNode>();
         List<AStarNode> extraOpenMapItems = new ArrayList<AStarNode>();
-        
-        
-        for (AStarNode node : open) {
-            if (!openMap.containsValue(node)) {
-                extraOpenItems.add(node);
+
+        synchronized (open) {
+            for (AStarNode node : open) {
+                if (!openMap.containsValue(node)) {
+                    extraOpenItems.add(node);
+                }
             }
         }
-        for (AStarNode node : openMap.values()) {
-            if (!open.contains(node)) {
-                extraOpenMapItems.add(node);
+
+        synchronized (openMap) {
+            for (AStarNode node : openMap.values()) {
+                if (!open.contains(node)) {
+                    extraOpenMapItems.add(node);
+                }
             }
         }
 
@@ -97,9 +117,7 @@ public class AStarSearch implements Runnable {
             bad = true;
         }
 
-        if (bad) {
-            throw new RuntimeException("Sanity check failed");
-        }
+        return !bad;
     }
 
     int h(Level l) {
@@ -235,7 +253,7 @@ public class AStarSearch implements Runnable {
     public void run() {
         long time = 0;
         while (!open.isEmpty()) {
-            if (System.currentTimeMillis() - time > 0) {
+            if (System.currentTimeMillis() - time > 1000) {
                 System.out.println("Open nodes: " + open.size()
                         + ", closed nodes: " + closed.size());
                 // System.out.println("best h: " + bestH);
@@ -255,7 +273,11 @@ public class AStarSearch implements Runnable {
                 List<AStarNode> children = generateChildren(a);
                 for (AStarNode node : children) {
                     AStarNode oldNode = getFromOpen(node);
-                    if (oldNode == null || node.g < oldNode.g) {
+                    if (oldNode == null) {
+                        updateOpen(node);
+                    } else if (node.g < oldNode.g) {
+                        assert node.equals(oldNode);
+                        assert node.f < oldNode.f;
                         updateOpen(node);
                     }
                 }
@@ -266,17 +288,18 @@ public class AStarSearch implements Runnable {
     }
 
     public void initialize() {
+        assert sanityCheck();
         // init lists
         open.clear();
         openMap.clear();
         closed.clear();
+        assert sanityCheck();
 
         // add to open list
         updateOpen(start);
 
         // init
         bestH = Integer.MAX_VALUE;
-
     }
 
     private List<Integer> constructSolution(AStarNode a) {
@@ -379,14 +402,14 @@ public class AStarSearch implements Runnable {
             l.print(System.out);
 
             AStarSearch search = new AStarSearch(l);
-            for (int i = 1000; i <= 1000; i += 10) {
+            for (int i = 10; i <= 10000; i += 10) {
                 System.out.print("trying in " + i + " moves, ");
                 search.initialize();
                 search.setMoveLimit(i);
 
-                // Thread threads[] = new Thread[Runtime.getRuntime()
-                // .availableProcessors()];
-                Thread threads[] = new Thread[1];
+                Thread threads[] = new Thread[Runtime.getRuntime()
+                        .availableProcessors()];
+                // Thread threads[] = new Thread[1];
                 System.out.println(threads.length + " threads");
 
                 // run
