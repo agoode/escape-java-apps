@@ -20,7 +20,7 @@ public class AStarSearch implements Runnable {
 
     Map<Level, AStarNode> openMap = new HashMap<Level, AStarNode>();
 
-    Set<AStarNode> closed = new HashSet<AStarNode>();
+    Set<Level> closed = new HashSet<Level>();
 
     final int moveLimit;
 
@@ -56,6 +56,11 @@ public class AStarSearch implements Runnable {
     int h(AStarNode node) {
         // default heuristic -- override
         Level l = node.level;
+        return manhattan(l);
+    }
+
+    private int manhattan(Level l) {
+        
         return 0;
     }
 
@@ -78,9 +83,11 @@ public class AStarSearch implements Runnable {
     protected void testChild(AStarNode node, List<AStarNode> l, int i, Level lev) {
         if (lev.move(i)) {
             // System.out.println(" child");
-            l.add(new AStarNode(node, i, lev, node.g + 1)); // cost
-            // of
-            // move is 1
+            if (!closed.contains(lev)) {
+                l.add(new AStarNode(node, i, lev, node.g + 1)); // cost
+                // of
+                // move is 1
+            }
         }
     }
 
@@ -154,7 +161,7 @@ public class AStarSearch implements Runnable {
                 return;
             } else {
                 // System.out.println("adding to closed list");
-                closed.add(a);
+                closed.add(a.level);
                 List<AStarNode> children = generateChildren(a);
                 for (AStarNode node : children) {
                     AStarNode oldNode = getFromOpen(node);
@@ -199,9 +206,9 @@ public class AStarSearch implements Runnable {
         System.out.println(moveCount + Entity.directionToString(lastMove));
     }
 
-    static int minSpheres = Integer.MAX_VALUE;
+    int minSpheres = Integer.MAX_VALUE;
 
-    static int countSpheres(Level l) {
+    int countSpheres(Level l) {
         // number of spheres
         int count = 0;
         for (int i = 0; i < l.getWidth() * l.getHeight(); i++) {
