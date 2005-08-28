@@ -3,10 +3,15 @@
  */
 package org.spacebar.escape.j2se;
 
+import java.awt.AWTException;
+import java.awt.Robot;
+import java.awt.event.KeyEvent;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
+
+import javax.swing.JOptionPane;
 
 import org.spacebar.escape.common.BitInputStream;
 import org.spacebar.escape.common.Entity;
@@ -124,12 +129,12 @@ public class AStarSearch implements Runnable {
                 // || t == Level.T_BSTEEL || t == Level.T_BUTTON
                 // || t == Level.T_GOLD || t == Level.T_GREEN
                 // || t == Level.T_GREY || t == Level.T_GSPHERE
-                // || t == Level.T_GSTEEL || t == Level.T_HEARTFRAMER
+                // || t == Level.T_GSTEEL
                 // || t == Level.T_ON || t == Level.T_PANEL
                 // || t == Level.T_RED || t == Level.T_RSPHERE
                 // || t == Level.T_RSTEEL || t == Level.T_SPHERE
                 // || t == Level.T_TRANSPONDER || t == Level.T_TRANSPORT) {
-                if (t == Level.T_EXIT) {
+                if (t == Level.T_EXIT || t == Level.T_HEARTFRAMER) {
                     int d = Math.abs(x - px) + Math.abs(y - py);
                     dist = Math.min(dist, d);
                     found = true;
@@ -273,8 +278,8 @@ public class AStarSearch implements Runnable {
     public void initialize() {
         assert sanityCheck();
         // init lists
-        open.clear();
-        openMap.clear();
+        // open.clear();
+        // openMap.clear();
         closed.clear();
         assert sanityCheck();
 
@@ -385,15 +390,16 @@ public class AStarSearch implements Runnable {
             l.print(System.out);
 
             AStarSearch search = new AStarSearch(l);
-            for (int i = 10; i <= 10000; i += 10) {
+            for (int i = 10; i <= 10000; i += 5) {
                 System.out.print("trying in " + i + " moves, ");
                 search.initialize();
                 search.setMoveLimit(i);
 
                 search.run();
-                
+
                 if (search.solutionFound()) {
                     search.printSolution();
+                    robot(search.solution);
                     break;
                 }
             }
@@ -401,6 +407,62 @@ public class AStarSearch implements Runnable {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private static void robot(List<Integer> s) {
+        String options[] = { "Type The Solution", "Exit" };
+        int result = JOptionPane.showOptionDialog(null,
+                "Do you want to run the solution in 5 seconds?",
+                "Solution Found", JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+
+        if (result == JOptionPane.YES_OPTION) {
+            Robot r = null;
+            try {
+                r = new Robot();
+            } catch (AWTException e) {
+                e.printStackTrace();
+                return;
+            }
+
+            r.setAutoDelay(40);
+
+            System.out.print("Running in 5 seconds...");
+            System.out.flush();
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println();
+            
+            for (int dir : s) {
+                System.out.print(Entity.directionToString(dir) + " ");
+                System.out.flush();
+
+                int k = directionToKey(dir);
+                r.keyPress(k);
+                r.keyRelease(k);
+            }
+            System.out.println();
+        }
+    }
+
+    private static int directionToKey(int dir) {
+        switch (dir) {
+        case Entity.DIR_UP:
+            return KeyEvent.VK_UP;
+        case Entity.DIR_DOWN:
+            return KeyEvent.VK_DOWN;
+        case Entity.DIR_LEFT:
+            return KeyEvent.VK_LEFT;
+        case Entity.DIR_RIGHT:
+            return KeyEvent.VK_RIGHT;
+
+        default:
+            assert false;
+            return 0;
         }
     }
 }
