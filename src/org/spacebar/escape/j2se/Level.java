@@ -1,10 +1,15 @@
 package org.spacebar.escape.j2se;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 import org.spacebar.escape.common.BitInputStream;
 import org.spacebar.escape.common.Bot;
 import org.spacebar.escape.common.hash.FNV32;
+import org.spacebar.escape.common.hash.MD5;
 
 public class Level extends org.spacebar.escape.common.Level {
 
@@ -31,6 +36,8 @@ public class Level extends org.spacebar.escape.common.Level {
     	hash.fnv32(player.getY());
     
     	// tiles, oTiles
+        hash.fnv32(width);
+        hash.fnv32(height);
     	for (int i = 0; i < tiles.length; i++) {
     		hash.fnv32(tiles[i]);
             hash.fnv32(oTiles[i]);
@@ -39,6 +46,7 @@ public class Level extends org.spacebar.escape.common.Level {
     	}
     
     	// bots
+        hash.fnv32(bots.length);
     	for (int i = 0; i < bots.length; i++) {
     		Bot b = bots[i];
     		hash.fnv32(b.getBotType());
@@ -105,5 +113,43 @@ public class Level extends org.spacebar.escape.common.Level {
     	return "[\"" + title + "\" by " + author + " (" + width + "x" + height
     			+ ")" + " player: (" + this.player.getX() + ","
     			+ this.player.getY() + ")]";
+    }
+
+    public MD5 MD5() {
+        try {
+            MessageDigest m = MessageDigest.getInstance("MD5");
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            DataOutputStream d = new DataOutputStream(baos);
+            // player
+            d.writeInt(player.getX());
+            d.writeInt(player.getY());
+        
+            // tiles, oTiles
+            d.writeInt(width);
+            d.writeInt(height);
+            for (int i = 0; i < tiles.length; i++) {
+                d.writeInt(tiles[i]);
+                d.writeInt(oTiles[i]);
+                d.writeInt(flags[i]);
+                d.writeInt(dests[i]);
+            }
+        
+            // bots
+            d.writeInt(bots.length);
+            for (int i = 0; i < bots.length; i++) {
+                Bot b = bots[i];
+                d.writeInt(b.getBotType());
+                d.writeInt(b.getX());
+                d.writeInt(b.getY());
+            }
+            
+            d.close();
+            return new MD5(m.digest(baos.toByteArray()));
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

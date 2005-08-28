@@ -15,6 +15,7 @@ import javax.swing.JOptionPane;
 
 import org.spacebar.escape.common.BitInputStream;
 import org.spacebar.escape.common.Entity;
+import org.spacebar.escape.common.hash.MD5;
 
 /**
  * @author adam
@@ -25,7 +26,7 @@ public class AStarSearch implements Runnable {
 
     Map<Level, AStarNode> openMap = new HashMap<Level, AStarNode>();
 
-    Set<Level> closed = new HashSet<Level>();
+    Set<MD5> closed = new HashSet<MD5>();
 
     int moveLimit = Integer.MAX_VALUE;
 
@@ -35,9 +36,74 @@ public class AStarSearch implements Runnable {
         moveLimit = moves;
     }
 
+    final int manhattanMap[][];
+
     public AStarSearch(Level l) {
         // construct initial node
         start = new AStarNode(null, Entity.DIR_NONE, l, 0);
+        manhattanMap = new int[start.level.getWidth()][start.level.getHeight()];
+        computeManhattanMap();
+    }
+
+    private void computeManhattanMap() {
+        int mmap[][] = manhattanMap;
+        Level l = start.level;
+        int w = l.getWidth();
+        int h = l.getHeight();
+
+        // initialize
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                mmap[x][y] = Integer.MAX_VALUE;
+            }
+        }
+
+        // find each exit item
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                if (isUsefulTile(l, x, y)) {
+                    mmap[x][y] = 0;
+                    doBrushFire(mmap, x, y, 1);
+                }
+            }
+        }
+
+        printMmap(mmap);
+    }
+
+    // !
+    private void doBrushFire(int maze[][], int x, int y, int depth) {
+        if (y < maze[0].length - 1 && depth < maze[x][y + 1]) {
+            maze[x][y + 1] = depth;
+            doBrushFire(maze, x, y + 1, depth + 1);
+        }
+        if (x > 0 && depth < maze[x - 1][y]) {
+            maze[x - 1][y] = depth;
+            doBrushFire(maze, x - 1, y, depth + 1);
+        }
+        if (y > 0 && depth < maze[x][y - 1]) {
+            maze[x][y - 1] = depth;
+            doBrushFire(maze, x, y - 1, depth + 1);
+        }
+        if (x < maze.length - 1 && depth < maze[x + 1][y]) {
+            maze[x + 1][y] = depth;
+            doBrushFire(maze, x + 1, y, depth + 1);
+        }
+    }
+
+    private void printMmap(int[][] mmap) {
+        // print
+        for (int x = 0; x < mmap[0].length; x++) {
+            for (int y = 0; y < mmap.length; y++) {
+                int val = mmap[y][x];
+                String s = Integer.toString(val);
+                System.out.print(s + " ");
+                if (s.length() == 1) {
+                    System.out.print(" ");
+                }
+            }
+            System.out.println();
+        }
     }
 
     private void updateOpen(AStarNode a) {
@@ -116,32 +182,14 @@ public class AStarSearch implements Runnable {
     }
 
     private int manhattan(Level l) {
-        int dist = Integer.MAX_VALUE;
-        boolean found = false;
+        return manhattanMap[l.getPlayerX()][l.getPlayerY()];
+    }
 
-        final int px = l.getPlayerX();
-        final int py = l.getPlayerY();
-        for (int y = 0; y < l.getHeight(); y++) {
-            for (int x = 0; x < l.getWidth(); x++) {
-                int t = l.tileAt(x, y);
-                // if (t == Level.T_EXIT || t == Level.T_0 || t == Level.T_1
-                // || t == Level.T_BROKEN || t == Level.T_BSPHERE
-                // || t == Level.T_BSTEEL || t == Level.T_BUTTON
-                // || t == Level.T_GOLD || t == Level.T_GREEN
-                // || t == Level.T_GREY || t == Level.T_GSPHERE
-                // || t == Level.T_GSTEEL
-                // || t == Level.T_ON || t == Level.T_PANEL
-                // || t == Level.T_RED || t == Level.T_RSPHERE
-                // || t == Level.T_RSTEEL || t == Level.T_SPHERE
-                // || t == Level.T_TRANSPONDER || t == Level.T_TRANSPORT) {
-                if (t == Level.T_EXIT || t == Level.T_HEARTFRAMER) {
-                    int d = Math.abs(x - px) + Math.abs(y - py);
-                    dist = Math.min(dist, d);
-                    found = true;
-                }
-            }
-        }
-        return found ? dist : 0;
+    private boolean isUsefulTile(Level l, int x, int y) {
+        int t = l.tileAt(x, y);
+        int o = l.oTileAt(x, y);
+        return t == Level.T_EXIT || t == Level.T_SLEEPINGDOOR
+                || o == Level.T_EXIT || o == Level.T_SLEEPINGDOOR;
     }
 
     List<AStarNode> generateChildren(AStarNode node) {
@@ -164,7 +212,7 @@ public class AStarSearch implements Runnable {
     protected void testChild(AStarNode node, List<AStarNode> l, int i, Level lev) {
         if (lev.move(i)) {
             // System.out.println(" child");
-            if (!closed.contains(lev)) {
+            if (!closed.contains(lev.MD5())) {
                 l.add(new AStarNode(node, i, lev, node.g + 1)); // cost
                 // of
                 // move is 1
@@ -240,11 +288,18 @@ public class AStarSearch implements Runnable {
 
     public void run() {
         long time = 0;
+        int prevOpen = 0;
+        int prevClosed = 0;
         while (!open.isEmpty()) {
             if (System.currentTimeMillis() - time > 1000) {
-                System.out.println("Open nodes: " + open.size()
-                        + ", closed nodes: " + closed.size());
+                int os = openMap.size();
+                int cs = closed.size();
+                System.out.println("Open nodes: " + os + ", closed nodes: "
+                        + cs + "   (deltas: " + (os - prevOpen) + ", "
+                        + (cs - prevClosed) + ")");
                 // System.out.println("best h: " + bestH);
+                prevOpen = os;
+                prevClosed = cs;
                 time = System.currentTimeMillis();
             }
             AStarNode a = removeFromOpen();
@@ -257,8 +312,9 @@ public class AStarSearch implements Runnable {
                 return;
             } else {
                 // System.out.println("adding to closed list");
-                closed.add(a.level);
+                closed.add(a.level.MD5());
                 List<AStarNode> children = generateChildren(a);
+                Collections.shuffle(children);
                 for (AStarNode node : children) {
                     AStarNode oldNode = getFromOpen(node);
                     if (oldNode == null) {
@@ -349,6 +405,11 @@ public class AStarSearch implements Runnable {
             Level l = new Level(
                     new BitInputStream(new FileInputStream(args[0])));
 
+            int startingMoves = 2;
+            if (args.length > 1) {
+                startingMoves = Integer.parseInt(args[1]);
+            }
+
             AStarSearch search2 = new AStarSearch(l) {
                 @Override
                 public int h(Level l) {
@@ -390,7 +451,7 @@ public class AStarSearch implements Runnable {
             l.print(System.out);
 
             AStarSearch search = new AStarSearch(l);
-            for (int i = 10; i <= 10000; i += 5) {
+            for (int i = startingMoves; i <= 65536; i *= 2) {
                 System.out.print("trying in " + i + " moves, ");
                 search.initialize();
                 search.setMoveLimit(i);
@@ -411,9 +472,10 @@ public class AStarSearch implements Runnable {
     }
 
     private static void robot(List<Integer> s) {
+        int time = 2;
         String options[] = { "Type The Solution", "Exit" };
         int result = JOptionPane.showOptionDialog(null,
-                "Do you want to run the solution in 5 seconds?",
+                "Do you want to run the solution in " + time + " seconds?",
                 "Solution Found", JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 
@@ -428,15 +490,15 @@ public class AStarSearch implements Runnable {
 
             r.setAutoDelay(40);
 
-            System.out.print("Running in 5 seconds...");
+            System.out.print("Running in " + time + " seconds...");
             System.out.flush();
             try {
-                Thread.sleep(5000);
+                Thread.sleep(time * 1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             System.out.println();
-            
+
             for (int dir : s) {
                 System.out.print(Entity.directionToString(dir) + " ");
                 System.out.flush();
