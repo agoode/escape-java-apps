@@ -26,7 +26,8 @@ public class AStarSearch implements Runnable {
 
     Map<Level, AStarNode> openMap = new HashMap<Level, AStarNode>();
 
-    Set<MD5> closed = new HashSet<MD5>();
+    // Set<MD5> closed = new HashSet<MD5>();
+    Set<Level> closed = new HashSet<Level>();
 
     int moveLimit = Integer.MAX_VALUE;
 
@@ -68,7 +69,7 @@ public class AStarSearch implements Runnable {
             }
         }
 
-//        printMmap(mmap);
+        printMmap(mmap);
     }
 
     // !
@@ -149,9 +150,19 @@ public class AStarSearch implements Runnable {
         List<AStarNode> extraOpenItems = new ArrayList<AStarNode>();
         List<AStarNode> extraOpenMapItems = new ArrayList<AStarNode>();
 
+        boolean bad = false;
+
+        AStarNode head = open.peek();
+        int bestF = head == null ? 0 : head.f;
+
         for (AStarNode node : open) {
             if (!openMap.containsValue(node)) {
                 extraOpenItems.add(node);
+            }
+            if (node.f > bestF) {
+                System.out.println("head node has non-best f: " + node.f
+                        + ", best f: " + bestF);
+                bad = true;
             }
         }
 
@@ -161,7 +172,6 @@ public class AStarSearch implements Runnable {
             }
         }
 
-        boolean bad = false;
         if (!extraOpenItems.isEmpty()) {
             System.out.println("extra items in open: " + extraOpenItems);
             bad = true;
@@ -177,7 +187,6 @@ public class AStarSearch implements Runnable {
     int h(Level l) {
         // default heuristic -- override
         int m = manhattan(l);
-        bestH = Math.min(bestH, m);
         return m;
     }
 
@@ -197,7 +206,8 @@ public class AStarSearch implements Runnable {
         List<AStarNode> l = new ArrayList<AStarNode>();
         Level level = node.level;
 
-        if (node.g == 0 || (!level.isDead() && !level.isWon()) && node.g < moveLimit) {
+        if (node.g == 0 || (!level.isDead() && !level.isWon())
+                && node.g < moveLimit) {
             for (int i = Entity.FIRST_DIR; i <= Entity.LAST_DIR; i++) {
                 Level lev = new Level(level);
                 testChild(node, l, i, lev);
@@ -212,7 +222,8 @@ public class AStarSearch implements Runnable {
     protected void testChild(AStarNode node, List<AStarNode> l, int i, Level lev) {
         if (lev.move(i)) {
             // System.out.println(" child");
-            if (!closed.contains(lev.MD5())) {
+            // if (!closed.contains(lev.MD5())) {
+            if (!closed.contains(lev)) {
                 l.add(new AStarNode(node, i, lev, node.g + 1)); // cost
                 // of
                 // move is 1
@@ -282,8 +293,6 @@ public class AStarSearch implements Runnable {
         }
     }
 
-    int bestH;
-
     private List<Integer> solution;
 
     public void run() {
@@ -312,7 +321,8 @@ public class AStarSearch implements Runnable {
                 return;
             } else {
                 // System.out.println("adding to closed list");
-                closed.add(a.level.MD5());
+                // closed.add(a.level.MD5());
+                closed.add(a.level);
                 List<AStarNode> children = generateChildren(a);
                 Collections.shuffle(children);
                 for (AStarNode node : children) {
@@ -341,9 +351,6 @@ public class AStarSearch implements Runnable {
 
         // add to open list
         updateOpen(start);
-
-        // init
-        bestH = Integer.MAX_VALUE;
     }
 
     private List<Integer> constructSolution(AStarNode a) {
@@ -393,9 +400,6 @@ public class AStarSearch implements Runnable {
             if (l.tileAt(i) == Level.T_BSPHERE) {
                 count++;
             }
-        }
-        if (count < bestH) {
-            bestH = count;
         }
         return count;
     }
@@ -476,9 +480,9 @@ public class AStarSearch implements Runnable {
         int time = 2;
         String options[] = { "Type The Solution", "Exit" };
         int result = JOptionPane.showOptionDialog(null,
-                "Do you want to run the solution?",
-                "Solution Found", JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+                "Do you want to run the solution?", "Solution Found",
+                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+                options, options[0]);
 
         if (result == JOptionPane.YES_OPTION) {
             Robot r = null;
