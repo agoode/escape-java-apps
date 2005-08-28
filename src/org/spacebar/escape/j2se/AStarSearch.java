@@ -197,7 +197,7 @@ public class AStarSearch implements Runnable {
         List<AStarNode> l = new ArrayList<AStarNode>();
         Level level = node.level;
 
-        if (!level.isDead() && !level.isWon() && node.g < moveLimit) {
+        if (node.g == 0 || (!level.isDead() && !level.isWon()) && node.g < moveLimit) {
             for (int i = Entity.FIRST_DIR; i <= Entity.LAST_DIR; i++) {
                 Level lev = new Level(level);
                 testChild(node, l, i, lev);
@@ -261,7 +261,7 @@ public class AStarSearch implements Runnable {
         }
 
         boolean isGoal() {
-            boolean result = !level.isDead() && level.isWon();
+            boolean result = !level.isDead() && level.isWon() && g > 0;
             if (result) {
                 System.out.println("GOAL");
             }
@@ -459,6 +459,7 @@ public class AStarSearch implements Runnable {
                 search.run();
 
                 if (search.solutionFound()) {
+                    System.out.println(l);
                     search.printSolution();
                     robot(search.solution);
                     break;
