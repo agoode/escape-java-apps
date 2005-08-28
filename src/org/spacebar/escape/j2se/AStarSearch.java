@@ -40,8 +40,8 @@ public class AStarSearch implements Runnable {
 
     public AStarSearch(Level l) {
         // construct initial node
+        manhattanMap = new int[l.getWidth()][l.getHeight()];
         start = new AStarNode(null, Entity.DIR_NONE, l, 0);
-        manhattanMap = new int[start.level.getWidth()][start.level.getHeight()];
         computeManhattanMap();
     }
 
@@ -68,7 +68,7 @@ public class AStarSearch implements Runnable {
             }
         }
 
-        printMmap(mmap);
+//        printMmap(mmap);
     }
 
     // !
@@ -475,7 +475,7 @@ public class AStarSearch implements Runnable {
         int time = 2;
         String options[] = { "Type The Solution", "Exit" };
         int result = JOptionPane.showOptionDialog(null,
-                "Do you want to run the solution in " + time + " seconds?",
+                "Do you want to run the solution?",
                 "Solution Found", JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 
