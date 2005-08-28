@@ -15,7 +15,6 @@ import javax.swing.JOptionPane;
 
 import org.spacebar.escape.common.BitInputStream;
 import org.spacebar.escape.common.Entity;
-import org.spacebar.escape.common.hash.MD5;
 
 /**
  * @author adam
@@ -31,7 +30,7 @@ public class AStarSearch implements Runnable {
 
     int moveLimit = Integer.MAX_VALUE;
 
-    private AStarNode start;
+    final private AStarNode start;
 
     public void setMoveLimit(int moves) {
         moveLimit = moves;
@@ -42,13 +41,21 @@ public class AStarSearch implements Runnable {
     public AStarSearch(Level l) {
         // construct initial node
         manhattanMap = new int[l.getWidth()][l.getHeight()];
+        computeManhattanMap(l);
         start = new AStarNode(null, Entity.DIR_NONE, l, 0);
-        computeManhattanMap();
     }
 
-    private void computeManhattanMap() {
+    private void computeManhattanMap(Level l) {
+        // get number of hugbots, they can push us closer
+        int hugbots = 0;
+        for (int i = 0; i < l.getBotCount(); i++) {
+            int bot = l.getBotType(i);
+            if (bot == Entity.B_HUGBOT || bot == Entity.B_HUGBOT_ASLEEP) {
+                hugbots++;
+            }
+        }
+        
         int mmap[][] = manhattanMap;
-        Level l = start.level;
         int w = l.getWidth();
         int h = l.getHeight();
 
@@ -64,39 +71,40 @@ public class AStarSearch implements Runnable {
             for (int x = 0; x < w; x++) {
                 if (isUsefulTile(l, x, y)) {
                     mmap[x][y] = 0;
-                    doBrushFire(mmap, x, y, 1);
+                    doBrushFire(mmap, x, y, 1, hugbots);
                 }
             }
         }
 
-        printMmap(mmap);
+        printMmap();
     }
 
     // !
-    private void doBrushFire(int maze[][], int x, int y, int depth) {
-        if (y < maze[0].length - 1 && depth < maze[x][y + 1]) {
-            maze[x][y + 1] = depth;
-            doBrushFire(maze, x, y + 1, depth + 1);
+    static private void doBrushFire(int maze[][], int x, int y, int depth, int divisor) {
+        int val = depth / divisor;
+        if (y < maze[0].length - 1 && val < maze[x][y + 1]) {
+            maze[x][y + 1] = val;
+            doBrushFire(maze, x, y + 1, depth + 1, divisor);
         }
-        if (x > 0 && depth < maze[x - 1][y]) {
-            maze[x - 1][y] = depth;
-            doBrushFire(maze, x - 1, y, depth + 1);
+        if (x > 0 && val < maze[x - 1][y]) {
+            maze[x - 1][y] = val;
+            doBrushFire(maze, x - 1, y, depth + 1, divisor);
         }
-        if (y > 0 && depth < maze[x][y - 1]) {
-            maze[x][y - 1] = depth;
-            doBrushFire(maze, x, y - 1, depth + 1);
+        if (y > 0 && val < maze[x][y - 1]) {
+            maze[x][y - 1] = val;
+            doBrushFire(maze, x, y - 1, depth + 1, divisor);
         }
-        if (x < maze.length - 1 && depth < maze[x + 1][y]) {
-            maze[x + 1][y] = depth;
-            doBrushFire(maze, x + 1, y, depth + 1);
+        if (x < maze.length - 1 && val < maze[x + 1][y]) {
+            maze[x + 1][y] = val;
+            doBrushFire(maze, x + 1, y, depth + 1, divisor);
         }
     }
 
-    private void printMmap(int[][] mmap) {
+    public void printMmap() {
         // print
-        for (int x = 0; x < mmap[0].length; x++) {
-            for (int y = 0; y < mmap.length; y++) {
-                int val = mmap[y][x];
+        for (int x = 0; x < manhattanMap[0].length; x++) {
+            for (int y = 0; y < manhattanMap.length; y++) {
+                int val = manhattanMap[y][x];
                 String s = Integer.toString(val);
                 System.out.print(s + " ");
                 if (s.length() == 1) {
@@ -109,10 +117,15 @@ public class AStarSearch implements Runnable {
 
     private void updateOpen(AStarNode a) {
         assert sanityCheck();
+        assert a.g + h(a.level) <= a.f : a.f + " not <= " + a.g + " + "
+                + h(a.level);
         if (openMap.containsKey(a.level)) {
             open.removeAll(Collections.singleton(a));
+            // open.remove(a);
             assert !open.contains(a);
-            openMap.remove(a.level);
+            AStarNode node = openMap.remove(a.level);
+            System.out.println("old node: " + node);
+            System.out.println("new node: " + a);
         }
         assert sanityCheck();
 
@@ -124,6 +137,8 @@ public class AStarSearch implements Runnable {
     }
 
     private AStarNode getFromOpen(AStarNode a) {
+        assert a.g + h(a.level) <= a.f : a.f + " not <= " + a.g + " + "
+                + h(a.level);
         assert sanityCheck();
         AStarNode node = openMap.get(a.level);
         assert sanityCheck();
@@ -143,6 +158,8 @@ public class AStarSearch implements Runnable {
         assert a.level.equals(result.level);
         assert open.size() == openMap.size();
         assert sanityCheck();
+        assert a.g + h(a.level) <= a.f : a.f + " not <= " + a.g + " + "
+                + h(a.level);
         return a;
     }
 
@@ -153,15 +170,16 @@ public class AStarSearch implements Runnable {
         boolean bad = false;
 
         AStarNode head = open.peek();
-        int bestF = head == null ? 0 : head.f;
+        int headF = head == null ? 0 : head.f;
+        // System.out.println("head node f: " + headF);
 
         for (AStarNode node : open) {
             if (!openMap.containsValue(node)) {
                 extraOpenItems.add(node);
             }
-            if (node.f > bestF) {
-                System.out.println("head node has non-best f: " + node.f
-                        + ", best f: " + bestF);
+            if (headF > node.f) {
+                System.out.println("head node has non-best f: " + headF
+                        + " (better f: " + node.f + ")");
                 bad = true;
             }
         }
@@ -224,7 +242,7 @@ public class AStarSearch implements Runnable {
             // System.out.println(" child");
             // if (!closed.contains(lev.MD5())) {
             if (!closed.contains(lev)) {
-                l.add(new AStarNode(node, i, lev, node.g + 1)); // cost
+                l.add(new AStarNode(node, i, lev, 1)); // cost
                 // of
                 // move is 1
                 // lev.print(System.out);
@@ -259,16 +277,29 @@ public class AStarSearch implements Runnable {
 
         @Override
         public String toString() {
-            return "(f: " + f + "," + level.toString() + ")";
+            return "(f: " + f + ", g: " + g + ", h: " + h(level) + ", "
+                    + level.toString() + ")";
         }
 
-        AStarNode(AStarNode parent, int dir, Level l, int g) {
+        AStarNode(AStarNode parent, int dir, Level l, int cost) {
             this.parent = parent;
             dirToGetHere = dir;
             this.level = l;
-            this.g = g;
-            int parentF = parent == null ? 0 : parent.f;
-            f = Math.max(parentF, g + h(l)); // pathmax!
+
+            final int parentF;
+            if (parent == null) {
+                this.g = cost;
+                parentF = 0;
+            } else {
+                this.g = parent.g + cost;
+                parentF = parent.f;
+            }
+
+            final int thisF = g + h(l);
+            f = thisF;
+            if (parentF > thisF) {
+                assert false : "pathmax active! " + parent + " " + this;
+            }
         }
 
         boolean isGoal() {
@@ -324,14 +355,13 @@ public class AStarSearch implements Runnable {
                 // closed.add(a.level.MD5());
                 closed.add(a.level);
                 List<AStarNode> children = generateChildren(a);
-                Collections.shuffle(children);
+                // Collections.shuffle(children);
                 for (AStarNode node : children) {
                     AStarNode oldNode = getFromOpen(node);
                     if (oldNode == null) {
                         updateOpen(node);
                     } else if (node.g < oldNode.g) {
                         assert node.equals(oldNode);
-                        assert node.f < oldNode.f;
                         updateOpen(node);
                     }
                 }
@@ -344,13 +374,15 @@ public class AStarSearch implements Runnable {
     public void initialize() {
         assert sanityCheck();
         // init lists
-        // open.clear();
-        // openMap.clear();
+        open.clear();
+        openMap.clear();
         closed.clear();
         assert sanityCheck();
 
         // add to open list
         updateOpen(start);
+        assert start.g + h(start.level) == start.f : start.f + " != " + start.g
+                + " + " + h(start.level);
     }
 
     private List<Integer> constructSolution(AStarNode a) {
