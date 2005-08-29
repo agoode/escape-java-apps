@@ -186,4 +186,10 @@ public class Level extends org.spacebar.escape.common.Level {
     
         return hash.hval;
     }
+    
+//    @Override
+//    protected void finalize() throws Throwable {
+//        System.out.println("bye bye " + this);
+//        super.finalize();
+//    }
 }

@@ -25,8 +25,9 @@ public class AStarSearch implements Runnable {
 
     Map<Level, AStarNode> openMap = new HashMap<Level, AStarNode>();
 
-    Set<Long> closed = new HashSet<Long>();
-    
+    // Set<Long> closed = new HashSet<Long>();
+    Set<Level> closed = new HashSet<Level>();
+
     WeakHashMap<Object, Level> levels = new WeakHashMap<Object, Level>();
 
     // Set<Level> closed = new HashSet<Level>();
@@ -170,11 +171,11 @@ public class AStarSearch implements Runnable {
             // rebuild
             System.out.print(".");
             System.out.flush();
-            
+
             l = constructLevel(a);
             levels.put(a.key, l);
         }
-        
+
         return l;
     }
 
@@ -295,8 +296,8 @@ public class AStarSearch implements Runnable {
     protected void testChild(AStarNode node, List<AStarNode> l, int i, Level lev) {
         if (lev.move(i)) {
             // System.out.println(" child");
-            if (!closed.contains(lev.quickHash())) {
-                // if (!closed.contains(lev)) {
+            // if (!closed.contains(lev.quickHash())) {
+            if (!closed.contains(lev)) {
                 l.add(new AStarNode(node, i, lev, 1)); // cost
                 // of
                 // move is 1
@@ -315,9 +316,9 @@ public class AStarSearch implements Runnable {
         final int g;
 
         final int hash;
-        
+
         final Object key = new Object();
-        
+
         @Override
         public int hashCode() {
             return hash;
@@ -345,9 +346,9 @@ public class AStarSearch implements Runnable {
             this.parent = parent;
             dirToGetHere = dir;
             hash = l.hashCode();
-            
+
             levels.put(key, l);
-            
+
             final int parentF;
             if (parent == null) {
                 this.g = cost;
@@ -413,10 +414,10 @@ public class AStarSearch implements Runnable {
             } else {
                 // System.out.println("adding to closed list");
                 Level level = getLevel(a);
-                closed.add(level.quickHash());
-                // closed.add(a.level);
+                // closed.add(level.quickHash());
+                closed.add(level);
                 List<AStarNode> children = generateChildren(a);
-                
+
                 Collections.shuffle(children);
                 for (AStarNode node : children) {
                     AStarNode oldNode = getFromOpen(node);
