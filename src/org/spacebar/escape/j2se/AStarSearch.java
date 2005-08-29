@@ -54,7 +54,7 @@ public class AStarSearch implements Runnable {
                 hugbots++;
             }
         }
-        
+
         int mmap[][] = manhattanMap;
         int w = l.getWidth();
         int h = l.getHeight();
@@ -69,18 +69,39 @@ public class AStarSearch implements Runnable {
         // find each exit item
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
-                if (isUsefulTile(l, x, y)) {
+                if (isPossibleExit(l, x, y)) {
                     mmap[x][y] = 0;
-                    doBrushFire(mmap, x, y, 1, hugbots);
+                    doBrushFire(mmap, x, y, 1, hugbots + 1);
                 }
             }
         }
 
-        printMmap();
+        // account for transporters
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                if (isPossibleTransport(l, x, y)) {
+                    int dest = l.destAt(x, y);
+                    int xd = dest % l.getWidth();
+                    int yd = dest / l.getWidth();
+
+                    mmap[x][y] = mmap[xd][yd];
+                    doBrushFire(mmap, x, y, 1, hugbots + 1);
+                }
+            }
+        }
+
+//        printMmap();
+    }
+
+    private boolean isPossibleTransport(Level l, int x, int y) {
+        int t = l.tileAt(x, y);
+        int o = l.oTileAt(x, y);
+        return t == Level.T_TRANSPORT || o == Level.T_TRANSPORT;
     }
 
     // !
-    static private void doBrushFire(int maze[][], int x, int y, int depth, int divisor) {
+    static private void doBrushFire(int maze[][], int x, int y, int depth,
+            int divisor) {
         int val = depth / divisor;
         if (y < maze[0].length - 1 && val < maze[x][y + 1]) {
             maze[x][y + 1] = val;
@@ -123,9 +144,9 @@ public class AStarSearch implements Runnable {
             open.removeAll(Collections.singleton(a));
             // open.remove(a);
             assert !open.contains(a);
-            AStarNode node = openMap.remove(a.level);
-            System.out.println("old node: " + node);
-            System.out.println("new node: " + a);
+            openMap.remove(a.level);
+            // System.out.println("old node: " + node);
+            // System.out.println("new node: " + a);
         }
         assert sanityCheck();
 
@@ -212,7 +233,7 @@ public class AStarSearch implements Runnable {
         return manhattanMap[l.getPlayerX()][l.getPlayerY()];
     }
 
-    private boolean isUsefulTile(Level l, int x, int y) {
+    private boolean isPossibleExit(Level l, int x, int y) {
         int t = l.tileAt(x, y);
         int o = l.oTileAt(x, y);
         return t == Level.T_EXIT || t == Level.T_SLEEPINGDOOR
@@ -295,11 +316,8 @@ public class AStarSearch implements Runnable {
                 parentF = parent.f;
             }
 
-            final int thisF = g + h(l);
-            f = thisF;
-            if (parentF > thisF) {
-                assert false : "pathmax active! " + parent + " " + this;
-            }
+            f = g + h(l);
+            assert f >= parentF : "pathmax active! " + parent + " " + this;
         }
 
         boolean isGoal() {
@@ -487,6 +505,7 @@ public class AStarSearch implements Runnable {
             l.print(System.out);
 
             AStarSearch search = new AStarSearch(l);
+            search.printMmap();
             for (int i = startingMoves; i <= 65536; i *= 2) {
                 System.out.print("trying in " + i + " moves, ");
                 search.initialize();
