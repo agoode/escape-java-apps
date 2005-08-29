@@ -118,38 +118,42 @@ public class Level extends org.spacebar.escape.common.Level {
     public MD5 MD5() {
         try {
             MessageDigest m = MessageDigest.getInstance("MD5");
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            DataOutputStream d = new DataOutputStream(baos);
-            // player
-            d.writeInt(player.getX());
-            d.writeInt(player.getY());
-        
-            // tiles, oTiles
-            d.writeInt(width);
-            d.writeInt(height);
-            for (int i = 0; i < tiles.length; i++) {
-                d.writeInt(tiles[i]);
-                d.writeInt(oTiles[i]);
-                d.writeInt(flags[i]);
-                d.writeInt(dests[i]);
-            }
-        
-            // bots
-            d.writeInt(bots.length);
-            for (int i = 0; i < bots.length; i++) {
-                Bot b = bots[i];
-                d.writeInt(b.getBotType());
-                d.writeInt(b.getX());
-                d.writeInt(b.getY());
-            }
-            
-            d.close();
-            return new MD5(m.digest(baos.toByteArray()));
+            return new MD5(m.digest(importantBits()));
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private byte[] importantBits() throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DataOutputStream d = new DataOutputStream(baos);
+        // player
+        d.writeInt(player.getX());
+        d.writeInt(player.getY());
+      
+        // tiles, oTiles
+        d.writeInt(width);
+        d.writeInt(height);
+        for (int i = 0; i < tiles.length; i++) {
+            d.writeInt(tiles[i]);
+            d.writeInt(oTiles[i]);
+            d.writeInt(flags[i]);
+            d.writeInt(dests[i]);
+        }
+      
+        // bots
+        d.writeInt(bots.length);
+        for (int i = 0; i < bots.length; i++) {
+            Bot b = bots[i];
+            d.writeInt(b.getBotType());
+            d.writeInt(b.getX());
+            d.writeInt(b.getY());
+        }
+        
+        d.close();
+        return baos.toByteArray();
     }
 }

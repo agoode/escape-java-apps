@@ -26,7 +26,7 @@ public class AStarSearch implements Runnable {
     Map<Level, AStarNode> openMap = new HashMap<Level, AStarNode>();
 
     // Set<MD5> closed = new HashSet<MD5>();
-    Set<List<Byte>> closed = new HashSet<List<Byte>>();
+    Set<Level> closed = new HashSet<Level>();
 
     int moveLimit = Integer.MAX_VALUE;
 
@@ -42,22 +42,7 @@ public class AStarSearch implements Runnable {
         // construct initial node
         manhattanMap = new int[l.getWidth()][l.getHeight()];
         computeManhattanMap(l);
-        start = new AStarNode(null, (byte) Entity.DIR_NONE, l, 0);
-    }
-
-    private void addToClosed(AStarNode a) {
-        List<Byte> path = constructSolution(a);
-        closed.add(path);
-    }
-
-    private boolean closedContains(AStarNode a, byte dir) {
-        List<Byte> path = constructSolution(a);
-        path.add(dir);
-        boolean result = closed.contains(path);
-        if (result) {
-            System.out.println(path);
-        }
-        return result;
+        start = new AStarNode(null, Entity.DIR_NONE, l, 0);
     }
 
     private void computeManhattanMap(Level l) {
@@ -105,7 +90,7 @@ public class AStarSearch implements Runnable {
             }
         }
 
-        // printMmap();
+//        printMmap();
     }
 
     private boolean isPossibleTransport(Level l, int x, int y) {
@@ -262,7 +247,7 @@ public class AStarSearch implements Runnable {
 
         if (node.g == 0 || (!level.isDead() && !level.isWon())
                 && node.g < moveLimit) {
-            for (byte i = Entity.FIRST_DIR; i <= Entity.LAST_DIR; i++) {
+            for (int i = Entity.FIRST_DIR; i <= Entity.LAST_DIR; i++) {
                 Level lev = new Level(level);
                 testChild(node, l, i, lev);
             }
@@ -273,12 +258,11 @@ public class AStarSearch implements Runnable {
 
     }
 
-    protected void testChild(AStarNode node, List<AStarNode> l, byte i,
-            Level lev) {
+    protected void testChild(AStarNode node, List<AStarNode> l, int i, Level lev) {
         if (lev.move(i)) {
             // System.out.println(" child");
             // if (!closed.contains(lev.MD5())) {
-            if (!closedContains(node, i)) {
+            if (!closed.contains(lev)) {
                 l.add(new AStarNode(node, i, lev, 1)); // cost
                 // of
                 // move is 1
@@ -290,7 +274,7 @@ public class AStarSearch implements Runnable {
     class AStarNode {
         final AStarNode parent;
 
-        final byte dirToGetHere;
+        final int dirToGetHere;
 
         final Level level;
 
@@ -318,7 +302,7 @@ public class AStarSearch implements Runnable {
                     + level.toString() + ")";
         }
 
-        AStarNode(AStarNode parent, byte dir, Level l, int cost) {
+        AStarNode(AStarNode parent, int dir, Level l, int cost) {
             this.parent = parent;
             dirToGetHere = dir;
             this.level = l;
@@ -358,7 +342,7 @@ public class AStarSearch implements Runnable {
         }
     }
 
-    private List<Byte> solution;
+    private List<Integer> solution;
 
     public void run() {
         long time = 0;
@@ -387,7 +371,7 @@ public class AStarSearch implements Runnable {
             } else {
                 // System.out.println("adding to closed list");
                 // closed.add(a.level.MD5());
-                addToClosed(a);
+                closed.add(a.level);
                 List<AStarNode> children = generateChildren(a);
                 // Collections.shuffle(children);
                 for (AStarNode node : children) {
@@ -419,8 +403,8 @@ public class AStarSearch implements Runnable {
                 + " + " + h(start.level);
     }
 
-    private List<Byte> constructSolution(AStarNode a) {
-        List<Byte> moves = new ArrayList<Byte>();
+    private List<Integer> constructSolution(AStarNode a) {
+        List<Integer> moves = new ArrayList<Integer>();
         while (a != null) {
             moves.add(a.dirToGetHere);
             a = a.parent;
@@ -444,7 +428,7 @@ public class AStarSearch implements Runnable {
         System.out.println("moves: " + solution.size());
         int lastMove = Entity.DIR_NONE;
         int moveCount = 0;
-        for (Byte move : solution) {
+        for (Integer move : solution) {
             if (move != lastMove) {
                 if (lastMove != Entity.DIR_NONE) {
                     System.out.print(moveCount
@@ -493,23 +477,23 @@ public class AStarSearch implements Runnable {
 
                     if (!level.isDead() && !level.isWon() && node.g < moveLimit) {
                         if (countSpheres(level) == 0) {
-                            for (byte i = Entity.FIRST_DIR; i <= Entity.LAST_DIR; i++) {
+                            for (int i = Entity.FIRST_DIR; i <= Entity.LAST_DIR; i++) {
                                 Level lev = new Level(level);
                                 testChild(node, l, i, lev);
                             }
                         } else {
                             if (level.getPlayerY() == 3) { // sphererow
                                 Level lev = new Level(level);
-                                testChild(node, l, (byte) Entity.DIR_UP, lev);
+                                testChild(node, l, Entity.DIR_UP, lev);
                                 lev = new Level(level);
-                                testChild(node, l, (byte) Entity.DIR_RIGHT, lev);
+                                testChild(node, l, Entity.DIR_RIGHT, lev);
                             } else {
                                 Level lev = new Level(level);
-                                testChild(node, l, (byte) Entity.DIR_DOWN, lev);
+                                testChild(node, l, Entity.DIR_DOWN, lev);
                                 lev = new Level(level);
-                                testChild(node, l, (byte) Entity.DIR_LEFT, lev);
+                                testChild(node, l, Entity.DIR_LEFT, lev);
                                 lev = new Level(level);
-                                testChild(node, l, (byte) Entity.DIR_RIGHT, lev);
+                                testChild(node, l, Entity.DIR_RIGHT, lev);
                             }
                         }
                     }
@@ -543,7 +527,7 @@ public class AStarSearch implements Runnable {
         }
     }
 
-    private static void robot(List<Byte> s) {
+    private static void robot(List<Integer> s) {
         int time = 2;
         String options[] = { "Type The Solution", "Exit" };
         int result = JOptionPane.showOptionDialog(null,
