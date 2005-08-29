@@ -9,6 +9,7 @@ import java.security.NoSuchAlgorithmException;
 import org.spacebar.escape.common.BitInputStream;
 import org.spacebar.escape.common.Bot;
 import org.spacebar.escape.common.hash.FNV32;
+import org.spacebar.escape.common.hash.FNV64;
 import org.spacebar.escape.common.hash.MD5;
 
 public class Level extends org.spacebar.escape.common.Level {
@@ -155,5 +156,34 @@ public class Level extends org.spacebar.escape.common.Level {
         
         d.close();
         return baos.toByteArray();
+    }
+    
+    long quickHash() {
+        FNV64 hash = new FNV64();
+        
+        // player
+        hash.fnv64(player.getX());
+        hash.fnv64(player.getY());
+    
+        // tiles, oTiles
+        hash.fnv64(width);
+        hash.fnv64(height);
+        for (int i = 0; i < tiles.length; i++) {
+            hash.fnv64(tiles[i]);
+            hash.fnv64(oTiles[i]);
+            hash.fnv64(flags[i]);
+            hash.fnv64(dests[i]);
+        }
+    
+        // bots
+        hash.fnv64(bots.length);
+        for (int i = 0; i < bots.length; i++) {
+            Bot b = bots[i];
+            hash.fnv64(b.getBotType());
+            hash.fnv64(b.getX());
+            hash.fnv64(b.getY());
+        }
+    
+        return hash.hval;
     }
 }

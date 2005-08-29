@@ -25,8 +25,9 @@ public class AStarSearch implements Runnable {
 
     Map<Level, AStarNode> openMap = new HashMap<Level, AStarNode>();
 
-    // Set<MD5> closed = new HashSet<MD5>();
-    Set<Level> closed = new HashSet<Level>();
+    Set<Long> closed = new HashSet<Long>();
+
+    // Set<Level> closed = new HashSet<Level>();
 
     int moveLimit = Integer.MAX_VALUE;
 
@@ -90,7 +91,7 @@ public class AStarSearch implements Runnable {
             }
         }
 
-//        printMmap();
+        // printMmap();
     }
 
     private boolean isPossibleTransport(Level l, int x, int y) {
@@ -261,8 +262,8 @@ public class AStarSearch implements Runnable {
     protected void testChild(AStarNode node, List<AStarNode> l, int i, Level lev) {
         if (lev.move(i)) {
             // System.out.println(" child");
-            // if (!closed.contains(lev.MD5())) {
-            if (!closed.contains(lev)) {
+            if (!closed.contains(lev.quickHash())) {
+                // if (!closed.contains(lev)) {
                 l.add(new AStarNode(node, i, lev, 1)); // cost
                 // of
                 // move is 1
@@ -370,10 +371,10 @@ public class AStarSearch implements Runnable {
                 return;
             } else {
                 // System.out.println("adding to closed list");
-                // closed.add(a.level.MD5());
-                closed.add(a.level);
+                closed.add(a.level.quickHash());
+                // closed.add(a.level);
                 List<AStarNode> children = generateChildren(a);
-                // Collections.shuffle(children);
+                Collections.shuffle(children);
                 for (AStarNode node : children) {
                     AStarNode oldNode = getFromOpen(node);
                     if (oldNode == null) {
