@@ -44,6 +44,8 @@ public class AStarSearch implements Runnable {
 
     final private Level level;
 
+    int greatestG;
+
     public AStarSearch(Level l) {
         // construct initial node
         manhattanMap = new int[l.getWidth()][l.getHeight()];
@@ -261,7 +263,47 @@ public class AStarSearch implements Runnable {
     int h(Level l) {
         // default heuristic -- override
         int m = manhattan(l);
-        return m;
+
+        // covered colors
+        int coveredColors = computeCoveredColors(l);
+
+        return m - coveredColors;
+    }
+
+    static private int computeCoveredColors(Level l) {
+        int coveredColors = 0;
+        for (int i = 0; i < l.getWidth() * l.getHeight(); i++) {
+            int t = l.tileAt(i);
+            int f = l.flagAt(i);
+            if ((f & Level.TF_HASPANEL) == 0) {
+                // no panel
+                continue;
+            }
+
+            switch (t) {
+            case Level.T_BSPHERE:
+            case Level.T_BSTEEL:
+                if (Level.realPanel(f) == Level.T_BPANEL) {
+                    coveredColors++;
+                }
+                break;
+
+            case Level.T_RSPHERE:
+            case Level.T_RSTEEL:
+                if (Level.realPanel(f) == Level.T_RPANEL) {
+                    coveredColors++;
+                }
+                break;
+
+            case Level.T_GSPHERE:
+            case Level.T_GSTEEL:
+                if (Level.realPanel(f) == Level.T_GPANEL) {
+                    coveredColors++;
+                }
+                break;
+            }
+        }
+        return coveredColors;
     }
 
     private int manhattan(Level l) {
@@ -360,6 +402,10 @@ public class AStarSearch implements Runnable {
 
             f = g + h(l);
             assert f >= parentF : "pathmax active! " + parent + " " + this;
+            if (g > greatestG) {
+                System.out.println("greatest g: " + greatestG);
+                greatestG = g;
+            }
         }
 
         boolean isGoal() {
