@@ -42,8 +42,8 @@ public class Level extends org.spacebar.escape.common.Level {
     	for (int i = 0; i < tiles.length; i++) {
     		hash.fnv32(tiles[i]);
             hash.fnv32(oTiles[i]);
-            hash.fnv32(flags[i]);
-            hash.fnv32(dests[i]);
+//            hash.fnv32(flags[i]);
+//            hash.fnv32(dests[i]);
     	}
     
     	// bots
@@ -84,9 +84,16 @@ public class Level extends org.spacebar.escape.common.Level {
     		*/
             
     		// tiles
+            boolean tilesEq = tiles == l.tiles;
+            boolean oTilesEq = oTiles == l.oTiles;
+            boolean flagsEq = flags == l.flags;
+            boolean destsEq = dests == l.dests;
+            
     		for (int i = 0; i < tiles.length; i++) {
-    			if (tiles[i] != l.tiles[i] || oTiles[i] != l.oTiles[i]
-    					|| dests[i] != l.dests[i] || flags[i] != l.flags[i]) {
+    			if ((!tilesEq && (tiles[i] != l.tiles[i]))
+                        || (!oTilesEq && (oTiles[i] != l.oTiles[i]))
+    					|| (!flagsEq && (flags[i] != l.flags[i]))
+                        || (!destsEq && (dests[i] != l.dests[i]))) {
     				return false;
     			}
     		}

@@ -28,8 +28,6 @@ public class AStarSearch implements Runnable {
     // Set<Long> closed = new HashSet<Long>();
     Set<Level> closed = new HashSet<Level>();
 
-    WeakHashMap<Object, Level> levels = new WeakHashMap<Object, Level>();
-
     // Set<Level> closed = new HashSet<Level>();
 
     int moveLimit = Integer.MAX_VALUE;
@@ -146,13 +144,13 @@ public class AStarSearch implements Runnable {
     }
 
     private void updateOpen(AStarNode a) {
-        Level level = getLevel(a);
+        Level level = a.level;
         assert sanityCheck();
         assert a.g + h(level) <= a.f : a.f + " not <= " + a.g + " + "
                 + h(level);
         if (openMap.containsKey(level)) {
             open.removeAll(Collections.singleton(a));
-            // open.remove(a);
+//            open.remove(a);
             assert !open.contains(a);
             openMap.remove(level);
             // System.out.println("old node: " + node);
@@ -167,32 +165,8 @@ public class AStarSearch implements Runnable {
         assert sanityCheck();
     }
 
-    Level getLevel(AStarNode a) {
-        Level l = levels.get(a.key);
-        if (l == null) {
-            // rebuild
-            System.out.print(".");
-            System.out.flush();
-
-            l = constructLevel(a);
-            levels.put(a.key, l);
-        }
-
-        return l;
-    }
-
-    Level constructLevel(AStarNode a) {
-        Level l;
-        List<Integer> sol = constructSolution(a);
-        l = new Level(level);
-        for (Integer d : sol) {
-            l.move(d);
-        }
-        return l;
-    }
-
     private AStarNode getFromOpen(AStarNode a) {
-        Level level = getLevel(a);
+        Level level = a.level;
         assert a.g + h(level) <= a.f : a.f + " not <= " + a.g + " + "
                 + h(level);
         assert sanityCheck();
@@ -208,10 +182,10 @@ public class AStarSearch implements Runnable {
         AStarNode a;
         a = open.remove();
 
-        Level aLevel = getLevel(a);
+        Level aLevel = a.level;
         assert openMap.containsValue(a);
         AStarNode result = openMap.remove(aLevel);
-        Level resLevel = getLevel(result);
+        Level resLevel = result.level;
         assert !openMap.containsValue(a);
         assert aLevel.equals(resLevel);
         assert open.size() == openMap.size();
@@ -318,7 +292,7 @@ public class AStarSearch implements Runnable {
     }
 
     List<AStarNode> generateChildren(AStarNode node) {
-        Level level = getLevel(node);
+        Level level = node.level;
         // default children generation -- override
         List<AStarNode> l = new ArrayList<AStarNode>();
 
@@ -349,6 +323,8 @@ public class AStarSearch implements Runnable {
     }
 
     class AStarNode {
+        public final Level level;
+
         final AStarNode parent;
 
         final int dirToGetHere;
@@ -359,8 +335,6 @@ public class AStarSearch implements Runnable {
 
         final int hash;
 
-        final Object key = new Object();
-
         @Override
         public int hashCode() {
             return hash;
@@ -369,17 +343,17 @@ public class AStarSearch implements Runnable {
         @Override
         public boolean equals(Object obj) {
             if (obj instanceof AStarNode) {
-                Level level = getLevel(this);
                 AStarNode item = (AStarNode) obj;
-                Level itemLevel = getLevel(item);
-                return level.equals(itemLevel);
+                if (hash == item.hash) {
+                    Level itemLevel = item.level;
+                    return level.equals(itemLevel);
+                }
             }
             return false;
         }
 
         @Override
         public String toString() {
-            Level level = getLevel(this);
             return "(f: " + f + ", g: " + g + ", h: " + h(level) + ", "
                     + level.toString() + ")";
         }
@@ -389,7 +363,7 @@ public class AStarSearch implements Runnable {
             dirToGetHere = dir;
             hash = l.hashCode();
 
-            levels.put(key, l);
+            level = l;
 
             final int parentF;
             if (parent == null) {
@@ -409,7 +383,9 @@ public class AStarSearch implements Runnable {
         }
 
         boolean isGoal() {
-            Level level = getLevel(this);
+            if (level.isWon()) {
+                System.out.println("on exit at " + g);
+            }
             boolean result = !level.isDead() && level.isWon() && g > 0;
             if (result) {
                 System.out.println("GOAL");
@@ -459,7 +435,7 @@ public class AStarSearch implements Runnable {
                 return;
             } else {
                 // System.out.println("adding to closed list");
-                Level level = getLevel(a);
+                Level level = a.level;
                 // closed.add(level.quickHash());
                 closed.add(level);
                 List<AStarNode> children = generateChildren(a);
@@ -490,7 +466,7 @@ public class AStarSearch implements Runnable {
 
         // add to open list
         updateOpen(start);
-        Level level = getLevel(start);
+        Level level = start.level;
         assert start.g + h(level) == start.f : start.f + " != " + start.g
                 + " + " + h(level);
     }
@@ -565,7 +541,7 @@ public class AStarSearch implements Runnable {
                 @Override
                 public List<AStarNode> generateChildren(AStarNode node) {
                     List<AStarNode> l = new ArrayList<AStarNode>();
-                    Level level = getLevel(node);
+                    Level level = node.level;
 
                     if (!level.isDead() && !level.isWon() && node.g < moveLimit) {
                         if (countSpheres(level) == 0) {
