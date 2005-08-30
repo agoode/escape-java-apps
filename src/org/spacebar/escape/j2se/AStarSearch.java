@@ -239,9 +239,9 @@ public class AStarSearch implements Runnable {
         int m = manhattan(l);
 
         // covered colors
-        int coveredColors = computeCoveredColors(l);
+//        int coveredColors = computeCoveredColors(l);
 
-        return m - coveredColors;
+        return m;
     }
 
     static private int computeCoveredColors(Level l) {
