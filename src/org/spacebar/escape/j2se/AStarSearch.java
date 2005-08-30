@@ -148,15 +148,15 @@ public class AStarSearch implements Runnable {
         assert sanityCheck();
         assert a.g + h(level) <= a.f : a.f + " not <= " + a.g + " + "
                 + h(level);
-        if (openMap.containsKey(level)) {
-            open.removeAll(Collections.singleton(a));
-//            open.remove(a);
-            assert !open.contains(a);
-            openMap.remove(level);
-            // System.out.println("old node: " + node);
-            // System.out.println("new node: " + a);
-        }
-        assert sanityCheck();
+//        if (openMap.containsKey(level)) {
+//            open.removeAll(Collections.singleton(a));
+////            open.remove(a);
+//            assert !open.contains(a);
+//            openMap.remove(level);
+//            // System.out.println("old node: " + node);
+//            // System.out.println("new node: " + a);
+//        }
+//        assert sanityCheck();
 
         open.add(a);
         openMap.put(level, a);
@@ -180,7 +180,9 @@ public class AStarSearch implements Runnable {
         // System.out.println("AStarSearch.removeFromOpen()");
         assert open.size() == openMap.size();
         AStarNode a;
-        a = open.remove();
+        do {
+            a = open.remove();
+        } while (!openMap.containsValue(a));
 
         Level aLevel = a.level;
         assert openMap.containsValue(a);
@@ -196,7 +198,7 @@ public class AStarSearch implements Runnable {
     }
 
     private boolean sanityCheck() {
-        List<AStarNode> extraOpenItems = new ArrayList<AStarNode>();
+//        List<AStarNode> extraOpenItems = new ArrayList<AStarNode>();
         List<AStarNode> extraOpenMapItems = new ArrayList<AStarNode>();
 
         boolean bad = false;
@@ -206,9 +208,9 @@ public class AStarSearch implements Runnable {
         // System.out.println("head node f: " + headF);
 
         for (AStarNode node : open) {
-            if (!openMap.containsValue(node)) {
-                extraOpenItems.add(node);
-            }
+//            if (!openMap.containsValue(node)) {
+//                extraOpenItems.add(node);
+//            }
             if (headF > node.f) {
                 System.out.println("head node has non-best f: " + headF
                         + " (better f: " + node.f + ")");
@@ -222,10 +224,10 @@ public class AStarSearch implements Runnable {
             }
         }
 
-        if (!extraOpenItems.isEmpty()) {
-            System.out.println("extra items in open: " + extraOpenItems);
-            bad = true;
-        }
+//        if (!extraOpenItems.isEmpty()) {
+//            System.out.println("extra items in open: " + extraOpenItems);
+//            bad = true;
+//        }
         if (!extraOpenMapItems.isEmpty()) {
             System.out.println("extra items in openMap: " + extraOpenMapItems);
             bad = true;
