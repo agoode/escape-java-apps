@@ -383,9 +383,6 @@ public class AStarSearch implements Runnable {
         }
 
         boolean isGoal() {
-            if (level.isWon()) {
-                System.out.println("on exit at " + g);
-            }
             boolean result = !level.isDead() && level.isWon() && g > 0;
             if (result) {
                 System.out.println("GOAL");
@@ -471,7 +468,7 @@ public class AStarSearch implements Runnable {
                 + " + " + h(level);
     }
 
-    private List<Integer> constructSolution(AStarNode a) {
+    List<Integer> constructSolution(AStarNode a) {
         List<Integer> moves = new ArrayList<Integer>();
         while (a != null) {
             moves.add(a.dirToGetHere);
@@ -493,6 +490,10 @@ public class AStarSearch implements Runnable {
             return;
         }
 
+        printSolution(solution);
+    }
+
+    static void printSolution(List<Integer> solution) {
         System.out.println("moves: " + solution.size());
         int lastMove = Entity.DIR_NONE;
         int moveCount = 0;
