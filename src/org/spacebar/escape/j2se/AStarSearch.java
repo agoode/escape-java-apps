@@ -472,6 +472,8 @@ public class AStarSearch implements Runnable {
         Level level = start.level;
         assert start.g + h(level) == start.f : start.f + " != " + start.g
                 + " + " + h(level);
+        
+        greatestG = 0;
     }
 
     List<Integer> constructSolution(AStarNode a) {
