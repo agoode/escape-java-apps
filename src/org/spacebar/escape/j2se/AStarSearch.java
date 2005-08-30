@@ -24,7 +24,7 @@ public class AStarSearch implements Runnable {
             new AStarPQComparator());
 
     Map<Level, AStarNode> openMap = new HashMap<Level, AStarNode>();
-
+    
     // Set<Long> closed = new HashSet<Long>();
     Set<Level> closed = new HashSet<Level>();
 
@@ -40,15 +40,12 @@ public class AStarSearch implements Runnable {
 
     final int manhattanMap[][];
 
-    final private Level level;
-
     int greatestG;
 
     public AStarSearch(Level l) {
         // construct initial node
         manhattanMap = new int[l.getWidth()][l.getHeight()];
         computeManhattanMap(l);
-        level = l;
         start = new AStarNode(null, Entity.DIR_NONE, l, 0);
     }
 
@@ -160,7 +157,7 @@ public class AStarSearch implements Runnable {
 
         open.add(a);
         openMap.put(level, a);
-        assert open.size() == openMap.size();
+        assert open.size() >= openMap.size();
         assert openMap.containsKey(new Level(level));
         assert sanityCheck();
     }
@@ -178,11 +175,18 @@ public class AStarSearch implements Runnable {
     private AStarNode removeFromOpen() {
         assert sanityCheck();
         // System.out.println("AStarSearch.removeFromOpen()");
-        assert open.size() == openMap.size();
+        assert open.size() >= openMap.size();
         AStarNode a;
+        AStarNode tmp;
         do {
             a = open.remove();
-        } while (!openMap.containsValue(a));
+            Level l = a.level;
+            if (openMap.containsKey(l)) {
+                tmp = openMap.get(l);
+            } else {
+                tmp = null;
+            }
+        } while (tmp == null || tmp.f > a.f);
 
         Level aLevel = a.level;
         assert openMap.containsValue(a);
@@ -190,7 +194,7 @@ public class AStarSearch implements Runnable {
         Level resLevel = result.level;
         assert !openMap.containsValue(a);
         assert aLevel.equals(resLevel);
-        assert open.size() == openMap.size();
+        assert open.size() >= openMap.size();
         assert sanityCheck();
         assert a.g + h(aLevel) <= a.f : a.f + " not <= " + a.g + " + "
                 + h(aLevel);
