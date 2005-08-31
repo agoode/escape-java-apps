@@ -304,7 +304,7 @@ public class AStarSearch implements Runnable {
 
         if (node.g == 0 || (!level.isDead() && !level.isWon())
                 && node.g < moveLimit) {
-            for (int i = Entity.FIRST_DIR; i <= Entity.LAST_DIR; i++) {
+            for (byte i = Entity.FIRST_DIR; i <= Entity.LAST_DIR; i++) {
                 Level lev = new Level(level);
                 testChild(node, l, i, lev);
             }
@@ -315,7 +315,7 @@ public class AStarSearch implements Runnable {
 
     }
 
-    protected void testChild(AStarNode node, List<AStarNode> l, int i, Level lev) {
+    protected void testChild(AStarNode node, List<AStarNode> l, byte i, Level lev) {
         if (lev.move(i)) {
             // System.out.println(" child");
             // if (!closed.contains(lev.quickHash())) {
@@ -333,7 +333,7 @@ public class AStarSearch implements Runnable {
 
         final AStarNode parent;
 
-        final int dirToGetHere;
+        final byte dirToGetHere;
 
         final int f;
 
@@ -364,7 +364,7 @@ public class AStarSearch implements Runnable {
                     + level.toString() + ")";
         }
 
-        AStarNode(AStarNode parent, int dir, Level l, int cost) {
+        AStarNode(AStarNode parent, byte dir, Level l, int cost) {
             this.parent = parent;
             dirToGetHere = dir;
             hash = l.hashCode();
@@ -410,7 +410,7 @@ public class AStarSearch implements Runnable {
         }
     }
 
-    private List<Integer> solution;
+    private List<Byte> solution;
 
     public void run() {
         long time = 0;
@@ -476,8 +476,8 @@ public class AStarSearch implements Runnable {
         greatestG = 0;
     }
 
-    List<Integer> constructSolution(AStarNode a) {
-        List<Integer> moves = new ArrayList<Integer>();
+    List<Byte> constructSolution(AStarNode a) {
+        List<Byte> moves = new ArrayList<Byte>();
         while (a != null) {
             moves.add(a.dirToGetHere);
             a = a.parent;
@@ -501,11 +501,11 @@ public class AStarSearch implements Runnable {
         printSolution(solution);
     }
 
-    static void printSolution(List<Integer> solution) {
+    static void printSolution(List<Byte> solution) {
         System.out.println("moves: " + solution.size());
-        int lastMove = Entity.DIR_NONE;
+        byte lastMove = Entity.DIR_NONE;
         int moveCount = 0;
-        for (Integer move : solution) {
+        for (Byte move : solution) {
             if (move != lastMove) {
                 if (lastMove != Entity.DIR_NONE) {
                     System.out.print(moveCount
@@ -554,7 +554,7 @@ public class AStarSearch implements Runnable {
 
                     if (!level.isDead() && !level.isWon() && node.g < moveLimit) {
                         if (countSpheres(level) == 0) {
-                            for (int i = Entity.FIRST_DIR; i <= Entity.LAST_DIR; i++) {
+                            for (byte i = Entity.FIRST_DIR; i <= Entity.LAST_DIR; i++) {
                                 Level lev = new Level(level);
                                 testChild(node, l, i, lev);
                             }
@@ -604,7 +604,7 @@ public class AStarSearch implements Runnable {
         }
     }
 
-    private static void robot(List<Integer> s) {
+    private static void robot(List<Byte> s) {
         int time = 2;
         String options[] = { "Type The Solution", "Exit" };
         int result = JOptionPane.showOptionDialog(null,
@@ -632,7 +632,7 @@ public class AStarSearch implements Runnable {
             }
             System.out.println();
 
-            for (int dir : s) {
+            for (byte dir : s) {
                 System.out.print(Entity.directionToString(dir) + " ");
                 System.out.flush();
 

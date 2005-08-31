@@ -111,9 +111,9 @@ public class PlayCanvas extends LevelCanvas {
          * 
          */
         private static final long serialVersionUID = -7996463184871845733L;
-        final int dir;
+        final byte dir;
 
-        public Mover(int dir) {
+        public Mover(byte dir) {
             this.dir = dir;
         }
 

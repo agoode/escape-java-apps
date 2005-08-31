@@ -23,7 +23,7 @@ public class ListenableLevel extends Level {
     List<MoveListener> moveListeners = new ArrayList<MoveListener>();
     
     @Override
-	public boolean move(int d, Effects e) {
+	public boolean move(byte d, Effects e) {
         boolean r = super.move(d, e);
         afterMove(r);
         return r;
