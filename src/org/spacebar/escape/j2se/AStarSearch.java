@@ -49,6 +49,7 @@ public class AStarSearch implements Runnable {
         start = new AStarNode(null, Entity.DIR_NONE, new SoftLevel(l), 0);
     }
 
+    // XXX somehow broken, see lev560
     private void computeManhattanMap(Level l) {
         // get number of hugbots, they can push us closer
         int hugbots = 0;
@@ -62,20 +63,37 @@ public class AStarSearch implements Runnable {
         int mmap[][] = manhattanMap;
         int w = l.getWidth();
         int h = l.getHeight();
+        boolean panelDests[][] = new boolean[w][h];
+        boolean transportDests[][] = new boolean[w][h];
 
         // initialize
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
-                mmap[x][y] = Integer.MAX_VALUE;
+                mmap[x][y] = Integer.MAX_VALUE / 2; // avoid overflow!!
+                int dest = l.destAt(x, y);
+                int tx = dest % w;
+                int ty = dest / w;
+                int t = l.tileAt(x, y);
+                int o = l.oTileAt(x, y);
+                if (t == Level.T_TRANSPORT || o == Level.T_TRANSPORT) {
+                    // XXX see if transport is in bizarro world
+                    // but is never a dest itself
+                    transportDests[tx][ty] = true;
+                }
+                if (Level.isPanel(t) || Level.isPanel(o)) {
+                    // XXX see if panel is in bizarro world
+                    // but is never a dest itself
+                    panelDests[tx][ty] = true;
+                }
             }
         }
 
         // find each exit item
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
-                if (isPossibleExit(l, x, y)) {
+                if (isPossibleExit(l, x, y, panelDests[x][y])) {
                     mmap[x][y] = 0;
-                    doBrushFire(mmap, x, y, 1, hugbots + 1);
+                    doBrushFire(mmap, l, x, y, 1, hugbots + 1, panelDests);
                 }
             }
         }
@@ -83,13 +101,13 @@ public class AStarSearch implements Runnable {
         // account for transporters
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
-                if (isPossibleTransport(l, x, y)) {
+                if (isPossibleTransport(l, x, y, panelDests[x][y])) {
                     int dest = l.destAt(x, y);
                     int xd = dest % l.getWidth();
                     int yd = dest / l.getWidth();
 
                     mmap[x][y] = mmap[xd][yd];
-                    doBrushFire(mmap, x, y, 1, hugbots + 1);
+                    doBrushFire(mmap, l, x, y, 1, hugbots + 1, panelDests);
                 }
             }
         }
@@ -97,32 +115,68 @@ public class AStarSearch implements Runnable {
         // printMmap();
     }
 
-    static private boolean isPossibleTransport(Level l, int x, int y) {
+    static private boolean isPossibleTransport(Level l, int x, int y,
+            boolean isPanelTarget) {
         int t = l.tileAt(x, y);
         int o = l.oTileAt(x, y);
-        return t == Level.T_TRANSPORT || o == Level.T_TRANSPORT;
+        return t == Level.T_TRANSPORT
+                || (o == Level.T_TRANSPORT && isPanelTarget);
     }
 
     // !
-    static private void doBrushFire(int maze[][], int x, int y, int depth,
-            int divisor) {
+    static private void doBrushFire(int maze[][], Level l, int x, int y,
+            int depth, int divisor, boolean panelDests[][]) {
         int val = depth / divisor;
-        if (y < maze[0].length - 1 && val < maze[x][y + 1]) {
-            maze[x][y + 1] = val;
-            doBrushFire(maze, x, y + 1, depth + 1, divisor);
+        doBrushFire2(maze, l, x, y + 1, depth, divisor, panelDests, val);
+        doBrushFire2(maze, l, x, y - 1, depth, divisor, panelDests, val);
+        doBrushFire2(maze, l, x + 1, y, depth, divisor, panelDests, val);
+        doBrushFire2(maze, l, x - 1, y, depth, divisor, panelDests, val);
+    }
+
+    /**
+     * @param maze
+     * @param l
+     * @param x
+     * @param y
+     * @param depth
+     * @param divisor
+     * @param panelDests
+     * @param val
+     */
+    private static void doBrushFire2(int[][] maze, Level l, int x, int y,
+            int depth, int divisor, boolean[][] panelDests, int val) {
+        if (!isBoundary(l, x, y, panelDests) && val < maze[x][y]) {
+            maze[x][y] = val;
+            doBrushFire(maze, l, x, y, depth + 1, divisor, panelDests);
         }
-        if (x > 0 && val < maze[x - 1][y]) {
-            maze[x - 1][y] = val;
-            doBrushFire(maze, x - 1, y, depth + 1, divisor);
+    }
+
+    static private boolean isBoundary(Level l, int x, int y,
+            boolean panelDests[][]) {
+        int w = l.getWidth();
+        int h = l.getHeight();
+
+        // bounds
+        if (x < 0 || x >= w || y < 0 || y >= h) {
+            return true;
         }
-        if (y > 0 && val < maze[x][y - 1]) {
-            maze[x][y - 1] = val;
-            doBrushFire(maze, x, y - 1, depth + 1, divisor);
-        }
-        if (x < maze.length - 1 && val < maze[x + 1][y]) {
-            maze[x + 1][y] = val;
-            doBrushFire(maze, x + 1, y, depth + 1, divisor);
-        }
+
+        int t = l.tileAt(x, y);
+        int o = l.oTileAt(x, y);
+        return isImmovableTile(t) || (isImmovableTile(o) && panelDests[x][y]);
+    }
+
+    /**
+     * @param t
+     * @return
+     */
+    private static boolean isImmovableTile(int t) {
+        return t == Level.T_BLUE || t == Level.T_LASER || t == Level.T_STOP
+                || t == Level.T_RIGHT || t == Level.T_LEFT || t == Level.T_UP
+                || t == Level.T_DOWN || t == Level.T_ON || t == Level.T_OFF
+                || t == Level.T_0 || t == Level.T_1 || t == Level.T_BUTTON
+                || t == Level.T_BLIGHT || t == Level.T_RLIGHT
+                || t == Level.T_GLIGHT || t == Level.T_BLACK;
     }
 
     public void printMmap() {
@@ -130,7 +184,12 @@ public class AStarSearch implements Runnable {
         for (int x = 0; x < manhattanMap[0].length; x++) {
             for (int y = 0; y < manhattanMap.length; y++) {
                 int val = manhattanMap[y][x];
-                String s = Integer.toString(val);
+                String s;
+                if (val < Integer.MAX_VALUE / 2) {
+                    s = Integer.toString(val);
+                } else {
+                    s = "*";
+                }
                 System.out.print(s + " ");
                 if (s.length() == 1) {
                     System.out.print(" ");
@@ -290,11 +349,14 @@ public class AStarSearch implements Runnable {
         return manhattanMap[l.getPlayerX()][l.getPlayerY()];
     }
 
-    static private boolean isPossibleExit(Level l, int x, int y) {
+    static private boolean isPossibleExit(Level l, int x, int y,
+            boolean isPanelTarget) {
         int t = l.tileAt(x, y);
         int o = l.oTileAt(x, y);
-        return t == Level.T_EXIT || t == Level.T_SLEEPINGDOOR
-                || o == Level.T_EXIT || o == Level.T_SLEEPINGDOOR;
+        // XXX check to see if heartframers are accessible ?
+        return t == Level.T_EXIT
+                || t == Level.T_SLEEPINGDOOR
+                || (isPanelTarget && (o == Level.T_EXIT || o == Level.T_SLEEPINGDOOR));
     }
 
     List<AStarNode> generateChildren(AStarNode node) {
@@ -310,7 +372,7 @@ public class AStarSearch implements Runnable {
             }
             // System.out.println("----------");
         }
-//        System.out.println("number of children: " + l.size());
+        // System.out.println("number of children: " + l.size());
         return l;
 
     }
@@ -321,7 +383,7 @@ public class AStarSearch implements Runnable {
             // System.out.println(" child");
             // if (!closed.contains(lev.quickHash())) {
             if (!closed.contains(lev)) {
-//                System.out.println("***adding " + lev);
+                // System.out.println("***adding " + lev);
                 l.add(new AStarNode(node, i, lev, 1)); // cost
                 // of
                 // move is 1
@@ -419,7 +481,7 @@ public class AStarSearch implements Runnable {
         int prevOpen = 0;
         int prevClosed = 0;
         while (!open.isEmpty()) {
-//            System.out.println(" ***** closed: " + closed);
+            // System.out.println(" ***** closed: " + closed);
             if (System.currentTimeMillis() - time > 1000) {
                 int os = openMap.size();
                 int cs = closed.size();
@@ -432,23 +494,23 @@ public class AStarSearch implements Runnable {
                 time = System.currentTimeMillis();
             }
             AStarNode a = removeFromOpen();
-//            System.out.println("getting node from open list, f: " + a.f);
-//            System.out.println(a);
-            //            a.level.print(System.out);
-//            System.out.println();
+            // System.out.println("getting node from open list, f: " + a.f);
+            // System.out.println(a);
+            // a.level.print(System.out);
+            // System.out.println();
             if (a.isGoal()) {
                 // GOAL
                 solution = constructSolution(a);
                 return;
             } else {
-//                System.out.println("adding to closed list");
+                // System.out.println("adding to closed list");
                 SoftLevel level = a.level;
-//                 closed.add(level.quickHash());
-//                System.out.println(" ***** closed: " + closed);
+                // closed.add(level.quickHash());
+                // System.out.println(" ***** closed: " + closed);
                 closed.add(level);
-//                System.out.println(" ***** closed: " + closed);
+                // System.out.println(" ***** closed: " + closed);
                 List<AStarNode> children = generateChildren(a);
-//                System.out.println(" ***** closed: " + closed);
+                // System.out.println(" ***** closed: " + closed);
 
                 Collections.shuffle(children);
                 for (AStarNode node : children) {
