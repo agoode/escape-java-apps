@@ -23,10 +23,10 @@ public class AStarSearch implements Runnable {
     PriorityQueue<AStarNode> open = new PriorityQueue<AStarNode>(11,
             new AStarPQComparator());
 
-    Map<Level, AStarNode> openMap = new HashMap<Level, AStarNode>();
-    
+    Map<SoftLevel, AStarNode> openMap = new HashMap<SoftLevel, AStarNode>();
+
     // Set<Long> closed = new HashSet<Long>();
-    Set<Level> closed = new HashSet<Level>();
+    Set<SoftLevel> closed = new HashSet<SoftLevel>();
 
     // Set<Level> closed = new HashSet<Level>();
 
@@ -46,7 +46,7 @@ public class AStarSearch implements Runnable {
         // construct initial node
         manhattanMap = new int[l.getWidth()][l.getHeight()];
         computeManhattanMap(l);
-        start = new AStarNode(null, Entity.DIR_NONE, l, 0);
+        start = new AStarNode(null, Entity.DIR_NONE, new SoftLevel(l), 0);
     }
 
     private void computeManhattanMap(Level l) {
@@ -97,7 +97,7 @@ public class AStarSearch implements Runnable {
         // printMmap();
     }
 
-    private boolean isPossibleTransport(Level l, int x, int y) {
+    static private boolean isPossibleTransport(Level l, int x, int y) {
         int t = l.tileAt(x, y);
         int o = l.oTileAt(x, y);
         return t == Level.T_TRANSPORT || o == Level.T_TRANSPORT;
@@ -141,29 +141,29 @@ public class AStarSearch implements Runnable {
     }
 
     private void updateOpen(AStarNode a) {
-        Level level = a.level;
+        SoftLevel level = a.level;
         assert sanityCheck();
         assert a.g + h(level) <= a.f : a.f + " not <= " + a.g + " + "
                 + h(level);
-//        if (openMap.containsKey(level)) {
-//            open.removeAll(Collections.singleton(a));
-////            open.remove(a);
-//            assert !open.contains(a);
-//            openMap.remove(level);
-//            // System.out.println("old node: " + node);
-//            // System.out.println("new node: " + a);
-//        }
-//        assert sanityCheck();
+        // if (openMap.containsKey(level)) {
+        // open.removeAll(Collections.singleton(a));
+        // // open.remove(a);
+        // assert !open.contains(a);
+        // openMap.remove(level);
+        // // System.out.println("old node: " + node);
+        // // System.out.println("new node: " + a);
+        // }
+        // assert sanityCheck();
 
         open.add(a);
         openMap.put(level, a);
         assert open.size() >= openMap.size();
-        assert openMap.containsKey(new Level(level));
+        // assert openMap.containsKey(new Level(level));
         assert sanityCheck();
     }
 
     private AStarNode getFromOpen(AStarNode a) {
-        Level level = a.level;
+        SoftLevel level = a.level;
         assert a.g + h(level) <= a.f : a.f + " not <= " + a.g + " + "
                 + h(level);
         assert sanityCheck();
@@ -180,7 +180,7 @@ public class AStarSearch implements Runnable {
         AStarNode tmp;
         do {
             a = open.remove();
-            Level l = a.level;
+            SoftLevel l = a.level;
             if (openMap.containsKey(l)) {
                 tmp = openMap.get(l);
             } else {
@@ -188,10 +188,10 @@ public class AStarSearch implements Runnable {
             }
         } while (tmp == null || tmp.f > a.f);
 
-        Level aLevel = a.level;
+        SoftLevel aLevel = a.level;
         assert openMap.containsValue(a);
         AStarNode result = openMap.remove(aLevel);
-        Level resLevel = result.level;
+        SoftLevel resLevel = result.level;
         assert !openMap.containsValue(a);
         assert aLevel.equals(resLevel);
         assert open.size() >= openMap.size();
@@ -202,7 +202,7 @@ public class AStarSearch implements Runnable {
     }
 
     private boolean sanityCheck() {
-//        List<AStarNode> extraOpenItems = new ArrayList<AStarNode>();
+        // List<AStarNode> extraOpenItems = new ArrayList<AStarNode>();
         List<AStarNode> extraOpenMapItems = new ArrayList<AStarNode>();
 
         boolean bad = false;
@@ -212,9 +212,9 @@ public class AStarSearch implements Runnable {
         // System.out.println("head node f: " + headF);
 
         for (AStarNode node : open) {
-//            if (!openMap.containsValue(node)) {
-//                extraOpenItems.add(node);
-//            }
+            // if (!openMap.containsValue(node)) {
+            // extraOpenItems.add(node);
+            // }
             if (headF > node.f) {
                 System.out.println("head node has non-best f: " + headF
                         + " (better f: " + node.f + ")");
@@ -228,10 +228,10 @@ public class AStarSearch implements Runnable {
             }
         }
 
-//        if (!extraOpenItems.isEmpty()) {
-//            System.out.println("extra items in open: " + extraOpenItems);
-//            bad = true;
-//        }
+        // if (!extraOpenItems.isEmpty()) {
+        // System.out.println("extra items in open: " + extraOpenItems);
+        // bad = true;
+        // }
         if (!extraOpenMapItems.isEmpty()) {
             System.out.println("extra items in openMap: " + extraOpenMapItems);
             bad = true;
@@ -240,17 +240,17 @@ public class AStarSearch implements Runnable {
         return !bad;
     }
 
-    int h(Level l) {
+    int h(SoftLevel l) {
         // default heuristic -- override
         int m = manhattan(l);
 
         // covered colors
-//        int coveredColors = computeCoveredColors(l);
+        // int coveredColors = computeCoveredColors(l);
 
         return m;
     }
 
-    static private int computeCoveredColors(Level l) {
+    static private int computeCoveredColors(SoftLevel l) {
         int coveredColors = 0;
         for (int i = 0; i < l.getWidth() * l.getHeight(); i++) {
             int t = l.tileAt(i);
@@ -286,11 +286,11 @@ public class AStarSearch implements Runnable {
         return coveredColors;
     }
 
-    private int manhattan(Level l) {
+    private int manhattan(SoftLevel l) {
         return manhattanMap[l.getPlayerX()][l.getPlayerY()];
     }
 
-    private boolean isPossibleExit(Level l, int x, int y) {
+    static private boolean isPossibleExit(Level l, int x, int y) {
         int t = l.tileAt(x, y);
         int o = l.oTileAt(x, y);
         return t == Level.T_EXIT || t == Level.T_SLEEPINGDOOR
@@ -298,28 +298,30 @@ public class AStarSearch implements Runnable {
     }
 
     List<AStarNode> generateChildren(AStarNode node) {
-        Level level = node.level;
+        SoftLevel level = node.level;
         // default children generation -- override
         List<AStarNode> l = new ArrayList<AStarNode>();
 
         if (node.g == 0 || (!level.isDead() && !level.isWon())
                 && node.g < moveLimit) {
             for (byte i = Entity.FIRST_DIR; i <= Entity.LAST_DIR; i++) {
-                Level lev = new Level(level);
+                SoftLevel lev = new SoftLevel(node.level);
                 testChild(node, l, i, lev);
             }
             // System.out.println("----------");
         }
-
+//        System.out.println("number of children: " + l.size());
         return l;
 
     }
 
-    protected void testChild(AStarNode node, List<AStarNode> l, byte i, Level lev) {
+    protected void testChild(AStarNode node, List<AStarNode> l, byte i,
+            SoftLevel lev) {
         if (lev.move(i)) {
             // System.out.println(" child");
             // if (!closed.contains(lev.quickHash())) {
             if (!closed.contains(lev)) {
+//                System.out.println("***adding " + lev);
                 l.add(new AStarNode(node, i, lev, 1)); // cost
                 // of
                 // move is 1
@@ -329,7 +331,7 @@ public class AStarSearch implements Runnable {
     }
 
     class AStarNode {
-        public final Level level;
+        public final SoftLevel level;
 
         final AStarNode parent;
 
@@ -351,7 +353,7 @@ public class AStarSearch implements Runnable {
             if (obj instanceof AStarNode) {
                 AStarNode item = (AStarNode) obj;
                 if (hash == item.hash) {
-                    Level itemLevel = item.level;
+                    SoftLevel itemLevel = item.level;
                     return level.equals(itemLevel);
                 }
             }
@@ -364,7 +366,7 @@ public class AStarSearch implements Runnable {
                     + level.toString() + ")";
         }
 
-        AStarNode(AStarNode parent, byte dir, Level l, int cost) {
+        AStarNode(AStarNode parent, byte dir, SoftLevel l, int cost) {
             this.parent = parent;
             dirToGetHere = dir;
             hash = l.hashCode();
@@ -417,6 +419,7 @@ public class AStarSearch implements Runnable {
         int prevOpen = 0;
         int prevClosed = 0;
         while (!open.isEmpty()) {
+//            System.out.println(" ***** closed: " + closed);
             if (System.currentTimeMillis() - time > 1000) {
                 int os = openMap.size();
                 int cs = closed.size();
@@ -429,19 +432,23 @@ public class AStarSearch implements Runnable {
                 time = System.currentTimeMillis();
             }
             AStarNode a = removeFromOpen();
-            // System.out.println("getting node from open list, f: " + a.f);
-            // a.level.print(System.out);
-            // System.out.println();
+//            System.out.println("getting node from open list, f: " + a.f);
+//            System.out.println(a);
+            //            a.level.print(System.out);
+//            System.out.println();
             if (a.isGoal()) {
                 // GOAL
                 solution = constructSolution(a);
                 return;
             } else {
-                // System.out.println("adding to closed list");
-                Level level = a.level;
-                // closed.add(level.quickHash());
+//                System.out.println("adding to closed list");
+                SoftLevel level = a.level;
+//                 closed.add(level.quickHash());
+//                System.out.println(" ***** closed: " + closed);
                 closed.add(level);
+//                System.out.println(" ***** closed: " + closed);
                 List<AStarNode> children = generateChildren(a);
+//                System.out.println(" ***** closed: " + closed);
 
                 Collections.shuffle(children);
                 for (AStarNode node : children) {
@@ -469,10 +476,10 @@ public class AStarSearch implements Runnable {
 
         // add to open list
         updateOpen(start);
-        Level level = start.level;
+        SoftLevel level = start.level;
         assert start.g + h(level) == start.f : start.f + " != " + start.g
                 + " + " + h(level);
-        
+
         greatestG = 0;
     }
 
@@ -520,7 +527,7 @@ public class AStarSearch implements Runnable {
         System.out.println(moveCount + Entity.directionToString(lastMove));
     }
 
-    int countSpheres(Level l) {
+    int countSpheres(SoftLevel l) {
         // number of spheres
         int count = 0;
         for (int i = 0; i < l.getWidth() * l.getHeight(); i++) {
@@ -536,54 +543,54 @@ public class AStarSearch implements Runnable {
             Level l = new Level(
                     new BitInputStream(new FileInputStream(args[0])));
 
-            int startingMoves = 2;
+            int startingMoves = 60;
             if (args.length > 1) {
                 startingMoves = Integer.parseInt(args[1]);
             }
 
-            AStarSearch search2 = new AStarSearch(l) {
-                @Override
-                public int h(Level l) {
-                    return countSpheres(l);
-                }
-
-                @Override
-                public List<AStarNode> generateChildren(AStarNode node) {
-                    List<AStarNode> l = new ArrayList<AStarNode>();
-                    Level level = node.level;
-
-                    if (!level.isDead() && !level.isWon() && node.g < moveLimit) {
-                        if (countSpheres(level) == 0) {
-                            for (byte i = Entity.FIRST_DIR; i <= Entity.LAST_DIR; i++) {
-                                Level lev = new Level(level);
-                                testChild(node, l, i, lev);
-                            }
-                        } else {
-                            if (level.getPlayerY() == 3) { // sphererow
-                                Level lev = new Level(level);
-                                testChild(node, l, Entity.DIR_UP, lev);
-                                lev = new Level(level);
-                                testChild(node, l, Entity.DIR_RIGHT, lev);
-                            } else {
-                                Level lev = new Level(level);
-                                testChild(node, l, Entity.DIR_DOWN, lev);
-                                lev = new Level(level);
-                                testChild(node, l, Entity.DIR_LEFT, lev);
-                                lev = new Level(level);
-                                testChild(node, l, Entity.DIR_RIGHT, lev);
-                            }
-                        }
-                    }
-
-                    return l;
-                }
-            };
+            // AStarSearch search2 = new AStarSearch(l) {
+            // @Override
+            // public int h(SoftLevel l) {
+            // return countSpheres(l);
+            // }
+            //
+            // @Override
+            // public List<AStarNode> generateChildren(AStarNode node) {
+            // List<AStarNode> l = new ArrayList<AStarNode>();
+            // SoftLevel level = node.level;
+            //
+            // if (!level.isDead() && !level.isWon() && node.g < moveLimit) {
+            // if (countSpheres(level) == 0) {
+            // for (byte i = Entity.FIRST_DIR; i <= Entity.LAST_DIR; i++) {
+            // SoftLevel lev = new SoftLevel(level);
+            // testChild(node, l, i, lev);
+            // }
+            // } else {
+            // if (level.getPlayerY() == 3) { // sphererow
+            // SoftLevel lev = new SoftLevel(level);
+            // testChild(node, l, Entity.DIR_UP, lev);
+            // lev = new SoftLevel(level);
+            // testChild(node, l, Entity.DIR_RIGHT, lev);
+            // } else {
+            // SoftLevel lev = new SoftLevel(level);
+            // testChild(node, l, Entity.DIR_DOWN, lev);
+            // lev = new SoftLevel(level);
+            // testChild(node, l, Entity.DIR_LEFT, lev);
+            // lev = new SoftLevel(level);
+            // testChild(node, l, Entity.DIR_RIGHT, lev);
+            // }
+            // }
+            // }
+            //
+            // return l;
+            // }
+            // };
 
             l.print(System.out);
 
             AStarSearch search = new AStarSearch(l);
             search.printMmap();
-            for (int i = startingMoves; i <= 65536; i *= 2) {
+            for (int i = startingMoves; i <= startingMoves; i *= 2) {
                 System.out.print("trying in " + i + " moves, ");
                 search.initialize();
                 search.setMoveLimit(i);

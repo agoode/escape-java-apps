@@ -8,7 +8,6 @@ import java.security.NoSuchAlgorithmException;
 
 import org.spacebar.escape.common.BitInputStream;
 import org.spacebar.escape.common.Bot;
-import org.spacebar.escape.common.Effects;
 import org.spacebar.escape.common.hash.FNV32;
 import org.spacebar.escape.common.hash.FNV64;
 import org.spacebar.escape.common.hash.MD5;
@@ -24,59 +23,39 @@ public class Level extends org.spacebar.escape.common.Level {
     }
 
     @Override
-    public boolean move(byte d) {
-        validHashCode = false;
-        return super.move(d);
-    }
-    
-    @Override
-    public boolean move(byte d, Effects e) {
-        validHashCode = false;
-        return super.move(d, e);
-    }
-    
-    boolean validHashCode;
-
-    int hashVal;
-
-    @Override
     public int hashCode() {
-        if (!validHashCode) {
-            // Like Tom,
-            /*
-             * ignore title, author, w/h, dests, flags, since these don't
-             * change. also ignore botd and guyd, which are presentational.
-             */
+        // Like Tom,
+        /*
+         * ignore title, author, w/h, dests, flags, since these don't change.
+         * also ignore botd and guyd, which are presentational.
+         */
 
-            FNV32 hash = new FNV32();
+        FNV32 hash = new FNV32();
 
-            // player
-            hash.fnv32(player.getX());
-            hash.fnv32(player.getY());
+        // player
+        hash.fnv32(player.getX());
+        hash.fnv32(player.getY());
 
-            // tiles, oTiles
-            // hash.fnv32(width);
-            // hash.fnv32(height);
-            for (int i = 0; i < tiles.length; i++) {
-                hash.fnv32(tiles[i]);
-                hash.fnv32(oTiles[i]);
-                hash.fnv32(flags[i]);
-                // hash.fnv32(dests[i]);
-            }
-
-            // bots
-            hash.fnv32(bots.length);
-            for (int i = 0; i < bots.length; i++) {
-                Bot b = bots[i];
-                hash.fnv32(b.getBotType());
-                hash.fnv32(b.getX());
-                hash.fnv32(b.getY());
-            }
-
-            validHashCode = true;
-            hashVal = hash.hval;
+        // tiles, oTiles
+        // hash.fnv32(width);
+        // hash.fnv32(height);
+        for (int i = 0; i < tiles.length; i++) {
+            hash.fnv32(tiles[i]);
+            hash.fnv32(oTiles[i]);
+            hash.fnv32(flags[i]);
+            // hash.fnv32(dests[i]);
         }
-        return hashVal;
+
+        // bots
+        hash.fnv32(bots.length);
+        for (int i = 0; i < bots.length; i++) {
+            Bot b = bots[i];
+            hash.fnv32(b.getBotType());
+            hash.fnv32(b.getX());
+            hash.fnv32(b.getY());
+        }
+
+        return hash.hval;
     }
 
     @Override
