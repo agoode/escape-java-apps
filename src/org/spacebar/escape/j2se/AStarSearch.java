@@ -147,6 +147,7 @@ public class AStarSearch implements Runnable {
             int depth, int divisor, boolean[][] panelDests, int val) {
         if (!isBoundary(l, x, y, panelDests) && val < maze[x][y]) {
             maze[x][y] = val;
+//            System.out.println("(" + x + "," + y + "): " + val);
             doBrushFire(maze, l, x, y, depth + 1, divisor, panelDests);
         }
     }
@@ -163,7 +164,7 @@ public class AStarSearch implements Runnable {
 
         int t = l.tileAt(x, y);
         int o = l.oTileAt(x, y);
-        return isImmovableTile(t) || (isImmovableTile(o) && panelDests[x][y]);
+        return isImmovableTile(t) && (isImmovableTile(o) || panelDests[x][y]);
     }
 
     /**

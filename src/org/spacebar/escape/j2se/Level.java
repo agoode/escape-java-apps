@@ -33,8 +33,8 @@ public class Level extends org.spacebar.escape.common.Level {
         FNV32 hash = new FNV32();
 
         // player
-        hash.fnv32(player.getX());
-        hash.fnv32(player.getY());
+        hash.fnv32((byte) player.getX());
+        hash.fnv32((byte) player.getY());
 
         // tiles, oTiles
         // hash.fnv32(width);
@@ -47,12 +47,12 @@ public class Level extends org.spacebar.escape.common.Level {
         }
 
         // bots
-        hash.fnv32(bots.length);
+        hash.fnv32((byte) bots.length);
         for (int i = 0; i < bots.length; i++) {
             Bot b = bots[i];
             hash.fnv32(b.getBotType());
-            hash.fnv32(b.getX());
-            hash.fnv32(b.getY());
+            hash.fnv32((byte) b.getX());
+            hash.fnv32((byte) b.getY());
         }
 
         return hash.hval;
