@@ -126,10 +126,10 @@ public class LevelCanvas extends DoubleBufferCanvas {
     private void paintLevel(Graphics2D g) {
         if (levelSurface == null) {
             initLevelSurface();
-            theLevel.getDirty().setAllDirty();
+            theLevel.dirty.setAllDirty();
         }
 //        System.out.println(theLevel.dirty);
-        if (theLevel.getDirty().isAnyDirty()) {
+        if (theLevel.dirty.isAnyDirty()) {
             paintLevelToSurface();
         }
         int sx1 = xScroll * Drawing.getTileSize(scale);
@@ -314,6 +314,7 @@ public class LevelCanvas extends DoubleBufferCanvas {
 
     public void setLevel(Level l) {
         this.theLevel = new ListenableLevel(l);
+        theLevel.trackDirty(true);
         theLevel.addMoveListener(new MoveListener() {
             public void moveOccurred(boolean success) {
                 bufferRepaint();
@@ -325,7 +326,7 @@ public class LevelCanvas extends DoubleBufferCanvas {
 
     public void swapWithBizarro() {
         showBizarro = !showBizarro;
-        theLevel.getDirty().setAllDirty();
+        theLevel.dirty.setAllDirty();
     }
 
     public void setRelativeScale(int s) {
@@ -340,7 +341,7 @@ public class LevelCanvas extends DoubleBufferCanvas {
             s = -Drawing.SCALE_UP_FACTORS;
         }
         scale = s;
-        theLevel.getDirty().setAllDirty();
+        theLevel.dirty.setAllDirty();
 
         bufferRepaint();
     }

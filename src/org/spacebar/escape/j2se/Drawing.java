@@ -241,7 +241,7 @@ public class Drawing {
 		// System.out.println("tilesize: " + tileSize);
 		// System.out.println("zoom: " + zoom);
 
-		DirtyList d = theLevel.getDirty();
+		DirtyList d = theLevel.dirty;
 		if (d.isAnyDirty()) {
 			if (d.isAllDirty()) {
 				for (int j = 0; j < theLevel.getHeight() - yScroll; j++) {

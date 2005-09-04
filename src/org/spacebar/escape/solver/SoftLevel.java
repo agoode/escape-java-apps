@@ -7,7 +7,6 @@ import java.util.List;
 
 import org.spacebar.escape.common.Effects;
 import org.spacebar.escape.common.IntTriple;
-import org.spacebar.escape.common.Level.DirtyList;
 import org.spacebar.escape.common.hash.MD5;
 
 public class SoftLevel {
@@ -92,10 +91,6 @@ public class SoftLevel {
 
     public int getBotY(int index) {
         return getLevel().getBotY(index);
-    }
-
-    public DirtyList getDirty() {
-        return getLevel().getDirty();
     }
 
     public int getHeight() {
