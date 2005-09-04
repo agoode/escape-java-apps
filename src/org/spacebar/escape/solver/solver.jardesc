@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jardesc>
+<jar path="/home/adam/escape-solver.jar"/>
+<options buildIfNeeded="true" compress="true" descriptionLocation="/Escape-j2se/src/org/spacebar/escape/solver/solver.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" useSourceFolders="false"/>
+<manifest generateManifest="true" mainClassHandleIdentifier="=Escape-j2se/src&lt;org.spacebar.escape.solver{AStarSearch.java[AStarSearch" manifestLocation="/Escape-j2se/src/org/spacebar/escape/solver/solver-manifest" manifestVersion="1.0" reuseManifest="false" saveManifest="true" usesManifest="true">
+<sealing sealJar="false">
+<packagesToSeal/>
+<packagesToUnSeal/>
+</sealing>
+</manifest>
+<selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+<javaElement handleIdentifier="=Escape/src&lt;org.spacebar.escape.common.hash"/>
+<javaElement handleIdentifier="=Escape-j2se/src&lt;org.spacebar.escape.solver"/>
+<javaElement handleIdentifier="=Escape/src&lt;org.spacebar.escape.common"/>
+</selectedElements>
+</jardesc>
