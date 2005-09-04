@@ -15,6 +15,7 @@ import javax.swing.JOptionPane;
 
 import org.spacebar.escape.common.BitInputStream;
 import org.spacebar.escape.common.Entity;
+import org.spacebar.escape.util.PriorityQueue;
 
 /**
  * @author adam
