@@ -20,7 +20,7 @@ public class SoftLevel {
 
     private boolean validHashCode;
 
-    public static boolean slowsville;
+    public static int regenCount;
 
     public SoftLevel(Level baseLevel) {
         this.baseLevel = baseLevel;
@@ -42,7 +42,7 @@ public class SoftLevel {
         Level l = levelRef.get();
 //        l = null;
         if (l == null) {
-            slowsville = true;
+            regenCount++;
             // replay
 //            System.out.print(".");
 //            System.out.flush();

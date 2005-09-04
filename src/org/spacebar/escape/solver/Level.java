@@ -72,14 +72,10 @@ public class Level extends org.spacebar.escape.common.Level {
                 return false;
             }
 
-            try {
-                for (int i = 0; i < bots.length; i++) {
-                    if (!bots[i].equals(l.bots[i])) {
-                        return false;
-                    }
+            for (int i = 0; i < bots.length; i++) {
+                if (!bots[i].equals(l.bots[i])) {
+                    return false;
                 }
-            } catch (ArrayIndexOutOfBoundsException e) {
-                return false;
             }
 
             /*
@@ -94,12 +90,34 @@ public class Level extends org.spacebar.escape.common.Level {
             boolean flagsEq = flags == l.flags;
             boolean destsEq = dests == l.dests;
 
-            for (int i = 0; i < tiles.length; i++) {
-                if ((!tilesEq && (tiles[i] != l.tiles[i]))
-                        || (!oTilesEq && (oTiles[i] != l.oTiles[i]))
-                        || (!flagsEq && (flags[i] != l.flags[i]))
-                        || (!destsEq && (dests[i] != l.dests[i]))) {
-                    return false;
+            if (!tilesEq || !oTilesEq || !flagsEq || !destsEq) {
+                if (!tilesEq) {
+                    for (int i = 0; i < tiles.length; i++) {
+                        if (tiles[i] != l.tiles[i]) {
+                            return false;
+                        }
+                    }
+                }
+                if (!oTilesEq) {
+                    for (int i = 0; i < oTiles.length; i++) {
+                        if (oTiles[i] != l.oTiles[i]) {
+                            return false;
+                        }
+                    }
+                }
+                if (!flagsEq) {
+                    for (int i = 0; i < flags.length; i++) {
+                        if (flags[i] != l.flags[i]) {
+                            return false;
+                        }
+                    }
+                }
+                if (!destsEq) {
+                    for (int i = 0; i < dests.length; i++) {
+                        if (dests[i] != l.dests[i]) {
+                            return false;
+                        }
+                    }
                 }
             }
         }

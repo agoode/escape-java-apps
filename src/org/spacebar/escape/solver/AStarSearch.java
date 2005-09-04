@@ -24,7 +24,7 @@ public class AStarSearch implements Runnable {
             new AStarPQComparator());
 
     final public static String VERSION = "$Id$";
-    
+
     Map<SoftLevel, AStarNode> openMap = new HashMap<SoftLevel, AStarNode>();
 
     // Set<Long> closed = new HashSet<Long>();
@@ -51,7 +51,6 @@ public class AStarSearch implements Runnable {
         start = new AStarNode(null, Entity.DIR_NONE, new SoftLevel(l), 0);
     }
 
-    // XXX somehow broken, see lev560
     private void computeManhattanMap(Level l) {
         // get number of hugbots, they can push us closer
         int hugbots = 0;
@@ -149,7 +148,7 @@ public class AStarSearch implements Runnable {
             int depth, int divisor, boolean[][] panelDests, int val) {
         if (!isBoundary(l, x, y, panelDests) && val < maze[x][y]) {
             maze[x][y] = val;
-//            System.out.println("(" + x + "," + y + "): " + val);
+            // System.out.println("(" + x + "," + y + "): " + val);
             doBrushFire(maze, l, x, y, depth + 1, divisor, panelDests);
         }
     }
@@ -166,7 +165,7 @@ public class AStarSearch implements Runnable {
 
         int t = l.tileAt(x, y);
         int o = l.oTileAt(x, y);
-        return isImmovableTile(t) && (isImmovableTile(o) || panelDests[x][y]);
+        return isImmovableTile(t) && (isImmovableTile(o) || !panelDests[x][y]);
     }
 
     /**
@@ -405,21 +404,16 @@ public class AStarSearch implements Runnable {
 
         final int g;
 
-        final int hash;
-
         @Override
         public int hashCode() {
-            return hash;
+            return level.hashCode();
         }
 
         @Override
         public boolean equals(Object obj) {
             if (obj instanceof AStarNode) {
                 AStarNode item = (AStarNode) obj;
-                if (hash == item.hash) {
-                    SoftLevel itemLevel = item.level;
-                    return level.equals(itemLevel);
-                }
+                return level.equals(item.level);
             }
             return false;
         }
@@ -433,7 +427,6 @@ public class AStarSearch implements Runnable {
         AStarNode(AStarNode parent, byte dir, SoftLevel l, int cost) {
             this.parent = parent;
             dirToGetHere = dir;
-            hash = l.hashCode();
 
             level = l;
 
@@ -487,13 +480,15 @@ public class AStarSearch implements Runnable {
             if (System.currentTimeMillis() - time > 1000) {
                 int os = openMap.size();
                 int cs = closed.size();
-                if (SoftLevel.slowsville) {
-                    System.out.print("* ");
-                    SoftLevel.slowsville = false;
-                }
-                System.out.println("Open nodes: " + os + ", closed nodes: "
-                        + cs + "   (deltas: " + (os - prevOpen) + ", "
+                System.out.print("Open nodes: " + os + ", closed nodes: " + cs
+                        + "   (deltas: " + (os - prevOpen) + ", "
                         + (cs - prevClosed) + ")");
+                if (SoftLevel.regenCount > 0) {
+                    System.out.print("  regenerated levels: "
+                            + SoftLevel.regenCount);
+                    SoftLevel.regenCount = 0;
+                }
+                System.out.println();
                 // System.out.println("best h: " + bestH);
                 prevOpen = os;
                 prevClosed = cs;
@@ -607,7 +602,7 @@ public class AStarSearch implements Runnable {
     }
 
     public static void main(String[] args) {
-        System.out.println("This is: " + VERSION);
+        System.out.println(VERSION);
         try {
             Level l = new Level(
                     new BitInputStream(new FileInputStream(args[0])));
