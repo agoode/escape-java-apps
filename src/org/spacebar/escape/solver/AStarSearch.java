@@ -23,6 +23,8 @@ public class AStarSearch implements Runnable {
     PriorityQueue<AStarNode> open = new PriorityQueue<AStarNode>(11,
             new AStarPQComparator());
 
+    final public static String VERSION = "$Id$";
+    
     Map<SoftLevel, AStarNode> openMap = new HashMap<SoftLevel, AStarNode>();
 
     // Set<Long> closed = new HashSet<Long>();
@@ -605,6 +607,7 @@ public class AStarSearch implements Runnable {
     }
 
     public static void main(String[] args) {
+        System.out.println("This is: " + VERSION);
         try {
             Level l = new Level(
                     new BitInputStream(new FileInputStream(args[0])));

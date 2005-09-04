@@ -3,7 +3,6 @@ package org.spacebar.escape.solver;
 import java.io.PrintStream;
 import java.lang.ref.SoftReference;
 
-import org.spacebar.escape.common.Effects;
 import org.spacebar.escape.common.Entity;
 import org.spacebar.escape.common.IntTriple;
 import org.spacebar.escape.common.hash.MD5;
