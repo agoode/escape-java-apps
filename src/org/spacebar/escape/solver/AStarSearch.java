@@ -368,8 +368,7 @@ public class AStarSearch implements Runnable {
         if (node.g == 0 || (!level.isDead() && !level.isWon())
                 && node.g < moveLimit) {
             for (byte i = Entity.FIRST_DIR; i <= Entity.LAST_DIR; i++) {
-                SoftLevel lev = new SoftLevel(node.level);
-                testChild(node, l, i, lev);
+                testChild(node, l, i);
             }
             // System.out.println("----------");
         }
@@ -378,9 +377,9 @@ public class AStarSearch implements Runnable {
 
     }
 
-    protected void testChild(AStarNode node, List<AStarNode> l, byte i,
-            SoftLevel lev) {
-        if (lev.move(i)) {
+    protected void testChild(AStarNode node, List<AStarNode> l, byte i) {
+        SoftLevel lev = node.level.move(i);
+        if (lev != null) {
             // System.out.println(" child");
             // if (!closed.contains(lev.quickHash())) {
             if (!closed.contains(lev)) {
@@ -486,6 +485,10 @@ public class AStarSearch implements Runnable {
             if (System.currentTimeMillis() - time > 1000) {
                 int os = openMap.size();
                 int cs = closed.size();
+                if (SoftLevel.slowsville) {
+                    System.out.print("* ");
+                    SoftLevel.slowsville = false;
+                }
                 System.out.println("Open nodes: " + os + ", closed nodes: "
                         + cs + "   (deltas: " + (os - prevOpen) + ", "
                         + (cs - prevClosed) + ")");

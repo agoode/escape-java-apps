@@ -2,49 +2,65 @@ package org.spacebar.escape.solver;
 
 import java.io.PrintStream;
 import java.lang.ref.SoftReference;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.spacebar.escape.common.Effects;
+import org.spacebar.escape.common.Entity;
 import org.spacebar.escape.common.IntTriple;
 import org.spacebar.escape.common.hash.MD5;
 
 public class SoftLevel {
     private final Level baseLevel;
 
-    private final List<Byte> path;
-
+    private final byte dirToHere;
+    
+    private final SoftLevel parent;
+    
     private SoftReference<Level> levelRef;
 
     private int hashVal;
 
     private boolean validHashCode;
 
+    public static boolean slowsville;
+
     public SoftLevel(Level baseLevel) {
         this.baseLevel = baseLevel;
-        path = new ArrayList<Byte>();
-        levelRef = new SoftReference<Level>(new Level(baseLevel));
+        parent = null;
+        dirToHere = Entity.DIR_NONE;
     }
 
-    public SoftLevel(SoftLevel level) {
-        this.baseLevel = level.baseLevel;
-        this.path = new ArrayList<Byte>(level.path);
-        levelRef = new SoftReference<Level>(new Level(level.getLevel()));
+    private SoftLevel(SoftLevel level, Level l, byte dir) {
+        this.baseLevel = null;
+        parent = level;
+        dirToHere = dir;
+        levelRef = new SoftReference<Level>(l);
     }
 
     private Level getLevel() {
+        if (levelRef == null) {
+            return baseLevel;
+        }
         Level l = levelRef.get();
+//        l = null;
         if (l == null) {
+            slowsville = true;
             // replay
 //            System.out.print(".");
 //            System.out.flush();
-            l = new Level(baseLevel);
-            for (byte d : path) {
-                l.move(d);
-            }
+            l = recursiveRebuild();
             levelRef = new SoftReference<Level>(l);
         }
         return l;
+    }
+
+    private Level recursiveRebuild() {
+        if (baseLevel == null) {
+            Level l = parent.recursiveRebuild();
+            l.move(dirToHere);
+            return l;
+        } else {
+            return new Level(baseLevel);
+        }
     }
 
     public int destAt(int x, int y) {
@@ -146,24 +162,14 @@ public class SoftLevel {
         return getLevel().MD5();
     }
 
-    public boolean move(byte d, Effects e) {
-        if (getLevel().move(d, e)) {
-            path.add(d);
-            validHashCode = false;
-            return true;
-        }
-        return false;
-    }
-
-    public boolean move(byte d) {
-        if (getLevel().move(d)) {
+    public SoftLevel move(byte d) {
+        Level l = new Level(getLevel());
+        if (l.move(d)) {
 //            System.out.println("move: " + d + "(" + getLevel().getPlayerX() + "," + getLevel().getPlayerY() + ")");
-            path.add(d);
-            validHashCode = false;
-            return true;
+            return new SoftLevel(this, l, d);
         }
 //        System.out.println("!move: " + d);
-        return false;
+        return null;
     }
 
     public int oTileAt(int x, int y) {
