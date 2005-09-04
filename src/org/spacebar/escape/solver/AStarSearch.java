@@ -653,7 +653,7 @@ public class AStarSearch implements Runnable {
 
             AStarSearch search = new AStarSearch(l);
             search.printMmap();
-            for (int i = startingMoves; i <= startingMoves; i *= 2) {
+            for (int i = startingMoves; i <= 10000; i *= 2) {
                 System.out.print("trying in " + i + " moves, ");
                 search.initialize();
                 search.setMoveLimit(i);
