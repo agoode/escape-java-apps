@@ -46,46 +46,47 @@ import java.util.*;
  * @author Andrew John Hughes (gnu_andrew@member.fsf.org)
  * @since 1.5
  */
-public class PriorityQueue<E> extends AbstractQueue<E> implements Serializable
+public class PriorityQueue extends AbstractQueue implements Serializable
 {
   private static final int DEFAULT_CAPACITY = 11;
 
   private static final long serialVersionUID = -7720805057305804111L;
 
-  /** Number of elements actually used in the storage array.  */
+  /** Number of elements actually used in the storage array. */
   int used;
 
   /**
-   * This is the storage for the underlying binomial heap.
-   * The idea is, each node is less than or equal to its children.
-   * A node at index N (0-based) has two direct children, at
-   * nodes 2N+1 and 2N+2.
-   */
-  E[] storage;
+     * This is the storage for the underlying binomial heap. The idea is, each
+     * node is less than or equal to its children. A node at index N (0-based)
+     * has two direct children, at nodes 2N+1 and 2N+2.
+     */
+  Object[] storage;
 
   /**
-   * The comparator we're using, or null for natural ordering.
-   */
-  Comparator<? super E> comparator;
+     * The comparator we're using, or null for natural ordering.
+     */
+  Comparator comparator;
 
   public PriorityQueue()
   {
     this(DEFAULT_CAPACITY, null);
   }
 
-  public PriorityQueue(Collection<? extends E> c)
+  public PriorityQueue(Collection c)
   {
     this(Math.max(1, (int) (1.1 * c.size())), null);
 
     // Special case where we can find the comparator to use.
     if (c instanceof SortedSet)
       {
-	SortedSet<? extends E> ss = (SortedSet<? extends E>) c;
-	this.comparator = (Comparator<? super E>) ss.comparator();
+	SortedSet ss = (SortedSet) c;
+	this.comparator = ss.comparator();
 	// We can insert the elements directly, since they are sorted.
 	int i = 0;
-	for (E val : ss)
+    Iterator it = ss.iterator();
+    while(it.hasNext())
 	  {
+        Object val = it.next();
 	    if (val == null)
 	      throw new NullPointerException();
 	    storage[i++] = val;
@@ -93,8 +94,8 @@ public class PriorityQueue<E> extends AbstractQueue<E> implements Serializable
       }
     else if (c instanceof PriorityQueue)
       {
-	PriorityQueue<? extends E> pq = (PriorityQueue<? extends E>) c;
-	this.comparator = (Comparator<? super E>)pq.comparator();
+	PriorityQueue pq = (PriorityQueue) c;
+	this.comparator = pq.comparator();
 	// We can just copy the contents.
 	System.arraycopy(pq.storage, 0, storage, 0, pq.storage.length);
       }
@@ -107,29 +108,31 @@ public class PriorityQueue<E> extends AbstractQueue<E> implements Serializable
     this(cap, null);
   }
 
-  public PriorityQueue(int cap, Comparator<? super E> comp)
+  public PriorityQueue(int cap, Comparator comp)
   {
     this.used = 0;
-    this.storage = (E[]) new Object[cap];
+    this.storage = new Object[cap];
     this.comparator = comp;
   }
 
-  public PriorityQueue(PriorityQueue<? extends E> c)
+  public PriorityQueue(PriorityQueue c)
   {
     this(Math.max(1, (int) (1.1 * c.size())),
-	 (Comparator<? super E>)c.comparator());
+	 c.comparator());
     // We can just copy the contents.
     System.arraycopy(c.storage, 0, storage, 0, c.storage.length);
   }
 
-  public PriorityQueue(SortedSet<? extends E> c)
+  public PriorityQueue(SortedSet c)
   {
     this(Math.max(1, (int) (1.1 * c.size())),
-	 (Comparator<? super E>)c.comparator());
+	 c.comparator());
     // We can insert the elements directly, since they are sorted.
     int i = 0;
-    for (E val : c)
+    Iterator it = c.iterator();
+    while(it.hasNext())
       {
+        Object val = it.next();
 	if (val == null)
 	  throw new NullPointerException();
 	storage[i++] = val;
@@ -142,14 +145,14 @@ public class PriorityQueue<E> extends AbstractQueue<E> implements Serializable
     used = 0;
   }
 
-  public Comparator<? super E> comparator()
+  public Comparator comparator()
   {
     return comparator;
   }
 
-  public Iterator<E> iterator()
+  public Iterator iterator()
   {
-    return new Iterator<E>()
+    return new Iterator()
     {
       int index = -1;
       int count = 0;
@@ -159,7 +162,7 @@ public class PriorityQueue<E> extends AbstractQueue<E> implements Serializable
 	return count < used;
       }
 
-      public E next()
+      public Object next()
       {
 	while (storage[++index] == null)
 	  ;
@@ -174,7 +177,7 @@ public class PriorityQueue<E> extends AbstractQueue<E> implements Serializable
     };
   }
 
-  public boolean offer(E o)
+  public boolean offer(Object o)
   {
     if (o == null)
       throw new NullPointerException();
@@ -188,16 +191,16 @@ public class PriorityQueue<E> extends AbstractQueue<E> implements Serializable
     return true;
   }
 
-  public E peek()
+  public Object peek()
   {
     return used == 0 ? null : storage[0];
   }
 
-  public E poll()
+  public Object poll()
   {
     if (used == 0)
       return null;
-    E result = storage[0];
+    Object result = storage[0];
     remove(0);
     return result;
   }
@@ -225,15 +228,16 @@ public class PriorityQueue<E> extends AbstractQueue<E> implements Serializable
 
   // It is more efficient to implement this locally -- less searching
   // for free slots.
-  public boolean addAll(Collection<? extends E> c)
+  public boolean addAll(Collection c)
   {
     if (c == this)
       throw new IllegalArgumentException();
 
     int newSlot = -1;
     int save = used;
-    for (E val : c)
-      {
+    Iterator it = c.iterator();
+    while (it.hasNext()) {
+        Object val = it.next();
 	if (val == null)
 	  throw new NullPointerException();
 	newSlot = findSlot(newSlot);
@@ -267,7 +271,7 @@ public class PriorityQueue<E> extends AbstractQueue<E> implements Serializable
 
   void remove(int index)
   {
-    // Remove the element at INDEX.  We do this by finding the least
+    // Remove the element at INDEX. We do this by finding the least
     // child and moving it into place, then iterating until we reach
     // the bottom of the tree.
     while (storage[index] != null)
@@ -281,9 +285,9 @@ public class PriorityQueue<E> extends AbstractQueue<E> implements Serializable
 	    break;
 	  }
 
-	// Find which child we want to promote.  If one is not null,
-	// we pick it.  If both are null, it doesn't matter, we're
-	// about to leave.  If neither is null, pick the lesser.
+	// Find which child we want to promote. If one is not null,
+	// we pick it. If both are null, it doesn't matter, we're
+	// about to leave. If neither is null, pick the lesser.
 	if (child + 1 >= storage.length || storage[child + 1] == null)
 	  {
 	    // Nothing.
@@ -300,7 +304,7 @@ public class PriorityQueue<E> extends AbstractQueue<E> implements Serializable
 
   void bubbleUp(int index)
   {
-    // The element at INDEX was inserted into a blank spot.  Now move
+    // The element at INDEX was inserted into a blank spot. Now move
     // it up the tree to its natural resting place.
     while (index > 0)
       {
@@ -310,13 +314,13 @@ public class PriorityQueue<E> extends AbstractQueue<E> implements Serializable
 	    <= 0)
 	  {
 	    // Parent is the same or smaller than this element, so the
-	    // invariant is preserved.  Note that if the new element
+	    // invariant is preserved. Note that if the new element
 	    // is smaller than the parent, then it is necessarily
 	    // smaller than the parent's other child.
 	    break;
 	  }
 
-	E temp = storage[index];
+	Object temp = storage[index];
 	storage[index] = storage[parent];
 	storage[parent] = temp;
 
@@ -326,7 +330,7 @@ public class PriorityQueue<E> extends AbstractQueue<E> implements Serializable
 
   void resize()
   {
-    E[] new_data = (E[]) new Object[2 * storage.length];
+    Object[] new_data = new Object[2 * storage.length];
     System.arraycopy(storage, 0, new_data, 0, storage.length);
     storage = new_data;
   }

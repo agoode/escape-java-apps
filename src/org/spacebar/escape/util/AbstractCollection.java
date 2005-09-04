@@ -75,8 +75,8 @@ import java.util.Iterator;
  * @since 1.2
  * @status updated to 1.4
  */
-public abstract class AbstractCollection<E>
-  implements Collection<E>, Iterable<E>
+public abstract class AbstractCollection
+  implements Collection, Iterable
 {
   /**
    * The main constructor, for use by subclasses.
@@ -92,7 +92,7 @@ public abstract class AbstractCollection<E>
    *
    * @return an iterator
    */
-  public abstract Iterator<E> iterator();
+  public abstract Iterator iterator();
 
   /**
    * Return the number of elements in this collection. If there are more than
@@ -118,7 +118,7 @@ public abstract class AbstractCollection<E>
    * @throws IllegalArgumentException if some aspect of the object prevents
    *         it from being added
    */
-  public boolean add(E o)
+  public boolean add(Object o)
   {
     throw new UnsupportedOperationException();
   }
@@ -146,9 +146,9 @@ public abstract class AbstractCollection<E>
    *         collection doesn't allow null values.
    * @see #add(Object)
    */
-  public boolean addAll(Collection<? extends E> c)
+  public boolean addAll(Collection c)
   {
-    Iterator<? extends E> itr = c.iterator();
+    Iterator itr = c.iterator();
     boolean modified = false;
     int pos = c.size();
     while (--pos >= 0)
@@ -170,7 +170,7 @@ public abstract class AbstractCollection<E>
    */
   public void clear()
   {
-    Iterator<E> itr = iterator();
+    Iterator itr = iterator();
     int pos = size();
     while (--pos >= 0)
       {
@@ -192,7 +192,7 @@ public abstract class AbstractCollection<E>
    */
   public boolean contains(Object o)
   {
-    Iterator<E> itr = iterator();
+    Iterator itr = iterator();
     int pos = size();
     while (--pos >= 0)
       if (equals(o, itr.next()))
@@ -212,9 +212,9 @@ public abstract class AbstractCollection<E>
    * @throws NullPointerException if the given collection is null
    * @see #contains(Object)
    */
-  public boolean containsAll(Collection<?> c)
+  public boolean containsAll(Collection c)
   {
-    Iterator<?> itr = c.iterator();
+    Iterator itr = c.iterator();
     int pos = c.size();
     while (--pos >= 0)
       if (!contains(itr.next()))
@@ -255,7 +255,7 @@ public abstract class AbstractCollection<E>
    */
   public boolean remove(Object o)
   {
-    Iterator<E> itr = iterator();
+    Iterator itr = iterator();
     int pos = size();
     while (--pos >= 0)
       if (equals(o, itr.next()))
@@ -281,7 +281,7 @@ public abstract class AbstractCollection<E>
    * @throws NullPointerException if the collection, c, is null.
    * @see Iterator#remove()
    */
-  public boolean removeAll(Collection<?> c)
+  public boolean removeAll(Collection c)
   {
     return removeAllInternal(c);
   }
@@ -303,9 +303,9 @@ public abstract class AbstractCollection<E>
    * @see Iterator#remove()
    */
   // Package visible for use throughout java.util.
-  boolean removeAllInternal(Collection<?> c)
+  boolean removeAllInternal(Collection c)
   {
-    Iterator<E> itr = iterator();
+    Iterator itr = iterator();
     boolean modified = false;
     int pos = size();
     while (--pos >= 0)
@@ -332,7 +332,7 @@ public abstract class AbstractCollection<E>
    * @throws NullPointerException if the collection, c, is null.
    * @see Iterator#remove()
    */
-  public boolean retainAll(Collection<?> c)
+  public boolean retainAll(Collection c)
   {
     return retainAllInternal(c);
   }
@@ -355,9 +355,9 @@ public abstract class AbstractCollection<E>
    * @see Iterator#remove()
    */
   // Package visible for use throughout java.util.
-  boolean retainAllInternal(Collection<?> c)
+  boolean retainAllInternal(Collection c)
   {
-    Iterator<E> itr = iterator();
+    Iterator itr = iterator();
     boolean modified = false;
     int pos = size();
     while (--pos >= 0)
@@ -380,7 +380,7 @@ public abstract class AbstractCollection<E>
    */
   public Object[] toArray()
   {
-    Iterator<E> itr = iterator();
+    Iterator itr = iterator();
     int size = size();
     Object[] a = new Object[size];
     for (int pos = 0; pos < size; pos++)
@@ -410,21 +410,21 @@ public abstract class AbstractCollection<E>
    * @throws ArrayStoreException if the type of the array precludes holding
    *         one of the elements of the Collection
    */
-  public <T> T[] toArray(T[] a)
+  public Object[] toArray(Object[] a)
   {
     int size = size();
     if (a.length < size)
-      a = (T[]) Array.newInstance(a.getClass().getComponentType(),
+      a = (Object[]) Array.newInstance(a.getClass().getComponentType(),
                                        size);
     else if (a.length > size)
       a[size] = null;
 
-    Iterator<E> itr = iterator();
+    Iterator itr = iterator();
     for (int pos = 0; pos < size; pos++)
       {
 	try
 	  {
-	    a[pos] = (T) (itr.next());
+	    a[pos] = (itr.next());
 	  }
 	catch (ClassCastException exception)
 	  {
@@ -491,7 +491,7 @@ public abstract class AbstractCollection<E>
    * clever, but worth it for removing a duplicate of the search code.
    * Note: This code is also used in Arrays (for sort as well as search).
    */
-  static final <T> int compare(T o1, T o2, Comparator<? super T> c)
+  static final int compare(Object o1, Object o2, Comparator c)
   {
     return c == null ? ((Comparable) o1).compareTo(o2) : c.compare(o1, o2);
   }

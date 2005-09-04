@@ -39,6 +39,7 @@ exception statement from your version. */
 package org.spacebar.escape.util;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 /**
@@ -46,27 +47,29 @@ import java.util.NoSuchElementException;
  * @author Andrew John Hughes (gnu_andrew@member.fsf.org)
  * @since 1.5
  */
-public abstract class AbstractQueue<E> extends AbstractCollection<E> 
-  implements Queue<E>
+public abstract class AbstractQueue extends AbstractCollection
+  implements Queue
 {
   protected AbstractQueue()
   {
   }
 
-  public boolean add(E value)
+  public boolean add(Object value)
   {
     if (offer(value))
       return true;
     throw new IllegalStateException();
   }
 
-  public boolean addAll(Collection<? extends E> c)
+  public boolean addAll(Collection c)
   {
     if (c == this)
       throw new IllegalArgumentException();
     boolean result = false;
-    for (E val : c)
+    Iterator it = c.iterator();
+    while(it.hasNext()) 
       {
+        Object val = it.next();
 	if (add(val))
 	  result = true;
       }
@@ -79,17 +82,17 @@ public abstract class AbstractQueue<E> extends AbstractCollection<E>
       ;
   }
 
-  public E element()
+  public Object element()
   {
-    E result = peek();
+    Object result = peek();
     if (result == null)
       throw new NoSuchElementException();
     return result;
   }
 
-  public E remove()
+  public Object remove()
   {
-    E result = poll();
+    Object result = poll();
     if (result == null)
       throw new NoSuchElementException();
     return result;

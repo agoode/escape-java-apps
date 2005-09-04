@@ -1,8 +1,9 @@
-package org.spacebar.escape.j2se;
+package org.spacebar.escape.solver;
 
 import java.io.PrintStream;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.spacebar.escape.common.Effects;
@@ -13,9 +14,9 @@ import org.spacebar.escape.common.hash.MD5;
 public class SoftLevel {
     private final Level baseLevel;
 
-    private final List<Byte> path;
+    private final List path;
 
-    private SoftReference<Level> levelRef;
+    private SoftReference levelRef;
 
     private int hashVal;
 
@@ -23,27 +24,29 @@ public class SoftLevel {
 
     public SoftLevel(Level baseLevel) {
         this.baseLevel = baseLevel;
-        path = new ArrayList<Byte>();
-        levelRef = new SoftReference<Level>(new Level(baseLevel));
+        path = new ArrayList();
+        levelRef = new SoftReference(new Level(baseLevel));
     }
 
     public SoftLevel(SoftLevel level) {
         this.baseLevel = level.baseLevel;
-        this.path = new ArrayList<Byte>(level.path);
-        levelRef = new SoftReference<Level>(new Level(level.getLevel()));
+        this.path = new ArrayList(level.path);
+        levelRef = new SoftReference(new Level(level.getLevel()));
     }
 
     private Level getLevel() {
-        Level l = levelRef.get();
+        Level l = (Level) levelRef.get();
         if (l == null) {
             // replay
 //            System.out.print(".");
 //            System.out.flush();
             l = new Level(baseLevel);
-            for (byte d : path) {
+            Iterator it = path.iterator();
+            while(it.hasNext()) {
+                byte d = ((Byte)it.next()).byteValue();
                 l.move(d);
             }
-            levelRef = new SoftReference<Level>(l);
+            levelRef = new SoftReference(l);
         }
         return l;
     }
@@ -52,7 +55,6 @@ public class SoftLevel {
         return getLevel().destAt(x, y);
     }
 
-    @Override
     public boolean equals(Object obj) {
         if (obj instanceof SoftLevel) {
             SoftLevel s = (SoftLevel) obj;
@@ -126,7 +128,6 @@ public class SoftLevel {
         return getLevel().getWidth();
     }
 
-    @Override
     public int hashCode() {
         if (!validHashCode) {
             hashVal = getLevel().hashCode();
@@ -153,7 +154,7 @@ public class SoftLevel {
 
     public boolean move(byte d, Effects e) {
         if (getLevel().move(d, e)) {
-            path.add(d);
+            path.add(new Byte(d));
             validHashCode = false;
             return true;
         }
@@ -163,7 +164,7 @@ public class SoftLevel {
     public boolean move(byte d) {
         if (getLevel().move(d)) {
 //            System.out.println("move: " + d + "(" + getLevel().getPlayerX() + "," + getLevel().getPlayerY() + ")");
-            path.add(d);
+            path.add(new Byte(d));
             validHashCode = false;
             return true;
         }
@@ -187,7 +188,6 @@ public class SoftLevel {
         return getLevel().tileAt(i);
     }
 
-    @Override
     public String toString() {
         return getLevel().toString();
     }

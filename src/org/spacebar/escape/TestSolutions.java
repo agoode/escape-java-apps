@@ -10,8 +10,8 @@ import org.spacebar.escape.common.Misc;
 import org.spacebar.escape.common.Solution;
 import org.spacebar.escape.common.hash.MD5;
 import org.spacebar.escape.j2se.EscapeFrame;
-import org.spacebar.escape.j2se.Level;
 import org.spacebar.escape.j2se.PlayerInfo;
+import org.spacebar.escape.solver.Level;
 
 public class TestSolutions {
 

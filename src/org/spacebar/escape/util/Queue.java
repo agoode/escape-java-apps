@@ -43,11 +43,11 @@ import java.util.Collection;
 /**
  * @since 1.5
  */
-public interface Queue<T> extends Collection<T>
+public interface Queue extends Collection
 {
-  T element();
-  boolean offer(T value);
-  T peek();
-  T poll();
-  T remove();
+  Object element();
+  boolean offer(Object value);
+  Object peek();
+  Object poll();
+  Object remove();
 }

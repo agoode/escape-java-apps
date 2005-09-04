@@ -1,7 +1,7 @@
 /*
  * Created on Jan 23, 2005
  */
-package org.spacebar.escape.j2se;
+package org.spacebar.escape.solver;
 
 import java.awt.AWTException;
 import java.awt.Robot;
@@ -21,13 +21,12 @@ import org.spacebar.escape.util.PriorityQueue;
  * @author adam
  */
 public class AStarSearch implements Runnable {
-    PriorityQueue<AStarNode> open = new PriorityQueue<AStarNode>(11,
-            new AStarPQComparator());
+    PriorityQueue open = new PriorityQueue(11, new AStarPQComparator());
 
-    Map<SoftLevel, AStarNode> openMap = new HashMap<SoftLevel, AStarNode>();
+    Map openMap = new HashMap();
 
     // Set<Long> closed = new HashSet<Long>();
-    Set<SoftLevel> closed = new HashSet<SoftLevel>();
+    Set closed = new HashSet();
 
     // Set<Level> closed = new HashSet<Level>();
 
@@ -148,7 +147,7 @@ public class AStarSearch implements Runnable {
             int depth, int divisor, boolean[][] panelDests, int val) {
         if (!isBoundary(l, x, y, panelDests) && val < maze[x][y]) {
             maze[x][y] = val;
-//            System.out.println("(" + x + "," + y + "): " + val);
+            // System.out.println("(" + x + "," + y + "): " + val);
             doBrushFire(maze, l, x, y, depth + 1, divisor, panelDests);
         }
     }
@@ -228,7 +227,7 @@ public class AStarSearch implements Runnable {
         assert a.g + h(level) <= a.f : a.f + " not <= " + a.g + " + "
                 + h(level);
         assert sanityCheck();
-        AStarNode node = openMap.get(level);
+        AStarNode node = (AStarNode) openMap.get(level);
         assert sanityCheck();
         return node;
     }
@@ -240,10 +239,10 @@ public class AStarSearch implements Runnable {
         AStarNode a;
         AStarNode tmp;
         do {
-            a = open.remove();
+            a = (AStarNode) open.remove();
             SoftLevel l = a.level;
             if (openMap.containsKey(l)) {
-                tmp = openMap.get(l);
+                tmp = (AStarNode) openMap.get(l);
             } else {
                 tmp = null;
             }
@@ -251,7 +250,7 @@ public class AStarSearch implements Runnable {
 
         SoftLevel aLevel = a.level;
         assert openMap.containsValue(a);
-        AStarNode result = openMap.remove(aLevel);
+        AStarNode result = (AStarNode) openMap.remove(aLevel);
         SoftLevel resLevel = result.level;
         assert !openMap.containsValue(a);
         assert aLevel.equals(resLevel);
@@ -264,15 +263,17 @@ public class AStarSearch implements Runnable {
 
     private boolean sanityCheck() {
         // List<AStarNode> extraOpenItems = new ArrayList<AStarNode>();
-        List<AStarNode> extraOpenMapItems = new ArrayList<AStarNode>();
+        List extraOpenMapItems = new ArrayList();
 
         boolean bad = false;
 
-        AStarNode head = open.peek();
+        AStarNode head = (AStarNode) open.peek();
         int headF = head == null ? 0 : head.f;
         // System.out.println("head node f: " + headF);
 
-        for (AStarNode node : open) {
+        Iterator it = open.iterator();
+        while (it.hasNext()) {
+            AStarNode node = (AStarNode) it.next();
             // if (!openMap.containsValue(node)) {
             // extraOpenItems.add(node);
             // }
@@ -283,7 +284,9 @@ public class AStarSearch implements Runnable {
             }
         }
 
-        for (AStarNode node : openMap.values()) {
+        it = openMap.values().iterator();
+        while (it.hasNext()) {
+            AStarNode node = (AStarNode) it.next();
             if (!open.contains(node)) {
                 extraOpenMapItems.add(node);
             }
@@ -361,10 +364,10 @@ public class AStarSearch implements Runnable {
                 || (isPanelTarget && (o == Level.T_EXIT || o == Level.T_SLEEPINGDOOR));
     }
 
-    List<AStarNode> generateChildren(AStarNode node) {
+    List generateChildren(AStarNode node) {
         SoftLevel level = node.level;
         // default children generation -- override
-        List<AStarNode> l = new ArrayList<AStarNode>();
+        List l = new ArrayList();
 
         if (node.g == 0 || (!level.isDead() && !level.isWon())
                 && node.g < moveLimit) {
@@ -379,8 +382,7 @@ public class AStarSearch implements Runnable {
 
     }
 
-    protected void testChild(AStarNode node, List<AStarNode> l, byte i,
-            SoftLevel lev) {
+    protected void testChild(AStarNode node, List l, byte i, SoftLevel lev) {
         if (lev.move(i)) {
             // System.out.println(" child");
             // if (!closed.contains(lev.quickHash())) {
@@ -407,12 +409,10 @@ public class AStarSearch implements Runnable {
 
         final int hash;
 
-        @Override
         public int hashCode() {
             return hash;
         }
 
-        @Override
         public boolean equals(Object obj) {
             if (obj instanceof AStarNode) {
                 AStarNode item = (AStarNode) obj;
@@ -424,7 +424,6 @@ public class AStarSearch implements Runnable {
             return false;
         }
 
-        @Override
         public String toString() {
             return "(f: " + f + ", g: " + g + ", h: " + h(level) + ", "
                     + level.toString() + ")";
@@ -464,11 +463,13 @@ public class AStarSearch implements Runnable {
 
     }
 
-    private class AStarPQComparator implements Comparator<AStarNode> {
-        public int compare(AStarNode o1, AStarNode o2) {
-            if (o1.f < o2.f) {
+    private class AStarPQComparator implements Comparator {
+        public int compare(Object o1, Object o2) {
+            AStarNode n1 = (AStarNode) o1;
+            AStarNode n2 = (AStarNode) o2;
+            if (n1.f < n2.f) {
                 return -1;
-            } else if (o1.f > o2.f) {
+            } else if (n1.f > n2.f) {
                 return 1;
             } else {
                 return 0;
@@ -476,7 +477,7 @@ public class AStarSearch implements Runnable {
         }
     }
 
-    private List<Byte> solution;
+    private List solution;
 
     public void run() {
         long time = 0;
@@ -511,11 +512,13 @@ public class AStarSearch implements Runnable {
                 // System.out.println(" ***** closed: " + closed);
                 closed.add(level);
                 // System.out.println(" ***** closed: " + closed);
-                List<AStarNode> children = generateChildren(a);
+                List children = generateChildren(a);
                 // System.out.println(" ***** closed: " + closed);
 
                 Collections.shuffle(children);
-                for (AStarNode node : children) {
+                Iterator it = children.iterator();
+                while (it.hasNext()) {
+                    AStarNode node = (AStarNode) it.next();
                     AStarNode oldNode = getFromOpen(node);
                     if (oldNode == null) {
                         updateOpen(node);
@@ -547,10 +550,10 @@ public class AStarSearch implements Runnable {
         greatestG = 0;
     }
 
-    List<Byte> constructSolution(AStarNode a) {
-        List<Byte> moves = new ArrayList<Byte>();
+    List constructSolution(AStarNode a) {
+        List moves = new ArrayList();
         while (a != null) {
-            moves.add(a.dirToGetHere);
+            moves.add(new Byte(a.dirToGetHere));
             a = a.parent;
         }
         Collections.reverse(moves);
@@ -572,11 +575,13 @@ public class AStarSearch implements Runnable {
         printSolution(solution);
     }
 
-    static void printSolution(List<Byte> solution) {
+    static void printSolution(List solution) {
         System.out.println("moves: " + solution.size());
         byte lastMove = Entity.DIR_NONE;
         int moveCount = 0;
-        for (Byte move : solution) {
+        Iterator it = solution.iterator();
+        while (it.hasNext()) {
+            byte move = ((Byte) it.next()).byteValue();
             if (move != lastMove) {
                 if (lastMove != Entity.DIR_NONE) {
                     System.out.print(moveCount
@@ -675,7 +680,7 @@ public class AStarSearch implements Runnable {
         }
     }
 
-    private static void robot(List<Byte> s) {
+    private static void robot(List s) {
         int time = 2;
         String options[] = { "Type The Solution", "Exit" };
         int result = JOptionPane.showOptionDialog(null,
@@ -703,7 +708,9 @@ public class AStarSearch implements Runnable {
             }
             System.out.println();
 
-            for (byte dir : s) {
+            Iterator it = s.iterator();
+            while (it.hasNext()) {
+                byte dir = ((Byte) it.next()).byteValue();
                 System.out.print(Entity.directionToString(dir) + " ");
                 System.out.flush();
 

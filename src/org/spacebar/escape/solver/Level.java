@@ -1,4 +1,4 @@
-package org.spacebar.escape.j2se;
+package org.spacebar.escape.solver;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -22,7 +22,6 @@ public class Level extends org.spacebar.escape.common.Level {
         super(in);
     }
 
-    @Override
     public int hashCode() {
         // Like Tom,
         /*
@@ -58,7 +57,6 @@ public class Level extends org.spacebar.escape.common.Level {
         return hash.hval;
     }
 
-    @Override
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;
@@ -106,7 +104,6 @@ public class Level extends org.spacebar.escape.common.Level {
         return true;
     }
 
-    @Override
     public String toString() {
         return "[\"" + title + "\" by " + author + " (" + width + "x" + height
                 + ")" + " player: (" + this.player.getX() + ","

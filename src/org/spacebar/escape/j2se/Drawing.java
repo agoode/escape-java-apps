@@ -9,6 +9,7 @@ import java.awt.image.BufferedImage;
 
 import org.spacebar.escape.common.*;
 import org.spacebar.escape.common.Level.DirtyList;
+import org.spacebar.escape.solver.Level;
 
 /**
  * @author adam

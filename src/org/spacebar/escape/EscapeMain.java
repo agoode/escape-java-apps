@@ -7,7 +7,7 @@ import java.io.*;
 
 import org.spacebar.escape.common.BitInputStream;
 import org.spacebar.escape.j2se.EscapeFrame;
-import org.spacebar.escape.j2se.Level;
+import org.spacebar.escape.solver.Level;
 
 public class EscapeMain {
 
