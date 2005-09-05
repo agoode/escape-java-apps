@@ -52,7 +52,7 @@ public class AStarSearch implements Runnable {
         lm.optimize();
         l = new Level(lm);
         
-        heuristicMap = l.computeHeuristicMap();
+        heuristicMap = l.computeHeuristicMap().map;
         start = new AStarNode(null, new SoftLevel(l), 0);
     }
 
