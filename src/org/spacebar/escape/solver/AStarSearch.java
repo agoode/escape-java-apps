@@ -204,8 +204,8 @@ public class AStarSearch implements Runnable {
     private void updateOpen(AStarNode a) {
         SoftLevel level = a.level;
         assert sanityCheck();
-        assert a.g + h(level) <= a.f : a.f + " not <= " + a.g + " + "
-                + h(level);
+//        assert a.g + h(level) <= a.f : a.f + " not <= " + a.g + " + "
+//                + h(level);
         // if (openMap.containsKey(level)) {
         // open.removeAll(Collections.singleton(a));
         // // open.remove(a);
@@ -225,8 +225,8 @@ public class AStarSearch implements Runnable {
 
     private AStarNode getFromOpen(AStarNode a) {
         SoftLevel level = a.level;
-        assert a.g + h(level) <= a.f : a.f + " not <= " + a.g + " + "
-                + h(level);
+//        assert a.g + h(level) <= a.f : a.f + " not <= " + a.g + " + "
+//                + h(level);
         assert sanityCheck();
         AStarNode node = openMap.get(level);
         assert sanityCheck();
@@ -247,7 +247,7 @@ public class AStarSearch implements Runnable {
             } else {
                 tmp = null;
             }
-        } while (tmp == null || tmp.f > a.f);
+        } while (tmp == null);
 
         SoftLevel aLevel = a.level;
         assert openMap.containsValue(a);
@@ -257,8 +257,8 @@ public class AStarSearch implements Runnable {
         assert aLevel.equals(resLevel);
         assert open.size() >= openMap.size();
         assert sanityCheck();
-        assert a.g + h(aLevel) <= a.f : a.f + " not <= " + a.g + " + "
-                + h(aLevel);
+//        assert a.g + h(aLevel) <= a.f : a.f + " not <= " + a.g + " + "
+//                + h(aLevel);
         return a;
     }
 
@@ -269,16 +269,17 @@ public class AStarSearch implements Runnable {
         boolean bad = false;
 
         AStarNode head = open.peek();
-        int headF = head == null ? 0 : head.f;
+        int headF = head == null ? 0 : head.g + h(head.level);
         // System.out.println("head node f: " + headF);
 
         for (AStarNode node : open) {
             // if (!openMap.containsValue(node)) {
             // extraOpenItems.add(node);
             // }
-            if (headF > node.f) {
+            int nodeF = node.g + h(node.level);
+            if (headF > nodeF) {
                 System.out.println("head node has non-best f: " + headF
-                        + " (better f: " + node.f + ")");
+                        + " (better f: " + nodeF + ")");
                 bad = true;
             }
         }
@@ -309,42 +310,6 @@ public class AStarSearch implements Runnable {
         // int coveredColors = computeCoveredColors(l);
 
         return m;
-    }
-
-    static private int computeCoveredColors(SoftLevel l) {
-        int coveredColors = 0;
-        for (int i = 0; i < l.getWidth() * l.getHeight(); i++) {
-            int t = l.tileAt(i);
-            int f = l.flagAt(i);
-            if ((f & Level.TF_HASPANEL) == 0) {
-                // no panel
-                continue;
-            }
-
-            switch (t) {
-            case Level.T_BSPHERE:
-            case Level.T_BSTEEL:
-                if (Level.realPanel(f) == Level.T_BPANEL) {
-                    coveredColors++;
-                }
-                break;
-
-            case Level.T_RSPHERE:
-            case Level.T_RSTEEL:
-                if (Level.realPanel(f) == Level.T_RPANEL) {
-                    coveredColors++;
-                }
-                break;
-
-            case Level.T_GSPHERE:
-            case Level.T_GSTEEL:
-                if (Level.realPanel(f) == Level.T_GPANEL) {
-                    coveredColors++;
-                }
-                break;
-            }
-        }
-        return coveredColors;
     }
 
     private int manhattan(SoftLevel l) {
@@ -396,7 +361,7 @@ public class AStarSearch implements Runnable {
     class AStarNode {
         public final SoftLevel level;
 
-        final int f;
+//        final int f;
 
         final int g;
 
@@ -416,24 +381,24 @@ public class AStarSearch implements Runnable {
 
         @Override
         public String toString() {
-            return "(f: " + f + ", g: " + g + ", h: " + h(level) + ", "
+            return "(g: " + g + ", h: " + h(level) + ", "
                     + level.toString() + ")";
         }
 
         AStarNode(AStarNode parent, SoftLevel l, int cost) {
             level = l;
 
-            final int parentF;
+//            final int parentF;
             if (parent == null) {
                 this.g = cost;
-                parentF = 0;
+//                parentF = 0;
             } else {
                 this.g = parent.g + cost;
-                parentF = parent.f;
+//                parentF = parent.f;
             }
 
-            f = g + h(l);
-            assert f >= parentF : "pathmax active! " + parent + " " + this;
+//            f = g + h(l);
+//            assert f >= parentF : "pathmax active! " + parent + " " + this;
             if (g > greatestG) {
                 System.out.println("greatest g: " + greatestG);
                 greatestG = g;
@@ -452,9 +417,11 @@ public class AStarSearch implements Runnable {
 
     private class AStarPQComparator implements Comparator<AStarNode> {
         public int compare(AStarNode o1, AStarNode o2) {
-            if (o1.f < o2.f) {
+            int o1f = o1.g + h(o1.level);
+            int o2f = o2.g + h(o2.level);
+            if (o1f < o2f) {
                 return -1;
-            } else if (o1.f > o2.f) {
+            } else if (o1f > o2f) {
                 return 1;
             } else {
                 return 0;
@@ -532,9 +499,9 @@ public class AStarSearch implements Runnable {
 
         // add to open list
         updateOpen(start);
-        SoftLevel level = start.level;
-        assert start.g + h(level) == start.f : start.f + " != " + start.g
-                + " + " + h(level);
+//        SoftLevel level = start.level;
+//        assert start.g + h(level) == start.f : start.f + " != " + start.g
+//                + " + " + h(level);
 
         greatestG = 0;
     }
