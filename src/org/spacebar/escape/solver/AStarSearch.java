@@ -79,6 +79,7 @@ public class AStarSearch implements Runnable {
                 if (t == Level.T_TRANSPORT || o == Level.T_TRANSPORT) {
                     // XXX see if transport is in bizarro world
                     // but is never a dest itself
+                    // System.out.println(x + "," + y + " -> " + tx + "," + ty);
                     transportDests[tx][ty] = true;
                 }
                 if (Level.isPanel(t) || Level.isPanel(o)) {
@@ -94,7 +95,8 @@ public class AStarSearch implements Runnable {
             for (int x = 0; x < w; x++) {
                 if (isPossibleExit(l, x, y, panelDests[x][y])) {
                     mmap[x][y] = 0;
-                    doBrushFire(mmap, l, x, y, 1, hugbots + 1, panelDests);
+                    doBrushFire(mmap, l, x, y, 1, hugbots + 1, panelDests,
+                            transportDests);
                 }
             }
         }
@@ -108,12 +110,11 @@ public class AStarSearch implements Runnable {
                     int yd = dest / l.getWidth();
 
                     mmap[x][y] = mmap[xd][yd];
-                    doBrushFire(mmap, l, x, y, 1, hugbots + 1, panelDests);
+                    doBrushFire(mmap, l, x, y, 1, hugbots + 1, panelDests,
+                            transportDests);
                 }
             }
         }
-
-        // printMmap();
     }
 
     static private boolean isPossibleTransport(Level l, int x, int y,
@@ -126,12 +127,17 @@ public class AStarSearch implements Runnable {
 
     // !
     static private void doBrushFire(int maze[][], Level l, int x, int y,
-            int depth, int divisor, boolean panelDests[][]) {
+            int depth, int divisor, boolean panelDests[][],
+            boolean transportDests[][]) {
         int val = depth / divisor;
-        doBrushFire2(maze, l, x, y + 1, depth, divisor, panelDests, val);
-        doBrushFire2(maze, l, x, y - 1, depth, divisor, panelDests, val);
-        doBrushFire2(maze, l, x + 1, y, depth, divisor, panelDests, val);
-        doBrushFire2(maze, l, x - 1, y, depth, divisor, panelDests, val);
+        doBrushFire2(maze, l, x, y + 1, depth, divisor, panelDests,
+                transportDests, val);
+        doBrushFire2(maze, l, x, y - 1, depth, divisor, panelDests,
+                transportDests, val);
+        doBrushFire2(maze, l, x + 1, y, depth, divisor, panelDests,
+                transportDests, val);
+        doBrushFire2(maze, l, x - 1, y, depth, divisor, panelDests,
+                transportDests, val);
     }
 
     /**
@@ -145,16 +151,19 @@ public class AStarSearch implements Runnable {
      * @param val
      */
     private static void doBrushFire2(int[][] maze, Level l, int x, int y,
-            int depth, int divisor, boolean[][] panelDests, int val) {
-        if (!isBoundary(l, x, y, panelDests) && val < maze[x][y]) {
+            int depth, int divisor, boolean[][] panelDests,
+            boolean[][] transportDests, int val) {
+        if (!isBoundary(l, x, y, panelDests, transportDests)
+                && val < maze[x][y]) {
             maze[x][y] = val;
             // System.out.println("(" + x + "," + y + "): " + val);
-            doBrushFire(maze, l, x, y, depth + 1, divisor, panelDests);
+            doBrushFire(maze, l, x, y, depth + 1, divisor, panelDests,
+                    transportDests);
         }
     }
 
     static private boolean isBoundary(Level l, int x, int y,
-            boolean panelDests[][]) {
+            boolean panelDests[][], boolean transportDests[][]) {
         int w = l.getWidth();
         int h = l.getHeight();
 
@@ -165,7 +174,8 @@ public class AStarSearch implements Runnable {
 
         int t = l.tileAt(x, y);
         int o = l.oTileAt(x, y);
-        return isImmovableTile(t) && (isImmovableTile(o) || !panelDests[x][y]);
+        return !transportDests[x][y] && isImmovableTile(t)
+                && (isImmovableTile(o) || !panelDests[x][y]);
     }
 
     /**
@@ -435,7 +445,8 @@ public class AStarSearch implements Runnable {
             f = g + h(l);
             if (f < parentF) {
                 // so important, that we never want to disable
-                throw new AssertionError("pathmax active! " + parent + " " + this);
+                throw new AssertionError("pathmax active! " + parent + " "
+                        + this);
             }
             if (g > greatestG) {
                 System.out.println("greatest g: " + greatestG);
