@@ -42,12 +42,12 @@ public class Level extends org.spacebar.escape.common.Level {
         for (int i = 0; i < tiles.length; i++) {
             hash.fnv32(tiles[i]);
             hash.fnv32(oTiles[i]);
-            hash.fnv32(flags[i]);
+            // hash.fnv32(flags[i]);
             // hash.fnv32(dests[i]);
         }
 
         // bots
-        hash.fnv32((byte) bots.length);
+        // hash.fnv32((byte) bots.length);
         for (int i = 0; i < bots.length; i++) {
             Bot b = bots[i];
             hash.fnv32(b.getBotType());
@@ -201,10 +201,4 @@ public class Level extends org.spacebar.escape.common.Level {
 
         return hash.hval;
     }
-
-    // @Override
-    // protected void finalize() throws Throwable {
-    // System.out.println("bye bye " + this);
-    // super.finalize();
-    // }
 }
