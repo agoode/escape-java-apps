@@ -10,9 +10,9 @@ import org.spacebar.escape.common.hash.MD5;
 public class SoftLevel {
     private final Level baseLevel;
 
-    private final byte dirToHere;
+    final byte dirToHere;
     
-    private final SoftLevel parent;
+    final SoftLevel parent;
     
     private SoftReference<Level> levelRef;
 

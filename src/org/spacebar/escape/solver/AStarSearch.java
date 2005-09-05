@@ -48,7 +48,7 @@ public class AStarSearch implements Runnable {
         // construct initial node
         manhattanMap = new int[l.getWidth()][l.getHeight()];
         computeManhattanMap(l);
-        start = new AStarNode(null, Entity.DIR_NONE, new SoftLevel(l), 0);
+        start = new AStarNode(null, new SoftLevel(l), 0);
     }
 
     private void computeManhattanMap(Level l) {
@@ -385,7 +385,7 @@ public class AStarSearch implements Runnable {
             // if (!closed.contains(lev.quickHash())) {
             if (!closed.contains(lev)) {
                 // System.out.println("***adding " + lev);
-                l.add(new AStarNode(node, i, lev, 1)); // cost
+                l.add(new AStarNode(node, lev, 1)); // cost
                 // of
                 // move is 1
                 // lev.print(System.out);
@@ -395,10 +395,6 @@ public class AStarSearch implements Runnable {
 
     class AStarNode {
         public final SoftLevel level;
-
-        final AStarNode parent;
-
-        final byte dirToGetHere;
 
         final int f;
 
@@ -424,10 +420,7 @@ public class AStarSearch implements Runnable {
                     + level.toString() + ")";
         }
 
-        AStarNode(AStarNode parent, byte dir, SoftLevel l, int cost) {
-            this.parent = parent;
-            dirToGetHere = dir;
-
+        AStarNode(AStarNode parent, SoftLevel l, int cost) {
             level = l;
 
             final int parentF;
@@ -548,9 +541,10 @@ public class AStarSearch implements Runnable {
 
     List<Byte> constructSolution(AStarNode a) {
         List<Byte> moves = new ArrayList<Byte>();
-        while (a != null) {
-            moves.add(a.dirToGetHere);
-            a = a.parent;
+        SoftLevel l = a.level;
+        while (l != null) {
+            moves.add(l.dirToHere);
+            l = l.parent;
         }
         Collections.reverse(moves);
         moves.remove(0);
