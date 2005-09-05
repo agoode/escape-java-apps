@@ -9,10 +9,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-import org.spacebar.escape.common.BitInputStream;
-import org.spacebar.escape.common.Level;
-import org.spacebar.escape.common.Misc;
-import org.spacebar.escape.common.Solution;
+import org.spacebar.escape.common.*;
 import org.spacebar.escape.common.hash.MD5;
 import org.spacebar.escape.j2se.EscapeFrame;
 import org.spacebar.escape.j2se.PlayerInfo;
@@ -113,8 +110,9 @@ public class TestSolutions {
                                 + " moves");
                         System.out.flush();
 
-                        Level l2 = new Level(l);
-                        int result = sol.verify(l2);
+                        LevelManip lm = new LevelManip(l);
+                        lm.optimize();
+                        int result = sol.verify(new Level(lm));
 
                         int pad = mls - ls.length() + 10;
                         while (pad-- > 0) {
@@ -193,7 +191,7 @@ public class TestSolutions {
             }
 
             MD5 md5 = new MD5(m.digest(l));
-            Level ll = new Level(
+            Level ll = new EquateableLevel(
                     new BitInputStream(new ByteArrayInputStream(l)));
             levels.put(md5, ll);
             md5s.put(ll, md5);
