@@ -40,18 +40,18 @@ public class AStarSearch implements Runnable {
         moveLimit = moves;
     }
 
-    final int manhattanMap[][];
+    final int heuristicMap[][];
 
     int greatestG;
 
     public AStarSearch(Level l) {
         // construct initial node
-        manhattanMap = new int[l.getWidth()][l.getHeight()];
-        computeManhattanMap(l);
+        heuristicMap = new int[l.getWidth()][l.getHeight()];
+        computeHeuristicMap(l);
         start = new AStarNode(null, new SoftLevel(l), 0);
     }
 
-    private void computeManhattanMap(Level l) {
+    private void computeHeuristicMap(Level l) {
         // get number of hugbots, they can push us closer
         int hugbots = 0;
         for (int i = 0; i < l.getBotCount(); i++) {
@@ -61,7 +61,7 @@ public class AStarSearch implements Runnable {
             }
         }
 
-        int mmap[][] = manhattanMap;
+        int hmap[][] = heuristicMap;
         int w = l.getWidth();
         int h = l.getHeight();
         boolean panelDests[][] = new boolean[w][h];
@@ -70,7 +70,7 @@ public class AStarSearch implements Runnable {
         // initialize
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
-                mmap[x][y] = Integer.MAX_VALUE / 2; // avoid overflow!!
+                hmap[x][y] = Integer.MAX_VALUE / 2; // avoid overflow!!
                 int dest = l.destAt(x, y);
                 int tx = dest % w;
                 int ty = dest / w;
@@ -94,8 +94,8 @@ public class AStarSearch implements Runnable {
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 if (isPossibleExit(l, x, y, panelDests[x][y])) {
-                    mmap[x][y] = 0;
-                    doBrushFire(mmap, l, x, y, 1, hugbots + 1, panelDests,
+                    hmap[x][y] = 0;
+                    doBrushFire(hmap, l, x, y, 1, hugbots + 1, panelDests,
                             transportDests);
                 }
             }
@@ -109,8 +109,8 @@ public class AStarSearch implements Runnable {
                     int xd = dest % l.getWidth();
                     int yd = dest / l.getWidth();
 
-                    mmap[x][y] = mmap[xd][yd];
-                    doBrushFire(mmap, l, x, y, 1, hugbots + 1, panelDests,
+                    hmap[x][y] = hmap[xd][yd];
+                    doBrushFire(hmap, l, x, y, 1, hugbots + 1, panelDests,
                             transportDests);
                 }
             }
@@ -191,11 +191,11 @@ public class AStarSearch implements Runnable {
                 || t == Level.T_GLIGHT || t == Level.T_BLACK;
     }
 
-    public void printMmap() {
+    public void printHmap() {
         // print
-        for (int x = 0; x < manhattanMap[0].length; x++) {
-            for (int y = 0; y < manhattanMap.length; y++) {
-                int val = manhattanMap[y][x];
+        for (int x = 0; x < heuristicMap[0].length; x++) {
+            for (int y = 0; y < heuristicMap.length; y++) {
+                int val = heuristicMap[y][x];
                 String s;
                 if (val < Integer.MAX_VALUE / 2) {
                     s = Integer.toString(val);
@@ -313,52 +313,13 @@ public class AStarSearch implements Runnable {
 
     int h(SoftLevel l) {
         // default heuristic -- override
-        int m = manhattan(l);
-
-        // covered colors
-        // int coveredColors = computeCoveredColors(l);
+        int m = pathHeuristic(l);
 
         return m;
     }
 
-    static private int computeCoveredColors(SoftLevel l) {
-        int coveredColors = 0;
-        for (int i = 0; i < l.getWidth() * l.getHeight(); i++) {
-            int t = l.tileAt(i);
-            int f = l.flagAt(i);
-            if ((f & Level.TF_HASPANEL) == 0) {
-                // no panel
-                continue;
-            }
-
-            switch (t) {
-            case Level.T_BSPHERE:
-            case Level.T_BSTEEL:
-                if (Level.realPanel(f) == Level.T_BPANEL) {
-                    coveredColors++;
-                }
-                break;
-
-            case Level.T_RSPHERE:
-            case Level.T_RSTEEL:
-                if (Level.realPanel(f) == Level.T_RPANEL) {
-                    coveredColors++;
-                }
-                break;
-
-            case Level.T_GSPHERE:
-            case Level.T_GSTEEL:
-                if (Level.realPanel(f) == Level.T_GPANEL) {
-                    coveredColors++;
-                }
-                break;
-            }
-        }
-        return coveredColors;
-    }
-
-    private int manhattan(SoftLevel l) {
-        return manhattanMap[l.getPlayerX()][l.getPlayerY()];
+    private int pathHeuristic(SoftLevel l) {
+        return heuristicMap[l.getPlayerX()][l.getPlayerY()];
     }
 
     static private boolean isPossibleExit(Level l, int x, int y,
@@ -661,7 +622,7 @@ public class AStarSearch implements Runnable {
             l.print(System.out);
 
             AStarSearch search = new AStarSearch(l);
-            search.printMmap();
+            search.printHmap();
             for (int i = startingMoves; i <= 10000; i *= 2) {
                 System.out.print("trying in " + i + " moves, ");
                 search.initialize();
