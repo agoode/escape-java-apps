@@ -8,7 +8,7 @@ import org.spacebar.escape.common.IntTriple;
 import org.spacebar.escape.common.hash.MD5;
 
 public class SoftLevel {
-    private final Level baseLevel;
+    private static Level baseLevel;
 
     final byte dirToHere;
     
@@ -23,13 +23,12 @@ public class SoftLevel {
     public static int regenCount;
 
     public SoftLevel(Level baseLevel) {
-        this.baseLevel = baseLevel;
+        SoftLevel.baseLevel = baseLevel;
         parent = null;
         dirToHere = Entity.DIR_NONE;
     }
 
     private SoftLevel(SoftLevel level, Level l, byte dir) {
-        this.baseLevel = null;
         parent = level;
         dirToHere = dir;
         levelRef = new SoftReference<Level>(l);
@@ -53,7 +52,7 @@ public class SoftLevel {
     }
 
     private Level recursiveRebuild() {
-        if (baseLevel == null) {
+        if (parent != null) {
             Level l = parent.recursiveRebuild();
             l.move(dirToHere);
             return l;
