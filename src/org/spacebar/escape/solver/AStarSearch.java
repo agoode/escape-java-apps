@@ -17,6 +17,7 @@ import org.spacebar.escape.common.BitInputStream;
 import org.spacebar.escape.common.Entity;
 import org.spacebar.escape.common.EquateableLevel;
 import org.spacebar.escape.common.LevelManip;
+import org.spacebar.escape.common.Level.HeuristicData;
 
 /**
  * @author adam
@@ -48,33 +49,21 @@ public class AStarSearch implements Runnable {
 
     public AStarSearch(EquateableLevel l) {
         // construct initial node
+        System.out.println("Initial Level");
+        l.print(System.out);
 
         LevelManip lm = new LevelManip(l);
         lm.optimize();
-        l = new EquateableLevel(lm);
-        
-        heuristicMap = l.computeHeuristicMap().map;
-        start = new AStarNode(null, new SoftLevel(l), 0);
-    }
-
-    public void printHmap() {
-        // print
-        for (int x = 0; x < heuristicMap[0].length; x++) {
-            for (int y = 0; y < heuristicMap.length; y++) {
-                int val = heuristicMap[y][x];
-                String s;
-                if (val < Integer.MAX_VALUE / 2) {
-                    s = Integer.toString(val);
-                } else {
-                    s = "*";
-                }
-                System.out.print(s + " ");
-                if (s.length() == 1) {
-                    System.out.print(" ");
-                }
-            }
-            System.out.println();
+        EquateableLevel l2 = new EquateableLevel(lm);
+        if (!l.equals(l2)) {
+            l = l2;
+            System.out.println("Shrunk Level");
+            l.print(System.out);
         }
+
+        heuristicMap = l.computeHeuristicMap().map;
+        HeuristicData.printHmap(heuristicMap);
+        start = new AStarNode(null, new SoftLevel(l), 0);
     }
 
     private void updateOpen(AStarNode a) {
@@ -429,8 +418,8 @@ public class AStarSearch implements Runnable {
     public static void main(String[] args) {
         System.out.println(VERSION);
         try {
-            EquateableLevel l = new EquateableLevel(
-                    new BitInputStream(new FileInputStream(args[0])));
+            EquateableLevel l = new EquateableLevel(new BitInputStream(
+                    new FileInputStream(args[0])));
 
             int startingMoves = 60;
             if (args.length > 1) {
@@ -475,10 +464,7 @@ public class AStarSearch implements Runnable {
             // }
             // };
 
-            l.print(System.out);
-
             AStarSearch search = new AStarSearch(l);
-            search.printHmap();
             for (int i = startingMoves; i <= 10000; i *= 2) {
                 System.out.print("trying in " + i + " moves, ");
                 search.initialize();
