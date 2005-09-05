@@ -8,6 +8,7 @@ import java.security.NoSuchAlgorithmException;
 
 import org.spacebar.escape.common.BitInputStream;
 import org.spacebar.escape.common.Bot;
+import org.spacebar.escape.common.LevelManip;
 import org.spacebar.escape.common.hash.FNV32;
 import org.spacebar.escape.common.hash.FNV64;
 import org.spacebar.escape.common.hash.MD5;
@@ -20,6 +21,10 @@ public class Level extends org.spacebar.escape.common.Level {
 
     public Level(BitInputStream in) throws IOException {
         super(in);
+    }
+    
+    public Level(LevelManip manip) {
+        super(manip);
     }
 
     @Override
