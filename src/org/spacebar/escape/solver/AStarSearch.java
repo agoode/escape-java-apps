@@ -46,12 +46,11 @@ public class AStarSearch implements Runnable {
 
     public AStarSearch(Level l) {
         // construct initial node
-        heuristicMap = new int[l.getWidth()][l.getHeight()];
-        computeHeuristicMap(l);
+        heuristicMap = computeHeuristicMap(l);
         start = new AStarNode(null, new SoftLevel(l), 0);
     }
 
-    private void computeHeuristicMap(Level l) {
+    static private int[][] computeHeuristicMap(Level l) {
         // get number of hugbots, they can push us closer
         int hugbots = 0;
         for (int i = 0; i < l.getBotCount(); i++) {
@@ -61,7 +60,7 @@ public class AStarSearch implements Runnable {
             }
         }
 
-        int hmap[][] = heuristicMap;
+        int hmap[][] = new int[l.getWidth()][l.getHeight()];
         int w = l.getWidth();
         int h = l.getHeight();
         boolean panelDests[][] = new boolean[w][h];
@@ -115,6 +114,7 @@ public class AStarSearch implements Runnable {
                 }
             }
         }
+        return hmap;
     }
 
     static private boolean isPossibleTransport(Level l, int x, int y,
