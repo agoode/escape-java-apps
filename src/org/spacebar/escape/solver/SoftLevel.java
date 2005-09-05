@@ -4,6 +4,7 @@ import java.io.PrintStream;
 import java.lang.ref.SoftReference;
 
 import org.spacebar.escape.common.Entity;
+import org.spacebar.escape.common.EquateableLevel;
 import org.spacebar.escape.common.IntTriple;
 
 public class SoftLevel {
