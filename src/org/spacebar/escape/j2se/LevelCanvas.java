@@ -13,7 +13,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import org.spacebar.escape.common.*;
-import org.spacebar.escape.solver.Level;
 
 /**
  * @author adam

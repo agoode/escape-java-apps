@@ -3,11 +3,14 @@
  */
 package org.spacebar.escape;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import org.spacebar.escape.common.BitInputStream;
+import org.spacebar.escape.common.Level;
 import org.spacebar.escape.j2se.EscapeFrame;
-import org.spacebar.escape.solver.Level;
 
 public class EscapeMain {
 

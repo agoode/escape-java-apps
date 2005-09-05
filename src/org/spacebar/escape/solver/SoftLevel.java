@@ -5,16 +5,15 @@ import java.lang.ref.SoftReference;
 
 import org.spacebar.escape.common.Entity;
 import org.spacebar.escape.common.IntTriple;
-import org.spacebar.escape.common.hash.MD5;
 
 public class SoftLevel {
-    private static Level baseLevel;
+    private static EquateableLevel baseLevel;
 
     final byte dirToHere;
     
     final SoftLevel parent;
     
-    private SoftReference<Level> levelRef;
+    private SoftReference<EquateableLevel> levelRef;
 
     private int hashVal;
 
@@ -22,23 +21,23 @@ public class SoftLevel {
 
     public static int regenCount;
 
-    public SoftLevel(Level baseLevel) {
+    public SoftLevel(EquateableLevel baseLevel) {
         SoftLevel.baseLevel = baseLevel;
         parent = null;
         dirToHere = Entity.DIR_NONE;
     }
 
-    private SoftLevel(SoftLevel level, Level l, byte dir) {
+    private SoftLevel(SoftLevel level, EquateableLevel l, byte dir) {
         parent = level;
         dirToHere = dir;
-        levelRef = new SoftReference<Level>(l);
+        levelRef = new SoftReference<EquateableLevel>(l);
     }
 
-    private Level getLevel() {
+    private EquateableLevel getLevel() {
         if (levelRef == null) {
             return baseLevel;
         }
-        Level l = levelRef.get();
+        EquateableLevel l = levelRef.get();
 //        l = null;
         if (l == null) {
             regenCount++;
@@ -46,18 +45,18 @@ public class SoftLevel {
 //            System.out.print(".");
 //            System.out.flush();
             l = recursiveRebuild();
-            levelRef = new SoftReference<Level>(l);
+            levelRef = new SoftReference<EquateableLevel>(l);
         }
         return l;
     }
 
-    private Level recursiveRebuild() {
+    private EquateableLevel recursiveRebuild() {
         if (parent != null) {
-            Level l = parent.recursiveRebuild();
+            EquateableLevel l = parent.recursiveRebuild();
             l.move(dirToHere);
             return l;
         } else {
-            return new Level(baseLevel);
+            return new EquateableLevel(baseLevel);
         }
     }
 
@@ -156,12 +155,8 @@ public class SoftLevel {
         return getLevel().isWon();
     }
 
-    public MD5 MD5() {
-        return getLevel().MD5();
-    }
-
     public SoftLevel move(byte d) {
-        Level l = new Level(getLevel());
+        EquateableLevel l = new EquateableLevel(getLevel());
         if (l.move(d)) {
 //            System.out.println("move: " + d + "(" + getLevel().getPlayerX() + "," + getLevel().getPlayerY() + ")");
             return new SoftLevel(this, l, d);

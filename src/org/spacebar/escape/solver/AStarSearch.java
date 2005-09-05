@@ -45,12 +45,12 @@ public class AStarSearch implements Runnable {
 
     int greatestG;
 
-    public AStarSearch(Level l) {
+    public AStarSearch(EquateableLevel l) {
         // construct initial node
 
         LevelManip lm = new LevelManip(l);
         lm.optimize();
-        l = new Level(lm);
+        l = new EquateableLevel(lm);
         
         heuristicMap = l.computeHeuristicMap().map;
         start = new AStarNode(null, new SoftLevel(l), 0);
@@ -418,7 +418,7 @@ public class AStarSearch implements Runnable {
         // number of spheres
         int count = 0;
         for (int i = 0; i < l.getWidth() * l.getHeight(); i++) {
-            if (l.tileAt(i) == Level.T_BSPHERE) {
+            if (l.tileAt(i) == EquateableLevel.T_BSPHERE) {
                 count++;
             }
         }
@@ -428,7 +428,7 @@ public class AStarSearch implements Runnable {
     public static void main(String[] args) {
         System.out.println(VERSION);
         try {
-            Level l = new Level(
+            EquateableLevel l = new EquateableLevel(
                     new BitInputStream(new FileInputStream(args[0])));
 
             int startingMoves = 60;

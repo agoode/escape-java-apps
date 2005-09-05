@@ -1,17 +1,21 @@
 package org.spacebar.escape;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import org.spacebar.escape.common.BitInputStream;
+import org.spacebar.escape.common.Level;
 import org.spacebar.escape.common.Misc;
 import org.spacebar.escape.common.Solution;
 import org.spacebar.escape.common.hash.MD5;
 import org.spacebar.escape.j2se.EscapeFrame;
 import org.spacebar.escape.j2se.PlayerInfo;
-import org.spacebar.escape.solver.Level;
 
 public class TestSolutions {
 
