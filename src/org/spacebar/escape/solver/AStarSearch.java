@@ -103,16 +103,9 @@ public class AStarSearch implements Runnable {
         // System.out.println("AStarSearch.removeFromOpen()");
         assert open.size() >= openMap.size();
         AStarNode a;
-        AStarNode tmp;
         do {
             a = open.remove();
-            SoftLevel l = a.level;
-            if (openMap.containsKey(l)) {
-                tmp = openMap.get(l);
-            } else {
-                tmp = null;
-            }
-        } while (tmp == null || tmp.f > a.f);
+        } while (!openMap.containsKey(a.level));
 
         SoftLevel aLevel = a.level;
         assert openMap.containsValue(a);
