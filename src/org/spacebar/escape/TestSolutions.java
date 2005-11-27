@@ -104,6 +104,11 @@ public class TestSolutions {
 
                     for (Iterator iter = sols.iterator(); iter.hasNext();) {
                         final Solution sol = (Solution) iter.next();
+                        
+                        // ignore bookmarks
+                        if (sol.isBookmark()) {
+                            continue;
+                        }
 
                         final String ls = getStringForLevel(l, levelsToFiles);
                         System.out.print(" " + ls + " " + sol.length()
