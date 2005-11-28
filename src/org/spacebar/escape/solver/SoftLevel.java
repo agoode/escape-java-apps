@@ -10,16 +10,16 @@ import org.spacebar.escape.common.IntTriple;
 public class SoftLevel {
     private static EquateableLevel baseLevel;
 
-    final byte dirToHere;
-    
     final SoftLevel parent;
     
     private SoftReference<EquateableLevel> levelRef;
 
     private int hashVal;
 
+    final byte dirToHere;
+    
     private boolean validHashCode;
-
+    
     public static int regenCount;
 
     public SoftLevel(EquateableLevel baseLevel) {

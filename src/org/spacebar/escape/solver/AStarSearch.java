@@ -47,6 +47,8 @@ public class AStarSearch implements Runnable {
 
     int greatestG;
 
+    private int died;
+
     public AStarSearch(EquateableLevel l) {
         // construct initial node
         System.out.println("Initial Level");
@@ -174,8 +176,14 @@ public class AStarSearch implements Runnable {
         SoftLevel level = node.level;
         // default children generation -- override
         List<AStarNode> l = new ArrayList<AStarNode>();
-
-        if (node.g == 0 || (!level.isDead() && !level.isWon())
+        boolean isDead;
+        if (!level.isDead()) {
+            isDead = false;
+        } else {
+            died++;
+            isDead = true;
+        }
+        if (node.g == 0 || (!isDead && !level.isWon())
                 && node.g < moveLimit) {
             for (byte i = Entity.FIRST_DIR; i <= Entity.LAST_DIR; i++) {
                 testChild(node, l, i);
@@ -467,6 +475,7 @@ public class AStarSearch implements Runnable {
 
                 if (search.solutionFound()) {
                     System.out.println(l);
+                    search.printDeaths();
                     search.printSolution();
                     robot(search.solution);
                     break;
@@ -477,6 +486,10 @@ public class AStarSearch implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void printDeaths() {
+        System.out.println("Died " + died + " times");
     }
 
     private static void robot(List<Byte> s) {
