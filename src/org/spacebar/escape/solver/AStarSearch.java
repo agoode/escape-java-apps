@@ -477,7 +477,7 @@ public class AStarSearch implements Runnable {
                     System.out.println(l);
                     search.printDeaths();
                     search.printSolution();
-//                    robot(search.solution);
+                    robot(search.solution);
                     break;
                 }
             }
