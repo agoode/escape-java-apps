@@ -172,10 +172,13 @@ public class AStarSearch implements Runnable {
         return heuristicMap[l.getPlayerX()][l.getPlayerY()];
     }
 
-    List<AStarNode> generateChildren(AStarNode node) {
+    private final AStarNode tmpChildren[] = new AStarNode[4];
+    private int tmpChildCount;
+    void generateChildren(AStarNode node) {
+        tmpChildCount = 0;
         SoftLevel level = node.level;
         // default children generation -- override
-        List<AStarNode> l = new ArrayList<AStarNode>();
+
         boolean isDead;
         if (!level.isDead()) {
             isDead = false;
@@ -186,25 +189,21 @@ public class AStarSearch implements Runnable {
         if (node.g == 0 || (!isDead && !level.isWon())
                 && node.g < moveLimit) {
             for (byte i = Entity.FIRST_DIR; i <= Entity.LAST_DIR; i++) {
-                testChild(node, l, i);
+                testChild(node, i);
             }
             // System.out.println("----------");
         }
         // System.out.println("number of children: " + l.size());
-        return l;
-
     }
 
-    protected void testChild(AStarNode node, List<AStarNode> l, byte i) {
+    protected void testChild(AStarNode node, byte i) {
         SoftLevel lev = node.level.move(i);
         if (lev != null) {
             // System.out.println(" child");
             // if (!closed.contains(lev.quickHash())) {
             if (!closed.contains(lev)) {
                 // System.out.println("***adding " + lev);
-                l.add(new AStarNode(node, lev, 1)); // cost
-                // of
-                // move is 1
+                tmpChildren[tmpChildCount++] = new AStarNode(node, lev, 1);
                 // lev.print(System.out);
             }
         }
@@ -324,11 +323,12 @@ public class AStarSearch implements Runnable {
                 // System.out.println(" ***** closed: " + closed);
                 closed.add(level);
                 // System.out.println(" ***** closed: " + closed);
-                List<AStarNode> children = generateChildren(a);
+                generateChildren(a);
                 // System.out.println(" ***** closed: " + closed);
 
-                Collections.shuffle(children);
-                for (AStarNode node : children) {
+//                Collections.shuffle(children);
+                for (int i = 0; i < tmpChildCount; i++) {
+                    AStarNode node = tmpChildren[i];
                     AStarNode oldNode = getFromOpen(node);
                     if (oldNode == null) {
                         updateOpen(node);
@@ -477,7 +477,7 @@ public class AStarSearch implements Runnable {
                     System.out.println(l);
                     search.printDeaths();
                     search.printSolution();
-                    robot(search.solution);
+//                    robot(search.solution);
                     break;
                 }
             }
