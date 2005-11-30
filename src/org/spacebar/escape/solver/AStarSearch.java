@@ -173,7 +173,9 @@ public class AStarSearch implements Runnable {
     }
 
     private final AStarNode tmpChildren[] = new AStarNode[4];
+
     private int tmpChildCount;
+
     void generateChildren(AStarNode node) {
         tmpChildCount = 0;
         SoftLevel level = node.level;
@@ -186,8 +188,7 @@ public class AStarSearch implements Runnable {
             died++;
             isDead = true;
         }
-        if (node.g == 0 || (!isDead && !level.isWon())
-                && node.g < moveLimit) {
+        if (node.g == 0 || (!isDead && !level.isWon()) && node.g < moveLimit) {
             for (byte i = Entity.FIRST_DIR; i <= Entity.LAST_DIR; i++) {
                 testChild(node, i);
             }
@@ -284,13 +285,14 @@ public class AStarSearch implements Runnable {
 
     private List<Byte> solution;
 
-    public void run() {
-        long time = 0;
-        int prevOpen = 0;
-        int prevClosed = 0;
-        while (!open.isEmpty()) {
-            // System.out.println(" ***** closed: " + closed);
-            if (System.currentTimeMillis() - time > 1000) {
+    private class TimingPrinter implements Runnable {
+        volatile boolean done;
+
+        public void run() {
+            int prevOpen = 0;
+            int prevClosed = 0;
+
+            while (!done) {
                 int os = openMap.size();
                 int cs = closed.size();
                 System.out.print("Open nodes: " + os + ", closed nodes: " + cs
@@ -305,42 +307,60 @@ public class AStarSearch implements Runnable {
                 // System.out.println("best h: " + bestH);
                 prevOpen = os;
                 prevClosed = cs;
-                time = System.currentTimeMillis();
-            }
-            AStarNode a = removeFromOpen();
-            // System.out.println("getting node from open list, f: " + a.f);
-            // System.out.println(a);
-            // a.level.print(System.out);
-            // System.out.println();
-            if (a.isGoal()) {
-                // GOAL
-                solution = constructSolution(a);
-                return;
-            } else {
-                // System.out.println("adding to closed list");
-                SoftLevel level = a.level;
-                // closed.add(level.quickHash());
-                // System.out.println(" ***** closed: " + closed);
-                closed.add(level);
-                // System.out.println(" ***** closed: " + closed);
-                generateChildren(a);
-                // System.out.println(" ***** closed: " + closed);
 
-//                Collections.shuffle(children);
-                for (int i = 0; i < tmpChildCount; i++) {
-                    AStarNode node = tmpChildren[i];
-                    AStarNode oldNode = getFromOpen(node);
-                    if (oldNode == null) {
-                        updateOpen(node);
-                    } else if (node.g < oldNode.g) {
-                        assert node.equals(oldNode);
-                        updateOpen(node);
-                    }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         }
-        System.out.println("closed nodes: " + closed.size());
-        solution = null;
+    }
+
+    public void run() {
+        TimingPrinter tp = new TimingPrinter();
+        new Thread(tp).start();
+        
+        try {
+            while (!open.isEmpty()) {
+                // System.out.println(" ***** closed: " + closed);
+                AStarNode a = removeFromOpen();
+                // System.out.println("getting node from open list, f: " + a.f);
+                // System.out.println(a);
+                // a.level.print(System.out);
+                // System.out.println();
+                if (a.isGoal()) {
+                    // GOAL
+                    solution = constructSolution(a);
+                    return;
+                } else {
+                    // System.out.println("adding to closed list");
+                    SoftLevel level = a.level;
+                    // closed.add(level.quickHash());
+                    // System.out.println(" ***** closed: " + closed);
+                    closed.add(level);
+                    // System.out.println(" ***** closed: " + closed);
+                    generateChildren(a);
+                    // System.out.println(" ***** closed: " + closed);
+
+                    // Collections.shuffle(children);
+                    for (int i = 0; i < tmpChildCount; i++) {
+                        AStarNode node = tmpChildren[i];
+                        AStarNode oldNode = getFromOpen(node);
+                        if (oldNode == null) {
+                            updateOpen(node);
+                        } else if (node.g < oldNode.g) {
+                            assert node.equals(oldNode);
+                            updateOpen(node);
+                        }
+                    }
+                }
+            }
+            System.out.println("closed nodes: " + closed.size());
+            solution = null;
+        } finally {
+            tp.done = true;
+        }
     }
 
     public void initialize() {
