@@ -186,7 +186,9 @@ public class TestSolutions {
             }
         } else {
             // level
-            byte l[] = Misc.getByteArrayFromInputStream(new FileInputStream(f));
+            FileInputStream fis = new FileInputStream(f);
+            byte l[] = Misc.getByteArrayFromInputStream(fis);
+            fis.close();
             MessageDigest m = null;
 
             try {
