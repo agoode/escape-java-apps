@@ -439,11 +439,14 @@ public class Drawing {
                     break;
                 case '<':
                     s.pop();
-                    break;
+                    continue;
                 default:
                     s.push(ch);
+                    continue;
                 }
-            } else if (ch == '\n') {
+            }
+
+            if (ch == '\n') {
                 dx = 0;
                 dy += Characters.FONT_HEIGHT;
             } else {
