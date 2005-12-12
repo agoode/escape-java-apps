@@ -12,6 +12,8 @@ import org.spacebar.escape.j2se.StyleStack2;
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.BaseFont;
 import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 
 public class Level2PDF {
@@ -24,12 +26,18 @@ public class Level2PDF {
 
             String basename = f.getName().replaceFirst("\\.esx$", "");
 
-            // read in font
-
             // read in SVG fragments
 
             // do PDF stuff
-            Document document = new Document();
+            int margin = 16;
+            int width = l.getWidth() * 32;
+            int height = l.getHeight() * 32;
+            int titleArea = 32;
+            int padding = 8;
+            Rectangle page = new Rectangle(width + margin * 2 + padding * 2,
+                    height + margin * 2 + padding * 2 + titleArea);
+            Document document = new Document(page, margin, margin, margin,
+                    margin);
             try {
                 // we create a writer that listens to the document
                 // and directs a PDF-stream to a file
@@ -54,13 +62,36 @@ public class Level2PDF {
 
                 BaseFont fixedsys = BaseFont.createFont(fontName,
                         BaseFont.CP1252, true, true, fontData, null);
-                Font font = new Font(fixedsys, 14);
-                
+                Font font = new Font(fixedsys, 16);
+
                 String text = Characters.WHITE + l.getTitle() + Characters.GRAY
                         + " by " + Characters.BLUE + l.getAuthor();
 
+                PdfPTable t = new PdfPTable(1);
+                t.setWidthPercentage(100);
+                PdfPCell cell = new PdfPCell(new Paragraph(formatText(text,
+                        font)));
+                cell.setBackgroundColor(new Color(34, 34, 68));
+                cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                cell.setUseAscender(true);
+                cell.setUseDescender(true);
+                cell.setBorder(0);
+                cell.setPaddingTop(4);
+                cell.setPaddingBottom(4);
+                t.addCell(cell);
+                document.add(t);
 
-                document.add(new Paragraph(formatText(text, font)));
+                Rectangle bg = new Rectangle(margin, margin, width + margin
+                        + padding * 2, height + margin + padding * 2);
+                bg.setBackgroundColor(Color.BLACK);
+                document.add(bg);
+
+                Rectangle inner = new Rectangle(margin + padding, margin
+                        + padding, width + margin + padding, height + margin
+                        + padding);
+                inner.setBackgroundColor(new Color(200, 200, 200));
+                document.add(inner);
+                
             } catch (DocumentException de) {
                 System.err.println(de.getMessage());
             } catch (IOException ioe) {
@@ -109,13 +140,15 @@ public class Level2PDF {
         return p;
     }
 
-    private static void addToPhrase(Font f, StyleStack2 s, Phrase p, StringBuilder str) {
+    private static void addToPhrase(Font f, StyleStack2 s, Phrase p,
+            StringBuilder str) {
         if (str.length() != 0) {
             System.out.println("making new chunk: " + str);
             Font f2 = new Font(f);
             f2.setColor(s.getAWTColor());
             Chunk c = new Chunk(str.toString(), f2);
-            c.setTextRenderMode(PdfContentByte.TEXT_RENDER_MODE_FILL_STROKE, 0, Color.BLACK);
+            c.setTextRenderMode(PdfContentByte.TEXT_RENDER_MODE_FILL_STROKE,
+                    0.1f, Color.BLACK);
             str.delete(0, str.length());
             p.add(c);
         }
