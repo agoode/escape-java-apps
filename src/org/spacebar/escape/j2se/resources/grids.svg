@@ -1030,9 +1030,9 @@
      showgrid="true"
      inkscape:current-layer="layer1"
      inkscape:document-units="px"
-     inkscape:cy="403.44130"
-     inkscape:cx="-123.31017"
-     inkscape:zoom="16.000000"
+     inkscape:cy="411.32116"
+     inkscape:cx="-132.42772"
+     inkscape:zoom="5.6568543"
      inkscape:pageshadow="2"
      inkscape:pageopacity="0.0"
      borderopacity="1.0"
@@ -7416,5 +7416,20 @@
          d="M -136.50000,661.71875 L -142.50000,661.78125 C -143.32717,661.79112 -143.38428,661.88612 -144.00000,661.90625 C -147.61792,662.02454 -148.37495,661.92798 -148.59375,664.37500 C -148.67402,666.45485 -148.62107,666.48973 -148.28125,664.65625 C -147.99468,663.11010 -146.82683,662.65216 -144.00000,662.34375 C -143.33431,662.27115 -143.12723,662.15446 -142.18750,662.09375 L -136.50000,661.71875 z "
          style="fill:#f7f7f7;fill-opacity:1.0000000" />
     </g>
+    <text
+       xml:space="preserve"
+       style="font-size:10.000000px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1.0000000;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:Fallacy"
+       x="-111.74805"
+       y="652.58875"
+       id="text11818"
+       sodipodi:linespacing="125.00000%"><tspan
+         sodipodi:role="line"
+         id="tspan11820"
+         x="-111.74805"
+         y="652.58875">Adjusted</tspan><tspan
+         sodipodi:role="line"
+         x="-111.74805"
+         y="665.08875"
+         id="tspan11822">to be in box</tspan></text>
   </g>
 </svg>
