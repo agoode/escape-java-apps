@@ -20,9 +20,10 @@ import com.lowagie.text.pdf.PdfWriter;
 
 public class Level2PDF {
     final public static String id = "$Id$";
-    final public static String creator = id.replaceAll("^\\$Id: (.*)\\$$", "$1");
-        
-    
+
+    final public static String creator = id
+            .replaceAll("^\\$Id: (.*)\\$$", "$1");
+
     final public static void main(String[] args) {
         try {
             // get level
@@ -58,10 +59,10 @@ public class Level2PDF {
             if (landscape && page.height() > page.width()) {
                 page = page.rotate();
             }
-            
-            Document document = new Document(page, margin, margin,
-                    margin, margin);
-            
+
+            Document document = new Document(page, margin, margin, margin,
+                    margin);
+
             try {
                 // we create a writer that listens to the document
                 // and directs a PDF-stream to a file
@@ -115,29 +116,30 @@ public class Level2PDF {
                 float xOff;
                 float yOff;
                 if (widthConstrained) {
-                    tileSize = rWidth / (l.getWidth() + 0.5f); // add 0.5 for padding
+                    tileSize = rWidth / (l.getWidth() + 0.5f); // add 0.5 for
+                                                                // padding
                 } else {
                     tileSize = rHeight / (l.getHeight() + 0.5f);
                 }
                 float padding = tileSize / 4;
                 w = tileSize * l.getWidth();
                 h = tileSize * l.getHeight();
-                
+
                 // one of the next two should be 0
                 xOff = (rWidth - (w + 2 * padding)) / 2;
                 yOff = (rHeight - (h + 2 * padding)) / 2;
                 System.out.println("xOff: " + xOff + ", yOff: " + yOff);
-                
-                Rectangle bg = new Rectangle(xOff + margin, yOff + margin, xOff + w + margin
-                        + padding * 2, yOff + h + margin + padding * 2);
-                bg.setBackgroundColor(Color.BLACK);
-                document.add(bg);
 
-                Rectangle inner = new Rectangle(xOff + margin + padding, yOff + margin
-                        + padding, xOff + w + margin + padding, yOff + h + margin
-                        + padding);
-                inner.setBackgroundColor(new Color(195, 195, 195));
-                document.add(inner);
+                layDownBlack(document, xOff, yOff, margin, padding, w, h);
+
+                layDownBrick(l, document, xOff, yOff, margin, padding, w, h,
+                        tileSize);
+                layDownRough(l, document, xOff, yOff, margin, padding, w, h,
+                        tileSize);
+                layDownTiles(l, document, xOff, yOff, margin, padding, w, h,
+                        tileSize);
+                layDownSprites(l, document, xOff, yOff, margin, padding, w, h,
+                        tileSize);
 
                 document.close();
             } catch (DocumentException de) {
@@ -152,6 +154,48 @@ public class Level2PDF {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static void layDownSprites(Level l, Document document, float xOff,
+            float yOff, int margin, float padding, float w, float h,
+            float tileSize) {
+        // TODO Auto-generated method stub
+
+    }
+
+    private static void layDownTiles(Level l, Document document, float xOff,
+            float yOff, int margin, float padding, float w, float h,
+            float tileSize) {
+        // TODO Auto-generated method stub
+
+    }
+
+    private static void layDownRough(Level l, Document document, float xOff,
+            float yOff, int margin, float padding, float w, float h,
+            float tileSize) {
+        // TODO Auto-generated method stub
+
+    }
+
+    private static void layDownBrick(Level l, Document document, float xOff,
+            float yOff, int margin, float padding, float w, float h,
+            float tileSize) throws DocumentException {
+        Rectangle inner = new Rectangle(xOff + margin + padding, yOff + margin
+                + padding, xOff + w + margin + padding, yOff + h + margin
+                + padding);
+        inner.setBackgroundColor(new Color(195, 195, 195));
+        document.add(inner);
+
+        
+    }
+
+    private static void layDownBlack(Document document, float xOff, float yOff,
+            int margin, float padding, float w, float h)
+            throws DocumentException {
+        Rectangle bg = new Rectangle(xOff + margin, yOff + margin, xOff + w
+                + margin + padding * 2, yOff + h + margin + padding * 2);
+        bg.setBackgroundColor(Color.BLACK);
+        document.add(bg);
     }
 
     static Phrase formatText(String text, Font f) {
