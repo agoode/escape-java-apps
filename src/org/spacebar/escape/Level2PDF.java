@@ -29,9 +29,6 @@ public class Level2PDF {
 
             // do PDF stuff
             int margin = 18;
-            int width = l.getWidth() * 32;
-            int height = l.getHeight() * 32;
-            int padding = 8;
 
             // XXX: take into account title block?
             boolean landscape = levAspect >= 1.0;
@@ -94,16 +91,38 @@ public class Level2PDF {
 
                 // figure out how big to be
                 System.out.println("level aspect: " + levAspect);
-                System.out.println("space aspect: " + rWidth / rHeight);
+                float sAspect = rWidth / rHeight;
+                System.out.println("space aspect: " + sAspect);
+                boolean widthConstrained = levAspect > sAspect;
 
-                Rectangle bg = new Rectangle(margin, margin, width + margin
-                        + padding * 2, height + margin + padding * 2);
+                float tileSize;
+                float w;
+                float h;
+                float xOff;
+                float yOff;
+                if (widthConstrained) {
+                    tileSize = rWidth / (l.getWidth() + 0.5f); // add 0.5 for padding
+                } else {
+                    tileSize = rHeight / (l.getHeight() + 0.5f);
+                }
+                float padding = tileSize / 4;
+                w = tileSize * l.getWidth();
+                h = tileSize * l.getHeight();
+                
+                // one of the next two should be 0
+                xOff = (rWidth - (w + 2 * padding)) / 2;
+                yOff = (rHeight - (h + 2 * padding)) / 2;
+                System.out.println("xOff: " + xOff + ", yOff: " + yOff);
+                
+                Rectangle bg = new Rectangle(xOff + margin, yOff + margin, xOff + w + margin
+                        + padding * 2, yOff + h + margin + padding * 2);
                 bg.setBackgroundColor(Color.BLACK);
+                document.add(bg);
 
-                Rectangle inner = new Rectangle(margin + padding, margin
-                        + padding, width + margin + padding, height + margin
+                Rectangle inner = new Rectangle(xOff + margin + padding, yOff + margin
+                        + padding, xOff + w + margin + padding, yOff + h + margin
                         + padding);
-                inner.setBackgroundColor(new Color(200, 200, 200));
+                inner.setBackgroundColor(new Color(195, 195, 195));
                 document.add(inner);
 
                 document.close();
