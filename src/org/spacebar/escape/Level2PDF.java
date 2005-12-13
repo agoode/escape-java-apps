@@ -74,6 +74,7 @@ public class Level2PDF {
                 document.addCreationDate();
                 document.addProducer();
                 document.addCreator(creator);
+                document.addSubject("Escape");
 
                 document.open();
 
