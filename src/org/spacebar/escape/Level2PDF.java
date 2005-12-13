@@ -19,7 +19,11 @@ import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 
 public class Level2PDF {
-    public static void main(String[] args) {
+    final public static String id = "$Id$";
+    final public static String creator = id.replaceAll("^\\$Id: (.*)\\$$", "$1");
+        
+    
+    final public static void main(String[] args) {
         try {
             // get level
             File f = new File(args[0]);
@@ -58,17 +62,18 @@ public class Level2PDF {
             Document document = new Document(page, margin, margin,
                     margin, margin);
             
-            document.addAuthor(StyleStack.removeStyle(l.getAuthor()));
-            document.addTitle(StyleStack.removeStyle(l.getTitle()));
-            document.addCreationDate();
-            document.addProducer();
-            document.addCreator("$Id$");
-            
             try {
                 // we create a writer that listens to the document
                 // and directs a PDF-stream to a file
                 PdfWriter.getInstance(document, new FileOutputStream(basename
                         + ".pdf"));
+
+                // metadata
+                document.addAuthor(StyleStack.removeStyle(l.getAuthor()));
+                document.addTitle(StyleStack.removeStyle(l.getTitle()));
+                document.addCreationDate();
+                document.addProducer();
+                document.addCreator(creator);
 
                 document.open();
 
