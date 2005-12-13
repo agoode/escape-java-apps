@@ -25,19 +25,40 @@ public class Level2PDF {
             l.print(System.out);
 
             String basename = f.getName().replaceFirst("\\.esx$", "");
-
-            // read in SVG fragments
+            float levAspect = (float) l.getWidth() / (float) l.getHeight();
 
             // do PDF stuff
-            int margin = 16;
+            int margin = 18;
             int width = l.getWidth() * 32;
             int height = l.getHeight() * 32;
-            int titleArea = 32;
             int padding = 8;
-            Rectangle page = new Rectangle(width + margin * 2 + padding * 2,
-                    height + margin * 2 + padding * 2 + titleArea);
-            Document document = new Document(page, margin, margin, margin,
-                    margin);
+
+            // XXX: take into account title block?
+            boolean landscape = levAspect >= 1.0;
+            System.out.println("landscape: " + landscape);
+
+            // get the font
+            String fontName = "Fixedsys500c.ttf";
+            byte fontData[];
+            {
+                InputStream font = ResourceUtil
+                        .getLocalResourceAsStream(fontName);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                int d;
+                while ((d = font.read()) != -1) {
+                    baos.write(d);
+                }
+                fontData = baos.toByteArray();
+            }
+
+            Rectangle page = PageSize.LETTER;
+            if (landscape && page.height() > page.width()) {
+                page = page.rotate();
+            }
+            
+            Document document = new Document(page, margin, margin,
+                    margin, margin);
+
             try {
                 // we create a writer that listens to the document
                 // and directs a PDF-stream to a file
@@ -45,20 +66,6 @@ public class Level2PDF {
                         + ".pdf"));
 
                 document.open();
-
-                // get the font
-                String fontName = "Fixedsys500c.ttf";
-                byte fontData[];
-                {
-                    InputStream font = ResourceUtil
-                            .getLocalResourceAsStream(fontName);
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    int d;
-                    while ((d = font.read()) != -1) {
-                        baos.write(d);
-                    }
-                    fontData = baos.toByteArray();
-                }
 
                 BaseFont fixedsys = BaseFont.createFont(fontName,
                         BaseFont.CP1252, true, true, fontData, null);
@@ -79,27 +86,32 @@ public class Level2PDF {
                 cell.setPaddingTop(4);
                 cell.setPaddingBottom(4);
                 t.addCell(cell);
+
                 document.add(t);
+                float rHeight = document.top() - document.bottom()
+                        - t.getRowHeight(0);
+                float rWidth = document.right() - document.left();
+
+                // figure out how big to be
+                System.out.println("level aspect: " + levAspect);
+                System.out.println("space aspect: " + rWidth / rHeight);
 
                 Rectangle bg = new Rectangle(margin, margin, width + margin
                         + padding * 2, height + margin + padding * 2);
                 bg.setBackgroundColor(Color.BLACK);
-                document.add(bg);
 
                 Rectangle inner = new Rectangle(margin + padding, margin
                         + padding, width + margin + padding, height + margin
                         + padding);
                 inner.setBackgroundColor(new Color(200, 200, 200));
                 document.add(inner);
-                
+
+                document.close();
             } catch (DocumentException de) {
                 System.err.println(de.getMessage());
             } catch (IOException ioe) {
                 System.err.println(ioe.getMessage());
             }
-
-            // step 5: we close the document
-            document.close();
 
             // done
         } catch (FileNotFoundException e) {
