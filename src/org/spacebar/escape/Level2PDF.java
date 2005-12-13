@@ -2,21 +2,13 @@ package org.spacebar.escape;
 
 import java.awt.Color;
 import java.io.*;
-import java.util.regex.Pattern;
 
-import org.spacebar.escape.common.BitInputStream;
-import org.spacebar.escape.common.Characters;
-import org.spacebar.escape.common.Level;
-import org.spacebar.escape.common.StyleStack;
+import org.spacebar.escape.common.*;
 import org.spacebar.escape.j2se.ResourceUtil;
 import org.spacebar.escape.j2se.StyleStack2;
 
 import com.lowagie.text.*;
-import com.lowagie.text.pdf.BaseFont;
-import com.lowagie.text.pdf.PdfContentByte;
-import com.lowagie.text.pdf.PdfPCell;
-import com.lowagie.text.pdf.PdfPTable;
-import com.lowagie.text.pdf.PdfWriter;
+import com.lowagie.text.pdf.*;
 
 public class Level2PDF {
     final public static String id = "$Id$";
@@ -32,128 +24,131 @@ public class Level2PDF {
             l.print(System.out);
 
             String basename = f.getName().replaceFirst("\\.esx$", "");
-            float levAspect = (float) l.getWidth() / (float) l.getHeight();
 
-            // do PDF stuff
-            int margin = 18;
-
-            // XXX: take into account title block?
-            boolean landscape = levAspect >= 1.0;
-            System.out.println("landscape: " + landscape);
-
-            // get the font
-            String fontName = "Fixedsys500c.ttf";
-            byte fontData[];
-            {
-                InputStream font = ResourceUtil
-                        .getLocalResourceAsStream(fontName);
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                int d;
-                while ((d = font.read()) != -1) {
-                    baos.write(d);
-                }
-                fontData = baos.toByteArray();
-            }
-
-            Rectangle page = PageSize.LETTER;
-            if (landscape && page.height() > page.width()) {
-                page = page.rotate();
-            }
-
-            Document document = new Document(page, margin, margin, margin,
-                    margin);
-
-            try {
-                // we create a writer that listens to the document
-                // and directs a PDF-stream to a file
-                PdfWriter.getInstance(document, new FileOutputStream(basename
-                        + ".pdf"));
-
-                // metadata
-                document.addAuthor(StyleStack.removeStyle(l.getAuthor()));
-                document.addTitle(StyleStack.removeStyle(l.getTitle()));
-                document.addCreationDate();
-                document.addProducer();
-                document.addCreator(creator);
-                document.addSubject("Escape");
-
-                document.open();
-
-                BaseFont fixedsys = BaseFont.createFont(fontName,
-                        BaseFont.CP1252, true, true, fontData, null);
-                Font font = new Font(fixedsys, 16);
-
-                String text = Characters.WHITE + l.getTitle() + Characters.GRAY
-                        + " by " + Characters.BLUE + l.getAuthor();
-
-                PdfPTable t = new PdfPTable(1);
-                t.setWidthPercentage(100);
-                PdfPCell cell = new PdfPCell(new Paragraph(formatText(text,
-                        font)));
-                cell.setBackgroundColor(new Color(34, 34, 68));
-                cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-                cell.setUseAscender(true);
-                cell.setUseDescender(true);
-                cell.setBorder(0);
-                cell.setPaddingTop(4);
-                cell.setPaddingBottom(4);
-                t.addCell(cell);
-
-                document.add(t);
-                float rHeight = document.top() - document.bottom()
-                        - t.getRowHeight(0);
-                float rWidth = document.right() - document.left();
-
-                // figure out how big to be
-                System.out.println("level aspect: " + levAspect);
-                float sAspect = rWidth / rHeight;
-                System.out.println("space aspect: " + sAspect);
-                boolean widthConstrained = levAspect > sAspect;
-
-                float tileSize;
-                float w;
-                float h;
-                float xOff;
-                float yOff;
-                if (widthConstrained) {
-                    tileSize = rWidth / (l.getWidth() + 0.5f); // add 0.5 for
-                                                                // padding
-                } else {
-                    tileSize = rHeight / (l.getHeight() + 0.5f);
-                }
-                float padding = tileSize / 4;
-                w = tileSize * l.getWidth();
-                h = tileSize * l.getHeight();
-
-                // one of the next two should be 0
-                xOff = (rWidth - (w + 2 * padding)) / 2;
-                yOff = (rHeight - (h + 2 * padding)) / 2;
-                System.out.println("xOff: " + xOff + ", yOff: " + yOff);
-
-                layDownBlack(document, xOff, yOff, margin, padding, w, h);
-
-                layDownBrick(l, document, xOff, yOff, margin, padding, w, h,
-                        tileSize);
-                layDownRough(l, document, xOff, yOff, margin, padding, w, h,
-                        tileSize);
-                layDownTiles(l, document, xOff, yOff, margin, padding, w, h,
-                        tileSize);
-                layDownSprites(l, document, xOff, yOff, margin, padding, w, h,
-                        tileSize);
-
-                document.close();
-            } catch (DocumentException de) {
-                System.err.println(de.getMessage());
-            } catch (IOException ioe) {
-                System.err.println(ioe.getMessage());
-            }
-
-            // done
+            makePDF(l, PageSize._11X17, new FileOutputStream(basename + ".pdf"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * @param l
+     * @param basename
+     * @throws IOException
+     */
+    public static void makePDF(Level l, Rectangle page, OutputStream out) throws IOException {
+        float levAspect = (float) l.getWidth() / (float) l.getHeight();
+
+        // do PDF stuff
+        int margin = 18;
+
+        // XXX: take into account title block?
+        boolean landscape = levAspect >= 1.0;
+        System.out.println("landscape: " + landscape);
+
+        // get the font
+        String fontName = "Fixedsys500c.ttf";
+        byte fontData[];
+        {
+            InputStream font = ResourceUtil.getLocalResourceAsStream(fontName);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            int d;
+            while ((d = font.read()) != -1) {
+                baos.write(d);
+            }
+            fontData = baos.toByteArray();
+        }
+
+        if (landscape && page.height() > page.width()) {
+            page = page.rotate();
+        }
+
+        Document document = new Document(page, margin, margin, margin, margin);
+
+        try {
+            // we create a writer that listens to the document
+            // and directs a PDF-stream to a file
+            PdfWriter.getInstance(document, out);
+
+            // metadata
+            document.addAuthor(StyleStack.removeStyle(l.getAuthor()));
+            document.addTitle(StyleStack.removeStyle(l.getTitle()));
+            document.addCreator(creator);
+            document.addSubject("Escape");
+
+            document.open();
+
+            BaseFont fixedsys = BaseFont.createFont(fontName, BaseFont.CP1252,
+                    true, true, fontData, null);
+            Font font = new Font(fixedsys, 16);
+
+            String text = Characters.WHITE + l.getTitle() + Characters.GRAY
+                    + " by " + Characters.BLUE + l.getAuthor();
+
+            PdfPTable t = new PdfPTable(1);
+            t.setWidthPercentage(100);
+            PdfPCell cell = new PdfPCell(new Paragraph(formatText(text, font)));
+            cell.setBackgroundColor(new Color(34, 34, 68));
+            cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            cell.setUseAscender(true);
+            cell.setUseDescender(true);
+            cell.setBorder(0);
+            cell.setPaddingTop(4);
+            cell.setPaddingBottom(4);
+            t.addCell(cell);
+
+            document.add(t);
+            float rHeight = document.top() - document.bottom()
+                    - t.getRowHeight(0);
+            float rWidth = document.right() - document.left();
+
+            // figure out how big to be
+            System.out.println("level aspect: " + levAspect);
+            float sAspect = rWidth / rHeight;
+            System.out.println("space aspect: " + sAspect);
+            boolean widthConstrained = levAspect > sAspect;
+
+            float tileSize;
+            float w;
+            float h;
+            float xOff;
+            float yOff;
+            if (widthConstrained) {
+                tileSize = rWidth / (l.getWidth() + 0.5f); // add 0.5 for
+                // padding
+            } else {
+                tileSize = rHeight / (l.getHeight() + 0.5f);
+            }
+            float padding = tileSize / 4;
+            w = tileSize * l.getWidth();
+            h = tileSize * l.getHeight();
+
+            // one of the next two should be 0
+            xOff = (rWidth - (w + 2 * padding)) / 2;
+            yOff = (rHeight - (h + 2 * padding)) / 2;
+            System.out.println("xOff: " + xOff + ", yOff: " + yOff);
+
+            layDownBlack(document, xOff, yOff, margin, padding, w, h);
+
+            layDownBrick(l, document, xOff, yOff, margin, padding, w, h,
+                    tileSize);
+            layDownRough(l, document, xOff, yOff, margin, padding, w, h,
+                    tileSize);
+            layDownTiles(l, document, xOff, yOff, margin, padding, w, h,
+                    tileSize);
+            layDownSprites(l, document, xOff, yOff, margin, padding, w, h,
+                    tileSize);
+
+            document.close();
+        } catch (DocumentException de) {
+            System.err.println(de.getMessage());
+        } catch (IOException ioe) {
+            System.err.println(ioe.getMessage());
+        }
+
+        // done
     }
 
     private static void layDownSprites(Level l, Document document, float xOff,
@@ -186,7 +181,6 @@ public class Level2PDF {
         inner.setBackgroundColor(new Color(195, 195, 195));
         document.add(inner);
 
-        
     }
 
     private static void layDownBlack(Document document, float xOff, float yOff,
