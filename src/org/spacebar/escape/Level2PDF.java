@@ -2,10 +2,12 @@ package org.spacebar.escape;
 
 import java.awt.Color;
 import java.io.*;
+import java.util.regex.Pattern;
 
 import org.spacebar.escape.common.BitInputStream;
 import org.spacebar.escape.common.Characters;
 import org.spacebar.escape.common.Level;
+import org.spacebar.escape.common.StyleStack;
 import org.spacebar.escape.j2se.ResourceUtil;
 import org.spacebar.escape.j2se.StyleStack2;
 
@@ -55,7 +57,13 @@ public class Level2PDF {
             
             Document document = new Document(page, margin, margin,
                     margin, margin);
-
+            
+            document.addAuthor(StyleStack.removeStyle(l.getAuthor()));
+            document.addTitle(StyleStack.removeStyle(l.getTitle()));
+            document.addCreationDate();
+            document.addProducer();
+            document.addCreator("$Id$");
+            
             try {
                 // we create a writer that listens to the document
                 // and directs a PDF-stream to a file
