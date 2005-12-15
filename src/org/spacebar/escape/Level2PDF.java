@@ -11,6 +11,7 @@ import org.spacebar.escape.j2se.StyleStack2;
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.*;
 
+
 public class Level2PDF {
     private static final int BASE_TILE_SIZE = 32;
 
@@ -20,6 +21,10 @@ public class Level2PDF {
 
     final public static String creator = id
             .replaceAll("^\\$Id: (.*)\\$$", "$1");
+
+    static {
+        ByteBuffer.HIGH_PRECISION = true;
+    }
 
     final public static void main(String[] args) {
         try {
@@ -205,9 +210,7 @@ public class Level2PDF {
         // floor is always required (exit)
         
         // now, determine some classes of tiles to include
-        if (t[Level.T_FLOOR] || t[Level.T_ELECTRIC]|| t[Level.T_]) {
-
-        }
+       
 
         PdfTemplate p[] = new PdfTemplate[59];
 
