@@ -1,6 +1,7 @@
 package org.spacebar.escape;
 
 import java.awt.Color;
+import java.awt.geom.AffineTransform;
 import java.io.*;
 
 import org.spacebar.escape.common.*;
@@ -11,6 +12,10 @@ import com.lowagie.text.*;
 import com.lowagie.text.pdf.*;
 
 public class Level2PDF {
+    private static final int BASE_TILE_SIZE = 32;
+
+    private static final float PAD_FACTOR = 0.25f;
+
     final public static String id = "$Id$";
 
     final public static String creator = id
@@ -38,7 +43,8 @@ public class Level2PDF {
      * @param basename
      * @throws IOException
      */
-    public static void makePDF(Level l, Rectangle page, OutputStream out) throws IOException {
+    public static void makePDF(Level l, Rectangle page, OutputStream out)
+            throws IOException {
         float levAspect = (float) l.getWidth() / (float) l.getHeight();
 
         // do PDF stuff
@@ -65,12 +71,14 @@ public class Level2PDF {
             page = page.rotate();
         }
 
+        Document.compress = false;
         Document document = new Document(page, margin, margin, margin, margin);
 
         try {
+
             // we create a writer that listens to the document
             // and directs a PDF-stream to a file
-            PdfWriter.getInstance(document, out);
+            PdfWriter writer = PdfWriter.getInstance(document, out);
 
             // metadata
             document.addAuthor(StyleStack.removeStyle(l.getAuthor()));
@@ -90,7 +98,8 @@ public class Level2PDF {
             PdfPTable t = new PdfPTable(1);
             t.setWidthPercentage(100);
             PdfPCell cell = new PdfPCell(new Paragraph(formatText(text, font)));
-            cell.setBackgroundColor(new Color(34, 34, 68));
+            Color bannerC = new Color(34, 34, 68);
+            cell.setBackgroundColor(bannerC);
             cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
             cell.setUseAscender(true);
             cell.setUseDescender(true);
@@ -104,6 +113,8 @@ public class Level2PDF {
                     - t.getRowHeight(0);
             float rWidth = document.right() - document.left();
 
+            System.out.println("rHeight: " + rHeight + ", rWidth: " + rWidth);
+
             // figure out how big to be
             System.out.println("level aspect: " + levAspect);
             float sAspect = rWidth / rHeight;
@@ -116,30 +127,63 @@ public class Level2PDF {
             float xOff;
             float yOff;
             if (widthConstrained) {
-                tileSize = rWidth / (l.getWidth() + 0.5f); // add 0.5 for
-                // padding
+                tileSize = rWidth / (l.getWidth() + 2 * PAD_FACTOR);
             } else {
-                tileSize = rHeight / (l.getHeight() + 0.5f);
+                tileSize = rHeight / (l.getHeight() + 2 * PAD_FACTOR);
             }
-            float padding = tileSize / 4;
+
+            float padding = tileSize * PAD_FACTOR;
             w = tileSize * l.getWidth();
             h = tileSize * l.getHeight();
+
+            float masterScale = tileSize / BASE_TILE_SIZE;
+
+            System.out.println("masterScale: " + masterScale);
 
             // one of the next two should be 0
             xOff = (rWidth - (w + 2 * padding)) / 2;
             yOff = (rHeight - (h + 2 * padding)) / 2;
             System.out.println("xOff: " + xOff + ", yOff: " + yOff);
 
-            layDownBlack(document, xOff, yOff, margin, padding, w, h);
+            // set transformation matrices
+            PdfContentByte cb = writer.getDirectContent();
+            cb.saveState();
 
-            layDownBrick(l, document, xOff, yOff, margin, padding, w, h,
-                    tileSize);
-            layDownRough(l, document, xOff, yOff, margin, padding, w, h,
-                    tileSize);
-            layDownTiles(l, document, xOff, yOff, margin, padding, w, h,
-                    tileSize);
-            layDownSprites(l, document, xOff, yOff, margin, padding, w, h,
-                    tileSize);
+            PdfTemplate tiles[] = makeTileTemplates(l);
+
+            // transform to fit into page
+            // (not yet exact until iText fixes ByteBuffer.formatDouble)
+            AffineTransform af = new AffineTransform();
+            af.translate(margin + xOff, margin + yOff);
+            af.scale(masterScale, masterScale);
+            cb.transform(af);
+
+            layDownBlack(l, cb);
+
+            // re-transform, now we are within the level field
+            cb.restoreState();
+            af = new AffineTransform();
+            System.out.println(af);
+            af.translate(margin + padding + xOff, margin + padding + yOff);
+            System.out.println(af);
+            af.scale(masterScale, masterScale);
+            System.out.println(af);
+            cb.saveState();
+            cb.transform(af);
+
+            layDownBrick(l, cb);
+
+            cb.restoreState();
+            cb.saveState();
+            layDownRough(l, cb);
+
+            cb.restoreState();
+            cb.saveState();
+            layDownTiles(l, cb);
+
+            cb.restoreState();
+            cb.saveState();
+            layDownSprites(l, cb);
 
             document.close();
         } catch (DocumentException de) {
@@ -151,45 +195,52 @@ public class Level2PDF {
         // done
     }
 
-    private static void layDownSprites(Level l, Document document, float xOff,
-            float yOff, int margin, float padding, float w, float h,
-            float tileSize) {
+    private static PdfTemplate[] makeTileTemplates(Level l) {
+        // make bit mask of tiles in this level
+        boolean t[] = new boolean[59];
+        for (int i = 0; i < l.getWidth() * l.getHeight(); i++) {
+            t[l.tileAt(i)] = true;
+        }
+
+        // floor is always required (exit)
+        
+        // now, determine some classes of tiles to include
+        if (t[Level.T_FLOOR] || t[Level.T_ELECTRIC]|| t[Level.T_]) {
+
+        }
+
+        PdfTemplate p[] = new PdfTemplate[59];
+
+        return p;
+    }
+
+    private static void layDownSprites(Level l, PdfContentByte cb) {
         // TODO Auto-generated method stub
 
     }
 
-    private static void layDownTiles(Level l, Document document, float xOff,
-            float yOff, int margin, float padding, float w, float h,
-            float tileSize) {
+    private static void layDownTiles(Level l, PdfContentByte cb) {
         // TODO Auto-generated method stub
 
     }
 
-    private static void layDownRough(Level l, Document document, float xOff,
-            float yOff, int margin, float padding, float w, float h,
-            float tileSize) {
+    private static void layDownRough(Level l, PdfContentByte cb) {
         // TODO Auto-generated method stub
 
     }
 
-    private static void layDownBrick(Level l, Document document, float xOff,
-            float yOff, int margin, float padding, float w, float h,
-            float tileSize) throws DocumentException {
-        Rectangle inner = new Rectangle(xOff + margin + padding, yOff + margin
-                + padding, xOff + w + margin + padding, yOff + h + margin
-                + padding);
-        inner.setBackgroundColor(new Color(195, 195, 195));
-        document.add(inner);
-
+    private static void layDownBrick(Level l, PdfContentByte cb) {
+        cb.setColorFill(new Color(195, 195, 195));
+        cb.rectangle(0, 0, l.getWidth() * BASE_TILE_SIZE, l.getHeight()
+                * BASE_TILE_SIZE);
+        cb.fill();
     }
 
-    private static void layDownBlack(Document document, float xOff, float yOff,
-            int margin, float padding, float w, float h)
-            throws DocumentException {
-        Rectangle bg = new Rectangle(xOff + margin, yOff + margin, xOff + w
-                + margin + padding * 2, yOff + h + margin + padding * 2);
-        bg.setBackgroundColor(Color.BLACK);
-        document.add(bg);
+    private static void layDownBlack(Level l, PdfContentByte cb) {
+        cb.rectangle(0, 0, (l.getWidth() + 2 * PAD_FACTOR) * BASE_TILE_SIZE, (l
+                .getHeight() + 2 * PAD_FACTOR)
+                * BASE_TILE_SIZE);
+        cb.fill();
     }
 
     static Phrase formatText(String text, Font f) {
