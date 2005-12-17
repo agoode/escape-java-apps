@@ -3,10 +3,12 @@ package org.spacebar.escape;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import java.io.*;
 
 import org.apache.batik.bridge.BridgeContext;
 import org.apache.batik.bridge.GVTBuilder;
+import org.apache.batik.bridge.UserAgent;
 import org.apache.batik.bridge.UserAgentAdapter;
 import org.apache.batik.dom.svg.SAXSVGDocumentFactory;
 import org.apache.batik.gvt.GraphicsNode;
@@ -103,6 +105,7 @@ public class Level2PDF {
 
             document.open();
 
+            // title and author
             BaseFont fixedsys = BaseFont.createFont(fontName, BaseFont.CP1252,
                     true, true, fontData, null);
             Font font = new Font(fixedsys, 16);
@@ -160,45 +163,48 @@ public class Level2PDF {
             yOff = (rHeight - (h + 2 * padding)) / 2;
             System.out.println("xOff: " + xOff + ", yOff: " + yOff);
 
-            // set transformation matrices
             PdfContentByte cb = writer.getDirectContent();
             cb.saveState();
 
             PdfTemplate tiles[] = makeTileTemplates(l);
 
             // transform to fit into page
-            // (not yet exact until iText fixes ByteBuffer.formatDouble)
             AffineTransform af = new AffineTransform();
             af.translate(margin + xOff, margin + yOff);
             af.scale(masterScale, masterScale);
             cb.transform(af);
 
             layDownBlack(l, cb);
-
-            // re-transform, now we are within the level field
             cb.restoreState();
+
+            // create the level as a form XObject, so that patterns come out
+            // nice
+            PdfTemplate levelField = cb.createTemplate(l.getWidth() * BASE_TILE_SIZE,
+                    l.getHeight() * BASE_TILE_SIZE);
+            levelField.saveState();
+            PdfPatternPainter brickPattern = createBrickPattern(levelField);
+            layDownBrick(l, levelField, brickPattern);
+
+            levelField.restoreState();
+            levelField.saveState();
+            layDownRough(l, levelField);
+
+            levelField.restoreState();
+            levelField.saveState();
+            layDownTiles(l, levelField);
+
+            levelField.restoreState();
+            levelField.saveState();
+            layDownSprites(l, levelField);
+
+            // hit it
             af = new AffineTransform();
-            System.out.println(af);
             af.translate(margin + padding + xOff, margin + padding + yOff);
-            System.out.println(af);
             af.scale(masterScale, masterScale);
-            System.out.println(af);
-            cb.saveState();
-            cb.transform(af);
-
-            layDownBrick(l, cb);
-
-            cb.restoreState();
-            cb.saveState();
-            layDownRough(l, cb);
-
-            cb.restoreState();
-            cb.saveState();
-            layDownTiles(l, cb);
-
-            cb.restoreState();
-            cb.saveState();
-            layDownSprites(l, cb);
+            double mat[] = new double[6];
+            af.getMatrix(mat);
+            cb.addTemplate(levelField, (float) mat[0], (float) mat[1], (float) mat[2],
+                    (float) mat[3], (float) mat[4], (float) mat[5]);
 
             document.close();
         } catch (DocumentException de) {
@@ -241,30 +247,40 @@ public class Level2PDF {
 
     }
 
-    private static void layDownBrick(Level l, PdfContentByte cb) {
+    private static void layDownBrick(Level l, PdfContentByte cb,
+            PdfPatternPainter pat) {
         cb.setColorFill(new Color(195, 195, 195));
         cb.rectangle(0, 0, l.getWidth() * BASE_TILE_SIZE, l.getHeight()
                 * BASE_TILE_SIZE);
         cb.fill();
 
+        cb.rectangle(0, 0, l.getWidth() * BASE_TILE_SIZE, l.getHeight()
+                * BASE_TILE_SIZE);
+        cb.setPatternFill(pat);
+        cb.fill();
+    }
+
+    private static PdfPatternPainter createBrickPattern(PdfContentByte cb) {
         String parser = XMLResourceDescriptor.getXMLParserClassName();
         SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);
         try {
             SVGDocument doc = (SVGDocument) f.createDocument(null, ResourceUtil
                     .getLocalResourceAsStream("brick-pieces.svg"));
             GVTBuilder gvtb = new GVTBuilder();
-            GraphicsNode gn = gvtb.build(new BridgeContext(new UserAgentAdapter()), doc);
-            PdfPatternPainter pat = cb.createPattern(BASE_TILE_SIZE, BASE_TILE_SIZE);
-            Graphics2D g2 = pat.createGraphics(BASE_TILE_SIZE, BASE_TILE_SIZE);
+            UserAgent ua = new UserAgentAdapter();
+            GraphicsNode gn = gvtb.build(new BridgeContext(ua), doc);
+            PdfPatternPainter pat = cb.createPattern(BASE_TILE_SIZE + 5,
+                    BASE_TILE_SIZE, BASE_TILE_SIZE, BASE_TILE_SIZE);
+            pat.setPatternMatrix(1, 0, 0, 1, -5, 4);
+            Graphics2D g2 = pat.createGraphicsShapes(pat.getWidth(), pat
+                    .getHeight());
             gn.paint(g2);
             g2.dispose();
 
-            cb.rectangle(0, 0, l.getWidth() * BASE_TILE_SIZE, l.getHeight() * BASE_TILE_SIZE);
-            cb.setPatternFill(pat);
-            cb.fill();
-            
+            return pat;
         } catch (IOException e) {
             e.printStackTrace();
+            return null;
         }
     }
 
