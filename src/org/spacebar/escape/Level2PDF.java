@@ -1,16 +1,26 @@
 package org.spacebar.escape;
 
 import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.io.*;
 
-import org.spacebar.escape.common.*;
+import org.apache.batik.bridge.BridgeContext;
+import org.apache.batik.bridge.GVTBuilder;
+import org.apache.batik.bridge.UserAgentAdapter;
+import org.apache.batik.dom.svg.SAXSVGDocumentFactory;
+import org.apache.batik.gvt.GraphicsNode;
+import org.apache.batik.util.XMLResourceDescriptor;
+import org.spacebar.escape.common.BitInputStream;
+import org.spacebar.escape.common.Characters;
+import org.spacebar.escape.common.Level;
+import org.spacebar.escape.common.StyleStack;
 import org.spacebar.escape.j2se.ResourceUtil;
 import org.spacebar.escape.j2se.StyleStack2;
+import org.w3c.dom.svg.SVGDocument;
 
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.*;
-
 
 public class Level2PDF {
     private static final int BASE_TILE_SIZE = 32;
@@ -208,9 +218,8 @@ public class Level2PDF {
         }
 
         // floor is always required (exit)
-        
+
         // now, determine some classes of tiles to include
-       
 
         PdfTemplate p[] = new PdfTemplate[59];
 
@@ -237,6 +246,26 @@ public class Level2PDF {
         cb.rectangle(0, 0, l.getWidth() * BASE_TILE_SIZE, l.getHeight()
                 * BASE_TILE_SIZE);
         cb.fill();
+
+        String parser = XMLResourceDescriptor.getXMLParserClassName();
+        SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);
+        try {
+            SVGDocument doc = (SVGDocument) f.createDocument(null, ResourceUtil
+                    .getLocalResourceAsStream("brick-pieces.svg"));
+            GVTBuilder gvtb = new GVTBuilder();
+            GraphicsNode gn = gvtb.build(new BridgeContext(new UserAgentAdapter()), doc);
+            PdfPatternPainter pat = cb.createPattern(BASE_TILE_SIZE, BASE_TILE_SIZE);
+            Graphics2D g2 = pat.createGraphics(BASE_TILE_SIZE, BASE_TILE_SIZE);
+            gn.paint(g2);
+            g2.dispose();
+
+            cb.rectangle(0, 0, l.getWidth() * BASE_TILE_SIZE, l.getHeight() * BASE_TILE_SIZE);
+            cb.setPatternFill(pat);
+            cb.fill();
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void layDownBlack(Level l, PdfContentByte cb) {
