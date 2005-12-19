@@ -3,6 +3,7 @@ package org.spacebar.escape;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -188,7 +189,8 @@ public class Level2PDF {
 
             levelField.restoreState();
             levelField.saveState();
-            layDownRough(l, levelField);
+            PdfPatternPainter roughPattern = createRoughPattern(levelField);
+            layDownRough(l, levelField, roughPattern);
 
             levelField.restoreState();
             levelField.saveState();
@@ -218,6 +220,35 @@ public class Level2PDF {
         // done
     }
 
+    private static PdfPatternPainter createRoughPattern(PdfContentByte cb) {
+        String parser = XMLResourceDescriptor.getXMLParserClassName();
+        SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);
+        try {
+            System.out.println("reading rough svg");
+            SVGDocument doc = (SVGDocument) f.createDocument(null, ResourceUtil
+                    .getLocalResourceAsStream("rough-pieces.svg"));
+            GVTBuilder gvtb = new GVTBuilder();
+            UserAgent ua = new UserAgentAdapter();
+            GraphicsNode gn = gvtb.build(new BridgeContext(ua), doc);
+            Rectangle2D bounds = gn.getBounds();
+            PdfPatternPainter pat = cb.createPattern(
+                    (float) (bounds.getX() + bounds.getWidth()),
+                    (float) (bounds.getY() + bounds.getHeight()),
+                    BASE_TILE_SIZE / 8, BASE_TILE_SIZE / 8);
+            pat.setPatternMatrix(1, 0, 0, 1, -1.5f, .5f);
+            Graphics2D g2 = pat.createGraphicsShapes(pat.getWidth(), pat
+                    .getHeight());
+            System.out.println("painting svg");
+            gn.paint(g2);
+            g2.dispose();
+
+            return pat;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     private static PdfTemplate[] makeTileTemplates(Level l) {
         // make bit mask of tiles in this level
         boolean t[] = new boolean[59];
@@ -244,9 +275,19 @@ public class Level2PDF {
 
     }
 
-    private static void layDownRough(Level l, PdfContentByte cb) {
-        // TODO Auto-generated method stub
+    private static void layDownRough(Level l, PdfContentByte cb,
+            PdfPatternPainter pat) {
+        makePathsFromTile(l, cb, Level.T_ROUGH, false);
+        cb.eoClip();
+        cb.newPath();
 
+        levelPath(l, cb);
+        cb.setColorFill(new Color(180, 180, 180));
+        cb.fill();
+
+        levelPath(l, cb);
+        cb.setPatternFill(pat);
+        cb.fill();
     }
 
     private static void layDownBrick(Level l, PdfContentByte cb,
@@ -256,8 +297,8 @@ public class Level2PDF {
         cb.eoClip();
         cb.newPath();
 
-        cb.setColorFill(new Color(195, 195, 195));
         levelPath(l, cb);
+        cb.setColorFill(new Color(195, 195, 195));
         cb.fill();
 
         levelPath(l, cb);
@@ -293,7 +334,8 @@ public class Level2PDF {
         }
     }
 
-    private static void makePathsFromTile(Level l, PdfContentByte cb, byte tile, boolean invert) {
+    private static void makePathsFromTile(Level l, PdfContentByte cb,
+            byte tile, boolean invert) {
         // implements path decomposition as in potrace
 
         boolean map[][] = makeTileMap(l, tile, invert);
@@ -345,20 +387,20 @@ public class Level2PDF {
             Pair current = (Pair) iter2.next();
             Pair first = current;
             newPath.add(current);
-            
+
             byte oldDir = Entity.DIR_NONE;
             while (iter2.hasNext()) {
                 prev = current;
                 current = (Pair) iter2.next();
-                
+
                 int x = current.x;
                 int y = current.y;
                 int px = prev.x;
                 int py = prev.y;
-                
+
                 int dx = x - px;
                 int dy = y - py;
-                
+
                 byte dir;
                 if (dy == 0) {
                     if (dx < 0) {
@@ -382,16 +424,16 @@ public class Level2PDF {
                 }
             }
         }
-        
+
         int h = l.getHeight();
         for (Iterator iter = simplePaths.iterator(); iter.hasNext();) {
             List path = (List) iter.next();
             System.out.println("simple path: " + path);
-            
+
             Iterator i = path.iterator();
             Pair p = (Pair) i.next();
             cb.moveTo(p.x * BASE_TILE_SIZE, (h - p.y) * BASE_TILE_SIZE);
-            while(i.hasNext()) {
+            while (i.hasNext()) {
                 p = (Pair) i.next();
                 System.out.println(p);
                 cb.lineTo(p.x * BASE_TILE_SIZE, (h - p.y) * BASE_TILE_SIZE);
@@ -585,6 +627,7 @@ public class Level2PDF {
         String parser = XMLResourceDescriptor.getXMLParserClassName();
         SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);
         try {
+            System.out.println("reading bricks svg");
             SVGDocument doc = (SVGDocument) f.createDocument(null, ResourceUtil
                     .getLocalResourceAsStream("brick-pieces.svg"));
             GVTBuilder gvtb = new GVTBuilder();
@@ -595,6 +638,7 @@ public class Level2PDF {
             pat.setPatternMatrix(1, 0, 0, 1, -5, 4);
             Graphics2D g2 = pat.createGraphicsShapes(pat.getWidth(), pat
                     .getHeight());
+            System.out.println("painting svg");
             gn.paint(g2);
             g2.dispose();
 
