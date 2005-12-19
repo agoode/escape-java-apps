@@ -328,9 +328,10 @@ public class Level2PDF {
     }
 
     private static void printMap(boolean[][] map) {
-        for (int y = 0; y < map[0].length; y++) {
-            for (int x = 0; x < map.length; x++) {
-                System.out.print(map[x][y] ? "1 " : "0 ");
+        for (int y = 0; y < map.length; y++) {
+            boolean[] row = map[y];
+            for (int x = 0; x < row.length; x++) {
+                System.out.print(row[x] ? "X " : ". ");
             }
             System.out.println();
         }
@@ -348,7 +349,7 @@ public class Level2PDF {
         Pair prev = first;
         Pair current = (Pair) iter.next();
         boundaries[first.y].add(new Integer(first.x));
-        boundaries[current.y].add(new Integer(current.x));
+        System.out.println(first.y + " -> " + first.x);
 
         while (iter.hasNext()) {
             prev = current;
@@ -360,22 +361,35 @@ public class Level2PDF {
             int y = current.y;
 
             int dx = x - px;
+            int dy = y - py;
 
             if (dx == 0) {
                 // ignore horizontal segments
-                boundaries[y].add(new Integer(x));
+                if (dy > 0) {
+                    System.out.println(py + " -> " + px);
+                    boundaries[py].add(new Integer(px));
+                } else {
+                    System.out.println(y + " -> " + x);
+                    boundaries[y].add(new Integer(x));
+                }
             }
         }
 
+        for (int i = 0; i < boundaries.length; i++) {
+            SortedSet set = boundaries[i];
+            System.out.println(set);
+        }
+
         // now, we have all the spots where the path is, in a sorted way
-        boolean inverting = false;
-        for (int y = 0; y < map[0].length; y++) {
-            for (int x = 0; x < map.length; x++) {
+        for (int y = 0; y < map.length; y++) {
+            boolean row[] = map[y];
+            boolean inverting = false;
+            for (int x = 0; x < row.length; x++) {
                 if (boundaries[y].contains(new Integer(x))) {
                     inverting = !inverting;
                 }
                 if (inverting) {
-                    map[x][y] = !map[x][y];
+                    row[x] = !row[x];
                 }
             }
         }
@@ -401,8 +415,8 @@ public class Level2PDF {
             // dy
             if (dy > 0) {
                 // moving down
-                nextL = getVal(map, x, y + 1);
-                nextR = getVal(map, x - 1, y + 1);
+                nextL = getVal(map, x, y);
+                nextR = getVal(map, x - 1, y);
                 left = new Pair(x + 1, y);
                 right = new Pair(x - 1, y);
                 straight = new Pair(x, y + 1);
@@ -417,8 +431,8 @@ public class Level2PDF {
         } else {
             if (dx > 0) {
                 // moving right
-                nextL = getVal(map, x + 1, y - 1);
-                nextR = getVal(map, x + 1, y);
+                nextL = getVal(map, x, y - 1);
+                nextR = getVal(map, x, y);
                 left = new Pair(x, y - 1);
                 right = new Pair(x, y + 1);
                 straight = new Pair(x + 1, y);
@@ -435,14 +449,18 @@ public class Level2PDF {
         // see potrace document, Figure 3
         if (nextL && nextR) {
             // turn right
+            System.out.println("right");
             result[1] = right;
         } else if (nextL && !nextR) {
             // go straight
+            System.out.println("straight");
             result[1] = straight;
         } else if (!nextL && !nextR) {
+            System.out.println("left");
             // turn left
             result[1] = left;
         } else {
+            System.out.println("ambig");
             // we could go left or right, left sounds good for now
             result[1] = left;
         }
@@ -450,20 +468,20 @@ public class Level2PDF {
         return result;
     }
 
-    private static boolean getVal(boolean[][] map, int i, int j) {
-        if (i < 0 || j < 0 || i >= map.length || j >= map[0].length) {
+    private static boolean getVal(boolean[][] map, int x, int y) {
+        if (x < 0 || y < 0 || y >= map.length || x >= map[0].length) {
             return false;
         } else {
-            return map[i][j];
+            return map[y][x];
         }
     }
 
     private static Pair[] findFirstEdge(boolean[][] map) {
-        for (int i = 0; i < map.length; i++) {
-            boolean[] bs = map[i];
-            for (int j = 0; j < bs.length; j++) {
-                if (bs[j]) {
-                    return new Pair[] { new Pair(i, j), new Pair(i, j + 1) };
+        for (int y = 0; y < map.length; y++) {
+            boolean[] row = map[y];
+            for (int x = 0; x < row.length; x++) {
+                if (row[x]) {
+                    return new Pair[] { new Pair(x, y), new Pair(x, y + 1) };
                 }
             }
         }
@@ -478,11 +496,12 @@ public class Level2PDF {
         int w = l.getWidth();
         int h = l.getHeight();
 
-        boolean space[][] = new boolean[w][h];
-        for (int y = h - 1; y >= 0; y--) {
-            for (int x = 0; x < w; x++) {
+        boolean space[][] = new boolean[h][w];
+        for (int y = 0; y < space.length; y++) {
+            boolean[] row = space[y];
+            for (int x = 0; x < row.length; x++) {
                 if (l.tileAt(x, y) == tile) {
-                    space[x][y] = true;
+                    row[x] = true;
                 }
             }
         }
