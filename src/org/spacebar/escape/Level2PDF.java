@@ -17,11 +17,7 @@ import org.apache.batik.bridge.UserAgentAdapter;
 import org.apache.batik.dom.svg.SAXSVGDocumentFactory;
 import org.apache.batik.gvt.GraphicsNode;
 import org.apache.batik.util.XMLResourceDescriptor;
-import org.spacebar.escape.common.BitInputStream;
-import org.spacebar.escape.common.Characters;
-import org.spacebar.escape.common.IntPair;
-import org.spacebar.escape.common.Level;
-import org.spacebar.escape.common.StyleStack;
+import org.spacebar.escape.common.*;
 import org.spacebar.escape.j2se.ResourceUtil;
 import org.spacebar.escape.j2se.StyleStack2;
 import org.w3c.dom.svg.SVGDocument;
@@ -325,6 +321,64 @@ public class Level2PDF {
             printMap(map);
             System.out.println();
         }
+
+        for (Iterator iter = paths.iterator(); iter.hasNext();) {
+            List path = (List) iter.next();
+            System.out.println("path: " + path);
+        }
+
+        List simplePaths = new ArrayList();
+        // now, we have the segments, so get it down to corners
+        for (Iterator iter = paths.iterator(); iter.hasNext();) {
+            List path = (List) iter.next();
+            List newPath = new ArrayList();
+            simplePaths.add(newPath);
+
+            Iterator iter2 = path.iterator();
+            Pair prev;
+            Pair current = (Pair) iter2.next();
+            newPath.add(current);
+            
+            byte oldDir = Entity.DIR_NONE;
+            while (iter2.hasNext()) {
+                prev = current;
+                current = (Pair) iter2.next();
+                
+                int x = current.x;
+                int y = current.y;
+                int px = prev.x;
+                int py = prev.y;
+                
+                int dx = x - px;
+                int dy = y - py;
+                
+                byte dir;
+                if (dy == 0) {
+                    if (dx < 0) {
+                        dir = Entity.DIR_LEFT;
+                    } else {
+                        dir = Entity.DIR_RIGHT;
+                    }
+                } else {
+                    if (dy < 0) {
+                        dir = Entity.DIR_UP;
+                    } else {
+                        dir = Entity.DIR_DOWN;
+                    }
+                }
+                if (oldDir == Entity.DIR_NONE) {
+                    oldDir = dir;
+                }
+                if (oldDir != dir) {
+                    newPath.add(prev);
+                    oldDir = dir;
+                }
+            }
+        }
+        for (Iterator iter = simplePaths.iterator(); iter.hasNext();) {
+            List path = (List) iter.next();
+            System.out.println("simple path: " + path);
+        }
     }
 
     private static void printMap(boolean[][] map) {
@@ -346,7 +400,7 @@ public class Level2PDF {
 
         Iterator iter = path.iterator();
         Pair first = (Pair) iter.next();
-        Pair prev = first;
+        Pair prev;
         Pair current = (Pair) iter.next();
         boundaries[first.y].add(new Integer(first.x));
         System.out.println(first.y + " -> " + first.x);
