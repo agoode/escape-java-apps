@@ -252,18 +252,22 @@ public class Level2PDF {
     private static void layDownBrick(Level l, PdfContentByte cb,
             PdfPatternPainter pat) {
         // cut out black spots, but not rough
-        makePathsFromTile(l, cb, Level.T_BLACK);
-        cb.clip();
+        makePathsFromTile(l, cb, Level.T_BLACK, true);
+        cb.eoClip();
+        cb.newPath();
 
         cb.setColorFill(new Color(195, 195, 195));
-        cb.rectangle(0, 0, l.getWidth() * BASE_TILE_SIZE, l.getHeight()
-                * BASE_TILE_SIZE);
+        levelPath(l, cb);
         cb.fill();
 
-        cb.rectangle(0, 0, l.getWidth() * BASE_TILE_SIZE, l.getHeight()
-                * BASE_TILE_SIZE);
+        levelPath(l, cb);
         cb.setPatternFill(pat);
         cb.fill();
+    }
+
+    private static void levelPath(Level l, PdfContentByte cb) {
+        cb.rectangle(0, 0, l.getWidth() * BASE_TILE_SIZE, l.getHeight()
+                * BASE_TILE_SIZE);
     }
 
     static class Pair extends IntPair {
@@ -289,10 +293,10 @@ public class Level2PDF {
         }
     }
 
-    private static void makePathsFromTile(Level l, PdfContentByte cb, byte tile) {
+    private static void makePathsFromTile(Level l, PdfContentByte cb, byte tile, boolean invert) {
         // implements path decomposition as in potrace
 
-        boolean map[][] = makeTileMap(l, tile);
+        boolean map[][] = makeTileMap(l, tile, invert);
         printMap(map);
 
         // make the paths list
@@ -315,6 +319,8 @@ public class Level2PDF {
                 System.out.println(edge[1]);
                 path.add(edge[1]);
             }
+            // add closing
+            path.add(first[0]);
 
             // now, invert
             invertInsidePath(map, path);
@@ -337,6 +343,7 @@ public class Level2PDF {
             Iterator iter2 = path.iterator();
             Pair prev;
             Pair current = (Pair) iter2.next();
+            Pair first = current;
             newPath.add(current);
             
             byte oldDir = Entity.DIR_NONE;
@@ -375,9 +382,21 @@ public class Level2PDF {
                 }
             }
         }
+        
+        int h = l.getHeight();
         for (Iterator iter = simplePaths.iterator(); iter.hasNext();) {
             List path = (List) iter.next();
             System.out.println("simple path: " + path);
+            
+            Iterator i = path.iterator();
+            Pair p = (Pair) i.next();
+            cb.moveTo(p.x * BASE_TILE_SIZE, (h - p.y) * BASE_TILE_SIZE);
+            while(i.hasNext()) {
+                p = (Pair) i.next();
+                System.out.println(p);
+                cb.lineTo(p.x * BASE_TILE_SIZE, (h - p.y) * BASE_TILE_SIZE);
+            }
+            cb.closePath();
         }
     }
 
@@ -546,7 +565,7 @@ public class Level2PDF {
         return findFirstEdge(map) != null;
     }
 
-    private static boolean[][] makeTileMap(Level l, byte tile) {
+    private static boolean[][] makeTileMap(Level l, byte tile, boolean invert) {
         int w = l.getWidth();
         int h = l.getHeight();
 
@@ -554,7 +573,7 @@ public class Level2PDF {
         for (int y = 0; y < space.length; y++) {
             boolean[] row = space[y];
             for (int x = 0; x < row.length; x++) {
-                if (l.tileAt(x, y) == tile) {
+                if (invert ^ l.tileAt(x, y) == tile) {
                     row[x] = true;
                 }
             }
