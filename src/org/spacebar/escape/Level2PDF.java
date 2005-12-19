@@ -3,8 +3,12 @@ package org.spacebar.escape;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.apache.batik.bridge.BridgeContext;
 import org.apache.batik.bridge.GVTBuilder;
@@ -15,6 +19,7 @@ import org.apache.batik.gvt.GraphicsNode;
 import org.apache.batik.util.XMLResourceDescriptor;
 import org.spacebar.escape.common.BitInputStream;
 import org.spacebar.escape.common.Characters;
+import org.spacebar.escape.common.IntPair;
 import org.spacebar.escape.common.Level;
 import org.spacebar.escape.common.StyleStack;
 import org.spacebar.escape.j2se.ResourceUtil;
@@ -47,7 +52,7 @@ public class Level2PDF {
 
             String basename = f.getName().replaceFirst("\\.esx$", "");
 
-            makePDF(l, PageSize._11X17, new FileOutputStream(basename + ".pdf"));
+            makePDF(l, PageSize.LETTER, new FileOutputStream(basename + ".pdf"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -179,8 +184,8 @@ public class Level2PDF {
 
             // create the level as a form XObject, so that patterns come out
             // nice
-            PdfTemplate levelField = cb.createTemplate(l.getWidth() * BASE_TILE_SIZE,
-                    l.getHeight() * BASE_TILE_SIZE);
+            PdfTemplate levelField = cb.createTemplate(l.getWidth()
+                    * BASE_TILE_SIZE, l.getHeight() * BASE_TILE_SIZE);
             levelField.saveState();
             PdfPatternPainter brickPattern = createBrickPattern(levelField);
             layDownBrick(l, levelField, brickPattern);
@@ -203,8 +208,9 @@ public class Level2PDF {
             af.scale(masterScale, masterScale);
             double mat[] = new double[6];
             af.getMatrix(mat);
-            cb.addTemplate(levelField, (float) mat[0], (float) mat[1], (float) mat[2],
-                    (float) mat[3], (float) mat[4], (float) mat[5]);
+            cb.addTemplate(levelField, (float) mat[0], (float) mat[1],
+                    (float) mat[2], (float) mat[3], (float) mat[4],
+                    (float) mat[5]);
 
             document.close();
         } catch (DocumentException de) {
@@ -249,6 +255,10 @@ public class Level2PDF {
 
     private static void layDownBrick(Level l, PdfContentByte cb,
             PdfPatternPainter pat) {
+        // cut out black spots, but not rough
+        makePathsFromTile(l, cb, Level.T_BLACK);
+        cb.clip();
+
         cb.setColorFill(new Color(195, 195, 195));
         cb.rectangle(0, 0, l.getWidth() * BASE_TILE_SIZE, l.getHeight()
                 * BASE_TILE_SIZE);
@@ -258,6 +268,225 @@ public class Level2PDF {
                 * BASE_TILE_SIZE);
         cb.setPatternFill(pat);
         cb.fill();
+    }
+
+    static class Pair extends IntPair {
+        public Pair(int x, int y) {
+            super(x, y);
+        }
+
+        @Override
+        public String toString() {
+            return "(" + x + "," + y + ")";
+        }
+
+        public boolean equals(Object obj) {
+            if (obj instanceof IntPair) {
+                IntPair i = (IntPair) obj;
+                return x == i.x && y == i.y;
+            }
+            return false;
+        }
+
+        public int hashCode() {
+            return x + 1000000 * y; // XXX: heh
+        }
+    }
+
+    private static void makePathsFromTile(Level l, PdfContentByte cb, byte tile) {
+        // implements path decomposition as in potrace
+
+        boolean map[][] = makeTileMap(l, tile);
+        printMap(map);
+
+        // make the paths list
+        java.util.List paths = new ArrayList();
+
+        while (anySet(map)) {
+            // new path
+            java.util.List path = new ArrayList();
+            paths.add(path);
+            Pair first[] = findFirstEdge(map);
+
+            path.add(first[0]);
+            path.add(first[1]);
+
+            Pair edge[] = first;
+            System.out.println(first[0]);
+            System.out.println(first[1]);
+            while (!(edge = nextVertex(map, edge[0], edge[1]))[1]
+                    .equals(first[0])) { // WTF
+                System.out.println(edge[1]);
+                path.add(edge[1]);
+            }
+
+            // now, invert
+            invertInsidePath(map, path);
+            printMap(map);
+            System.out.println();
+        }
+    }
+
+    private static void printMap(boolean[][] map) {
+        for (int y = 0; y < map[0].length; y++) {
+            for (int x = 0; x < map.length; x++) {
+                System.out.print(map[x][y] ? "1 " : "0 ");
+            }
+            System.out.println();
+        }
+    }
+
+    private static void invertInsidePath(boolean[][] map, List path) {
+        // extract information to do a scanline type thing
+        SortedSet boundaries[] = new SortedSet[map[0].length];
+        for (int i = 0; i < boundaries.length; i++) {
+            boundaries[i] = new TreeSet();
+        }
+
+        Iterator iter = path.iterator();
+        Pair first = (Pair) iter.next();
+        Pair prev = first;
+        Pair current = (Pair) iter.next();
+        boundaries[first.y].add(new Integer(first.x));
+        boundaries[current.y].add(new Integer(current.x));
+
+        while (iter.hasNext()) {
+            prev = current;
+            current = (Pair) iter.next();
+
+            int px = prev.x;
+            int py = prev.y;
+            int x = current.x;
+            int y = current.y;
+
+            int dx = x - px;
+
+            if (dx == 0) {
+                // ignore horizontal segments
+                boundaries[y].add(new Integer(x));
+            }
+        }
+
+        // now, we have all the spots where the path is, in a sorted way
+        boolean inverting = false;
+        for (int y = 0; y < map[0].length; y++) {
+            for (int x = 0; x < map.length; x++) {
+                if (boundaries[y].contains(new Integer(x))) {
+                    inverting = !inverting;
+                }
+                if (inverting) {
+                    map[x][y] = !map[x][y];
+                }
+            }
+        }
+    }
+
+    private static Pair[] nextVertex(boolean[][] map, Pair prev, Pair current) {
+        int px = prev.x;
+        int py = prev.y;
+        int x = current.x;
+        int y = current.y;
+
+        Pair result[] = new Pair[2];
+        result[0] = current;
+
+        int dx = x - px;
+        int dy = y - py;
+
+        // cases
+        boolean nextL;
+        boolean nextR;
+        Pair left, right, straight;
+        if (dx == 0) {
+            // dy
+            if (dy > 0) {
+                // moving down
+                nextL = getVal(map, x, y + 1);
+                nextR = getVal(map, x - 1, y + 1);
+                left = new Pair(x + 1, y);
+                right = new Pair(x - 1, y);
+                straight = new Pair(x, y + 1);
+            } else {
+                // moving up
+                nextL = getVal(map, x - 1, y - 1);
+                nextR = getVal(map, x, y - 1);
+                left = new Pair(x - 1, y);
+                right = new Pair(x + 1, y);
+                straight = new Pair(x, y - 1);
+            }
+        } else {
+            if (dx > 0) {
+                // moving right
+                nextL = getVal(map, x + 1, y - 1);
+                nextR = getVal(map, x + 1, y);
+                left = new Pair(x, y - 1);
+                right = new Pair(x, y + 1);
+                straight = new Pair(x + 1, y);
+            } else {
+                // moving left
+                nextL = getVal(map, x - 1, y);
+                nextR = getVal(map, x - 1, y - 1);
+                left = new Pair(x, y + 1);
+                right = new Pair(x, y - 1);
+                straight = new Pair(x - 1, y);
+            }
+        }
+
+        // see potrace document, Figure 3
+        if (nextL && nextR) {
+            // turn right
+            result[1] = right;
+        } else if (nextL && !nextR) {
+            // go straight
+            result[1] = straight;
+        } else if (!nextL && !nextR) {
+            // turn left
+            result[1] = left;
+        } else {
+            // we could go left or right, left sounds good for now
+            result[1] = left;
+        }
+
+        return result;
+    }
+
+    private static boolean getVal(boolean[][] map, int i, int j) {
+        if (i < 0 || j < 0 || i >= map.length || j >= map[0].length) {
+            return false;
+        } else {
+            return map[i][j];
+        }
+    }
+
+    private static Pair[] findFirstEdge(boolean[][] map) {
+        for (int i = 0; i < map.length; i++) {
+            boolean[] bs = map[i];
+            for (int j = 0; j < bs.length; j++) {
+                if (bs[j]) {
+                    return new Pair[] { new Pair(i, j), new Pair(i, j + 1) };
+                }
+            }
+        }
+        return null;
+    }
+
+    private static boolean anySet(boolean[][] map) {
+        return findFirstEdge(map) != null;
+    }
+
+    private static boolean[][] makeTileMap(Level l, byte tile) {
+        int w = l.getWidth();
+        int h = l.getHeight();
+
+        boolean space[][] = new boolean[w][h];
+        for (int y = h - 1; y >= 0; y--) {
+            for (int x = 0; x < w; x++) {
+                if (l.tileAt(x, y) == tile) {
+                    space[x][y] = true;
+                }
+            }
+        }
+        return space;
     }
 
     private static PdfPatternPainter createBrickPattern(PdfContentByte cb) {
