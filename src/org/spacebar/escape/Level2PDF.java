@@ -174,8 +174,6 @@ public class Level2PDF {
             PdfContentByte cb = writer.getDirectContent();
             cb.saveState();
 
-            PdfTemplate tiles[] = makeTileTemplates(l);
-
             // transform to fit into page
             AffineTransform af = new AffineTransform();
             af.translate(margin + xOff, margin + yOff);
@@ -254,22 +252,6 @@ public class Level2PDF {
         }
     }
 
-    private static PdfTemplate[] makeTileTemplates(Level l) {
-        // make bit mask of tiles in this level
-        boolean t[] = new boolean[59];
-        for (int i = 0; i < l.getWidth() * l.getHeight(); i++) {
-            t[l.tileAt(i)] = true;
-        }
-
-        // floor is always required (exit)
-
-        // now, determine some classes of tiles to include
-
-        PdfTemplate p[] = new PdfTemplate[59];
-
-        return p;
-    }
-
     private static void layDownSprites(Level l, PdfContentByte cb) {
         // TODO Auto-generated method stub
 
@@ -288,6 +270,7 @@ public class Level2PDF {
 
         PdfPatternPainter tilePattern = createTilePattern(cb, tile);
         makePathsFromTile(l, cb, tile, false);
+        
         cb.setPatternFill(tilePattern);
         cb.eoFill();
     }
@@ -335,7 +318,7 @@ public class Level2PDF {
     private static void layDownBrick(Level l, PdfContentByte cb,
             PdfPatternPainter pat) {
         // cut out black spots, but not rough
-        makePathsFromTile(l, cb, Level.T_FLOOR, false);
+        makePathsFromTile(l, cb, Level.T_BLACK, true);
         cb.eoClip();
         cb.newPath();
 
@@ -363,6 +346,7 @@ public class Level2PDF {
             return "(" + x + "," + y + ")";
         }
 
+        @Override
         public boolean equals(Object obj) {
             if (obj instanceof IntPair) {
                 IntPair i = (IntPair) obj;
@@ -371,6 +355,7 @@ public class Level2PDF {
             return false;
         }
 
+        @Override
         public int hashCode() {
             return x + 1000000 * y; // XXX: heh
         }
@@ -384,11 +369,11 @@ public class Level2PDF {
         printMap(map);
 
         // make the paths list
-        java.util.List paths = new ArrayList();
+        java.util.List<List<Pair>> paths = new ArrayList<List<Pair>>();
 
         while (anySet(map)) {
             // new path
-            java.util.List path = new ArrayList();
+            java.util.List<Pair> path = new ArrayList<Pair>();
             paths.add(path);
             Pair first[] = findFirstEdge(map);
 
@@ -412,22 +397,21 @@ public class Level2PDF {
             System.out.println();
         }
 
-        for (Iterator iter = paths.iterator(); iter.hasNext();) {
-            List path = (List) iter.next();
+        for (Iterator<List<Pair>> iter = paths.iterator(); iter.hasNext();) {
+            List path = iter.next();
             System.out.println("path: " + path);
         }
 
-        List simplePaths = new ArrayList();
+        List<List<Pair>> simplePaths = new ArrayList<List<Pair>>();
         // now, we have the segments, so get it down to corners
-        for (Iterator iter = paths.iterator(); iter.hasNext();) {
-            List path = (List) iter.next();
-            List newPath = new ArrayList();
+        for (Iterator<List<Pair>> iter = paths.iterator(); iter.hasNext();) {
+            List path = iter.next();
+            List<Pair> newPath = new ArrayList<Pair>();
             simplePaths.add(newPath);
 
             Iterator iter2 = path.iterator();
             Pair prev;
             Pair current = (Pair) iter2.next();
-            Pair first = current;
             newPath.add(current);
 
             byte oldDir = Entity.DIR_NONE;
@@ -468,8 +452,8 @@ public class Level2PDF {
         }
 
         int h = l.getHeight();
-        for (Iterator iter = simplePaths.iterator(); iter.hasNext();) {
-            List path = (List) iter.next();
+        for (Iterator<List<Pair>> iter = simplePaths.iterator(); iter.hasNext();) {
+            List path = iter.next();
             System.out.println("simple path: " + path);
 
             Iterator i = path.iterator();
@@ -494,23 +478,23 @@ public class Level2PDF {
         }
     }
 
-    private static void invertInsidePath(boolean[][] map, List path) {
+    private static void invertInsidePath(boolean[][] map, List<Pair> path) {
         // extract information to do a scanline type thing
-        SortedSet boundaries[] = new SortedSet[map[0].length];
-        for (int i = 0; i < boundaries.length; i++) {
-            boundaries[i] = new TreeSet();
+        List<SortedSet<Integer>> boundaries = new ArrayList<SortedSet<Integer>>();
+        for (int i = 0; i < map[0].length; i++) {
+            boundaries.add(new TreeSet<Integer>());
         }
 
-        Iterator iter = path.iterator();
-        Pair first = (Pair) iter.next();
+        Iterator<Pair> iter = path.iterator();
+        Pair first = iter.next();
         Pair prev;
-        Pair current = (Pair) iter.next();
-        boundaries[first.y].add(new Integer(first.x));
+        Pair current = iter.next();
+        boundaries.get(first.y).add(first.x);
         System.out.println(first.y + " -> " + first.x);
 
         while (iter.hasNext()) {
             prev = current;
-            current = (Pair) iter.next();
+            current = iter.next();
 
             int px = prev.x;
             int py = prev.y;
@@ -524,17 +508,12 @@ public class Level2PDF {
                 // ignore horizontal segments
                 if (dy > 0) {
                     System.out.println(py + " -> " + px);
-                    boundaries[py].add(new Integer(px));
+                    boundaries.get(py).add(new Integer(px));
                 } else {
                     System.out.println(y + " -> " + x);
-                    boundaries[y].add(new Integer(x));
+                    boundaries.get(y).add(new Integer(x));
                 }
             }
-        }
-
-        for (int i = 0; i < boundaries.length; i++) {
-            SortedSet set = boundaries[i];
-            System.out.println(set);
         }
 
         // now, we have all the spots where the path is, in a sorted way
@@ -542,7 +521,7 @@ public class Level2PDF {
             boolean row[] = map[y];
             boolean inverting = false;
             for (int x = 0; x < row.length; x++) {
-                if (boundaries[y].contains(new Integer(x))) {
+                if (boundaries.get(y).contains(new Integer(x))) {
                     inverting = !inverting;
                 }
                 if (inverting) {
