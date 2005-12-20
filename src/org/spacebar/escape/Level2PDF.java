@@ -1,10 +1,6 @@
 package org.spacebar.escape;
 
-import static org.spacebar.escape.common.Entity.DIR_DOWN;
-import static org.spacebar.escape.common.Entity.DIR_LEFT;
-import static org.spacebar.escape.common.Entity.DIR_NONE;
-import static org.spacebar.escape.common.Entity.DIR_RIGHT;
-import static org.spacebar.escape.common.Entity.DIR_UP;
+import static org.spacebar.escape.common.Entity.*;
 import static org.spacebar.escape.common.Level.*;
 
 import java.awt.Color;
@@ -279,16 +275,16 @@ public class Level2PDF {
             new Color(159, 159, 159), new Color(103, 103, 103) };
 
     static Color redColors[] = new Color[] { new Color(79, 0, 0),
-            new Color(162, 0, 0), new Color(180, 0, 0),
-            new Color(206, 0, 0), new Color(121, 0, 0) };
+            new Color(162, 0, 0), new Color(180, 0, 0), new Color(206, 0, 0),
+            new Color(121, 0, 0) };
 
     static Color blueColors[] = new Color[] { new Color(0, 0, 79),
-            new Color(0, 0, 185), new Color(0, 0, 208),
-            new Color(63, 63, 255), new Color(0, 0, 135) };
+            new Color(0, 0, 185), new Color(0, 0, 208), new Color(63, 63, 255),
+            new Color(0, 0, 135) };
 
     static Color greenColors[] = new Color[] { new Color(7, 79, 0),
-            new Color(7, 127, 0), new Color(5, 138, 0),
-            new Color(5, 165, 0), new Color(7, 103, 0) };
+            new Color(7, 127, 0), new Color(5, 138, 0), new Color(5, 165, 0),
+            new Color(7, 103, 0) };
 
     static Color goldColors[] = new Color[] { new Color(126, 126, 0),
             new Color(255, 247, 35), new Color(255, 255, 174),
@@ -336,7 +332,7 @@ public class Level2PDF {
         levelPath(l, cb);
         cb.setPatternFill(tilePattern);
         cb.fill();
-        
+
         cb.restoreState();
     }
 
@@ -357,7 +353,7 @@ public class Level2PDF {
         PdfPatternPainter pat = cb
                 .createPattern(BASE_TILE_SIZE, BASE_TILE_SIZE);
         for (int i = 0; i < pats.length; i++) {
-            System.out.println(colors[i]);
+//            System.out.println(colors[i]);
             pat.rectangle(0, 0, BASE_TILE_SIZE, BASE_TILE_SIZE);
             pat.setPatternFill(pats[i], colors[i]);
             pat.fill();
@@ -377,7 +373,7 @@ public class Level2PDF {
             GraphicsNode gn = gvtb.build(new BridgeContext(ua), doc);
             GVTTreeWalker tw = new GVTTreeWalker(gn);
             for (int i = 0; i < 4; i++) {
-                System.out.println("node " + i);
+//                System.out.println("node " + i);
                 gn = tw.nextGraphicsNode();
 
                 PdfPatternPainter pat = cb.createPattern(BASE_TILE_SIZE,
@@ -392,27 +388,27 @@ public class Level2PDF {
                 while (!it.isDone()) {
                     switch (it.currentSegment(c)) {
                     case PathIterator.SEG_CLOSE:
-                        System.out.println("close");
+//                        System.out.println("close");
                         pat.closePath();
                         break;
                     case PathIterator.SEG_CUBICTO:
-                        System.out.println("cubic " + c[0] + " " + c[1] + " "
-                                + c[2] + " " + c[3] + " " + c[4] + " " + c[5]);
+//                        System.out.println("cubic " + c[0] + " " + c[1] + " "
+//                                + c[2] + " " + c[3] + " " + c[4] + " " + c[5]);
                         pat.curveTo(c[0], BASE_TILE_SIZE - c[1], c[2],
                                 BASE_TILE_SIZE - c[3], c[4], BASE_TILE_SIZE
                                         - c[5]);
                         break;
                     case PathIterator.SEG_LINETO:
-                        System.out.println("line " + c[0] + " " + c[1]);
+//                        System.out.println("line " + c[0] + " " + c[1]);
                         pat.lineTo(c[0], BASE_TILE_SIZE - c[1]);
                         break;
                     case PathIterator.SEG_MOVETO:
-                        System.out.println("move " + c[0] + " " + c[1]);
+//                        System.out.println("move " + c[0] + " " + c[1]);
                         pat.moveTo(c[0], BASE_TILE_SIZE - c[1]);
                         break;
                     case PathIterator.SEG_QUADTO:
-                        System.out.println("quad " + c[0] + " " + c[1] + " "
-                                + c[2] + " " + c[3]);
+//                        System.out.println("quad " + c[0] + " " + c[1] + " "
+//                                + c[2] + " " + c[3]);
                         pat.curveTo(c[0], BASE_TILE_SIZE - c[1], c[2],
                                 BASE_TILE_SIZE - c[3]);
                         break;
@@ -531,7 +527,11 @@ public class Level2PDF {
                 boolean ll = getVal(map, x - 1, y);
                 boolean lr = getVal(map, x, y);
 
-                if (!ul && ur) {
+                if (ul && !ur && !ll && lr) {
+                    edges[y][x] = DIR_LEFT_RIGHT;
+                } else if (!ul && ur && ll && !lr) {
+                    edges[y][x] = DIR_UP_DOWN;
+                } else if (!ul && ur) {
                     edges[y][x] = DIR_UP;
                 } else if (ll && !lr) {
                     edges[y][x] = DIR_DOWN;
@@ -562,20 +562,32 @@ public class Level2PDF {
 
             byte dir;
             while ((dir = edges[y][x]) != DIR_NONE) {
-                edges[y][x] = DIR_NONE; // clear
-
                 // move to the next spot
                 switch (dir) {
+                case DIR_UP_DOWN:
+                    // up sounds good
+                    edges[y][x] = DIR_DOWN;
+                    y--;
+                    break;
+                case DIR_LEFT_RIGHT:
+                    // left sounds good
+                    edges[y][x] = DIR_RIGHT;
+                    x--;
+                    break;
                 case DIR_DOWN:
+                    edges[y][x] = DIR_NONE;
                     y++;
                     break;
                 case DIR_UP:
+                    edges[y][x] = DIR_NONE;
                     y--;
                     break;
                 case DIR_LEFT:
+                    edges[y][x] = DIR_NONE;
                     x--;
                     break;
                 case DIR_RIGHT:
+                    edges[y][x] = DIR_NONE;
                     x++;
                     break;
                 }
@@ -647,7 +659,6 @@ public class Level2PDF {
             cb.moveTo(p.x * BASE_TILE_SIZE, (h - p.y) * BASE_TILE_SIZE);
             while (i.hasNext()) {
                 p = (Pair) i.next();
-                System.out.println(p);
                 cb.lineTo(p.x * BASE_TILE_SIZE, (h - p.y) * BASE_TILE_SIZE);
             }
             cb.closePath();
@@ -699,6 +710,12 @@ public class Level2PDF {
                     break;
                 case DIR_UP:
                     System.out.print("\u2191 ");
+                    break;
+                case DIR_LEFT_RIGHT:
+                    System.out.print("\u2194 ");
+                    break;
+                case DIR_UP_DOWN:
+                    System.out.print("\u2195 ");
                     break;
                 }
             }
