@@ -35,8 +35,32 @@ public class Level2PDF {
     final public static String creator = id
             .replaceAll("^\\$Id: (.*)\\$$", "$1");
 
+    final static BaseFont BASE_FONT;
     static {
         ByteBuffer.HIGH_PRECISION = true;
+        Document.compress = false; // XXX
+
+        // get the font
+        BaseFont f = null;
+        {
+            final String fontName = "Fixedsys500c.ttf";
+            InputStream font = ResourceUtil.getLocalResourceAsStream(fontName);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            int d;
+            try {
+                while ((d = font.read()) != -1) {
+                    baos.write(d);
+                }
+                byte fontData[] = baos.toByteArray();
+                f = BaseFont.createFont(fontName, BaseFont.CP1252, true, true,
+                        fontData, null);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (DocumentException e) {
+                e.printStackTrace();
+            }
+        }
+        BASE_FONT = f;
     }
 
     final static String parser = XMLResourceDescriptor.getXMLParserClassName();
@@ -66,8 +90,7 @@ public class Level2PDF {
      * @param basename
      * @throws IOException
      */
-    public static void makePDF(Level l, Rectangle page, OutputStream out)
-            throws IOException {
+    public static void makePDF(Level l, Rectangle page, OutputStream out) {
         float levAspect = (float) l.getWidth() / (float) l.getHeight();
 
         // do PDF stuff
@@ -77,24 +100,10 @@ public class Level2PDF {
         boolean landscape = levAspect >= 1.0;
         System.out.println("landscape: " + landscape);
 
-        // get the font
-        String fontName = "Fixedsys500c.ttf";
-        byte fontData[];
-        {
-            InputStream font = ResourceUtil.getLocalResourceAsStream(fontName);
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            int d;
-            while ((d = font.read()) != -1) {
-                baos.write(d);
-            }
-            fontData = baos.toByteArray();
-        }
-
         if (landscape && page.height() > page.width()) {
             page = page.rotate();
         }
 
-        Document.compress = false;
         Document document = new Document(page, margin, margin, margin, margin);
 
         try {
@@ -112,9 +121,7 @@ public class Level2PDF {
             document.open();
 
             // title and author
-            BaseFont fixedsys = BaseFont.createFont(fontName, BaseFont.CP1252,
-                    true, true, fontData, null);
-            Font font = new Font(fixedsys, 16);
+            Font font = new Font(BASE_FONT, 16);
 
             String text = Characters.WHITE + l.getTitle() + Characters.GRAY
                     + " by " + Characters.BLUE + l.getAuthor();
@@ -216,8 +223,6 @@ public class Level2PDF {
             document.close();
         } catch (DocumentException de) {
             System.err.println(de.getMessage());
-        } catch (IOException ioe) {
-            System.err.println(ioe.getMessage());
         }
 
         // done
@@ -270,7 +275,7 @@ public class Level2PDF {
         makePathsFromTile(l, cb, tile, false);
 
         cb.setPatternFill(tilePattern);
-        cb.eoFill();
+        cb.fill();
     }
 
     private static PdfPatternPainter createTilePattern(PdfContentByte cb,
@@ -301,7 +306,7 @@ public class Level2PDF {
     private static void layDownRough(Level l, PdfContentByte cb,
             PdfPatternPainter pat) {
         makePathsFromTile(l, cb, Level.T_ROUGH, false);
-        cb.eoClip();
+        cb.clip();
         cb.newPath();
 
         levelPath(l, cb);
@@ -317,7 +322,7 @@ public class Level2PDF {
             PdfPatternPainter pat) {
         // cut out black spots, but not rough
         makePathsFromTile(l, cb, Level.T_BLACK, true);
-        cb.eoClip();
+        cb.clip();
         cb.newPath();
 
         levelPath(l, cb);
