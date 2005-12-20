@@ -25,6 +25,10 @@ import org.w3c.dom.svg.SVGDocument;
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.*;
 
+import static org.spacebar.escape.common.Level.*;
+import static org.spacebar.escape.common.Entity.*;
+
+
 public class Level2PDF {
     private static final int BASE_TILE_SIZE = 32;
 
@@ -261,12 +265,91 @@ public class Level2PDF {
     }
 
     private static void layDownTiles(Level l, PdfContentByte cb) {
-        layDownTiles(l, cb, Level.T_BLUE);
+        /*
+        // bricks
+        T_RED
+        T_BLUE
+        T_GREY
+        T_GREEN
+        T_GOLD
+        T_BROKEN
+
+        // simple overlay
+        T_EXIT
+        T_HOLE
+        T_LASER
+        T_STOP
+        T_ELECTRIC
+        T_TRANSPORT
+        T_BLACK
+        T_BUP
+        T_BDOWN
+        T_RUP
+        T_RDOWN
+        T_GUP
+        T_GDOWN
+        T_TRAP2
+        T_TRAP1
+        T_HEARTFRAMER
+        T_SLEEPINGDOOR
+
+        // spheres
+        T_BSPHERE
+        T_RSPHERE
+        T_GSPHERE
+        T_SPHERE
+
+        // panels
+        T_PANEL
+        T_BPANEL
+        T_RPANEL
+        T_GPANEL
+
+        // arrows
+        T_RIGHT
+        T_LEFT
+        T_UP
+        T_DOWN
+
+        // electric box
+        T_ON
+        T_OFF
+
+        // other arrows
+        T_LR
+        T_UD
+
+        // 0/1
+        T_0
+        T_1
+
+        // wires
+        T_NS
+        T_NE
+        T_NW
+        T_SE
+        T_SW
+        T_WE
+
+        // button, lights, crossover
+        T_BUTTON
+        T_BLIGHT
+        T_RLIGHT
+        T_GLIGHT
+        T_TRANSPONDER
+        T_NSWE
+
+        // steel
+        T_STEEL
+        T_BSTEEL
+        T_RSTEEL
+        T_GSTEEL
+        */
     }
 
     final static DecimalFormat svgFileFormatter = new DecimalFormat("00");
 
-    private static void layDownTiles(Level l, PdfContentByte cb, byte tile) {
+    private static void layDownSimpleTile(Level l, PdfContentByte cb, byte tile) {
         if (!l.hasTile(tile)) {
             return;
         }
@@ -305,7 +388,7 @@ public class Level2PDF {
 
     private static void layDownRough(Level l, PdfContentByte cb,
             PdfPatternPainter pat) {
-        makePathsFromTile(l, cb, Level.T_ROUGH, false);
+        makePathsFromTile(l, cb, T_ROUGH, false);
         cb.clip();
         cb.newPath();
 
@@ -321,7 +404,7 @@ public class Level2PDF {
     private static void layDownBrick(Level l, PdfContentByte cb,
             PdfPatternPainter pat) {
         // cut out black spots, but not rough
-        makePathsFromTile(l, cb, Level.T_BLACK, true);
+        makePathsFromTile(l, cb, T_BLACK, true);
         cb.clip();
         cb.newPath();
 
@@ -381,13 +464,13 @@ public class Level2PDF {
                 boolean lr = getVal(map, x, y);
 
                 if (!ul && ur) {
-                    edges[y][x] = Entity.DIR_UP;
+                    edges[y][x] = DIR_UP;
                 } else if (ll && !lr) {
-                    edges[y][x] = Entity.DIR_DOWN;
+                    edges[y][x] = DIR_DOWN;
                 } else if (!ur && lr) {
-                    edges[y][x] = Entity.DIR_RIGHT;
+                    edges[y][x] = DIR_RIGHT;
                 } else if (ul && !ll) {
-                    edges[y][x] = Entity.DIR_LEFT;
+                    edges[y][x] = DIR_LEFT;
                 }
             }
         }
@@ -410,21 +493,21 @@ public class Level2PDF {
             int x = start.x;
 
             byte dir;
-            while ((dir = edges[y][x]) != Entity.DIR_NONE) {
-                edges[y][x] = Entity.DIR_NONE; // clear
+            while ((dir = edges[y][x]) != DIR_NONE) {
+                edges[y][x] = DIR_NONE; // clear
 
                 // move to the next spot
                 switch (dir) {
-                case Entity.DIR_DOWN:
+                case DIR_DOWN:
                     y++;
                     break;
-                case Entity.DIR_UP:
+                case DIR_UP:
                     y--;
                     break;
-                case Entity.DIR_LEFT:
+                case DIR_LEFT:
                     x--;
                     break;
-                case Entity.DIR_RIGHT:
+                case DIR_RIGHT:
                     x++;
                     break;
                 }
@@ -449,7 +532,7 @@ public class Level2PDF {
             Pair current = (Pair) iter2.next();
             newPath.add(current);
 
-            byte oldDir = Entity.DIR_NONE;
+            byte oldDir = DIR_NONE;
             while (iter2.hasNext()) {
                 prev = current;
                 current = (Pair) iter2.next();
@@ -465,18 +548,18 @@ public class Level2PDF {
                 byte dir;
                 if (dy == 0) {
                     if (dx < 0) {
-                        dir = Entity.DIR_LEFT;
+                        dir = DIR_LEFT;
                     } else {
-                        dir = Entity.DIR_RIGHT;
+                        dir = DIR_RIGHT;
                     }
                 } else {
                     if (dy < 0) {
-                        dir = Entity.DIR_UP;
+                        dir = DIR_UP;
                     } else {
-                        dir = Entity.DIR_DOWN;
+                        dir = DIR_DOWN;
                     }
                 }
-                if (oldDir == Entity.DIR_NONE) {
+                if (oldDir == DIR_NONE) {
                     oldDir = dir;
                 }
                 if (oldDir != dir) {
@@ -511,7 +594,7 @@ public class Level2PDF {
                 startX = 0;
             }
             for (int x = startX; x < row.length; x++) {
-                if (row[x] != Entity.DIR_NONE) {
+                if (row[x] != DIR_NONE) {
                     return new Pair(x, y);
                 }
             }
@@ -534,19 +617,19 @@ public class Level2PDF {
             byte[] row = edges[y];
             for (int x = 0; x < row.length; x++) {
                 switch (row[x]) {
-                case Entity.DIR_NONE:
+                case DIR_NONE:
                     System.out.print("  ");
                     break;
-                case Entity.DIR_RIGHT:
+                case DIR_RIGHT:
                     System.out.print("\u2192 ");
                     break;
-                case Entity.DIR_LEFT:
+                case DIR_LEFT:
                     System.out.print("\u2190 ");
                     break;
-                case Entity.DIR_DOWN:
+                case DIR_DOWN:
                     System.out.print("\u2193 ");
                     break;
-                case Entity.DIR_UP:
+                case DIR_UP:
                     System.out.print("\u2191 ");
                     break;
                 }
