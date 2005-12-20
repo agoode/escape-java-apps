@@ -1,8 +1,17 @@
 package org.spacebar.escape;
 
+import static org.spacebar.escape.common.Entity.DIR_DOWN;
+import static org.spacebar.escape.common.Entity.DIR_LEFT;
+import static org.spacebar.escape.common.Entity.DIR_NONE;
+import static org.spacebar.escape.common.Entity.DIR_RIGHT;
+import static org.spacebar.escape.common.Entity.DIR_UP;
+import static org.spacebar.escape.common.Level.*;
+
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Shape;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.PathIterator;
 import java.awt.geom.Rectangle2D;
 import java.io.*;
 import java.text.DecimalFormat;
@@ -15,19 +24,20 @@ import org.apache.batik.bridge.GVTBuilder;
 import org.apache.batik.bridge.UserAgent;
 import org.apache.batik.bridge.UserAgentAdapter;
 import org.apache.batik.dom.svg.SAXSVGDocumentFactory;
+import org.apache.batik.gvt.GVTTreeWalker;
 import org.apache.batik.gvt.GraphicsNode;
 import org.apache.batik.util.XMLResourceDescriptor;
-import org.spacebar.escape.common.*;
+import org.spacebar.escape.common.BitInputStream;
+import org.spacebar.escape.common.Characters;
+import org.spacebar.escape.common.IntPair;
+import org.spacebar.escape.common.Level;
+import org.spacebar.escape.common.StyleStack;
 import org.spacebar.escape.j2se.ResourceUtil;
 import org.spacebar.escape.j2se.StyleStack2;
 import org.w3c.dom.svg.SVGDocument;
 
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.*;
-
-import static org.spacebar.escape.common.Level.*;
-import static org.spacebar.escape.common.Entity.*;
-
 
 public class Level2PDF {
     private static final int BASE_TILE_SIZE = 32;
@@ -135,7 +145,7 @@ public class Level2PDF {
             PdfPCell cell = new PdfPCell(new Paragraph(formatText(text, font)));
             Color bannerC = new Color(34, 34, 68);
             cell.setBackgroundColor(bannerC);
-            cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            cell.setVerticalAlignment(com.lowagie.text.Element.ALIGN_MIDDLE);
             cell.setUseAscender(true);
             cell.setUseDescender(true);
             cell.setBorder(0);
@@ -264,90 +274,71 @@ public class Level2PDF {
 
     }
 
+    static Color grayColors[] = new Color[] { new Color(75, 75, 75),
+            new Color(127, 127, 127), new Color(137, 137, 137),
+            new Color(159, 159, 159), new Color(103, 103, 103) };
+
+    static Color redColors[] = new Color[] { new Color(79, 0, 0),
+            new Color(162, 0, 0), new Color(180, 0, 0),
+            new Color(206, 0, 0), new Color(121, 0, 0) };
+
+    static Color blueColors[] = new Color[] { new Color(0, 0, 79),
+            new Color(0, 0, 185), new Color(0, 0, 208),
+            new Color(63, 63, 255), new Color(0, 0, 135) };
+
+    static Color greenColors[] = new Color[] { new Color(7, 79, 0),
+            new Color(7, 127, 0), new Color(5, 138, 0),
+            new Color(5, 165, 0), new Color(7, 103, 0) };
+
+    static Color goldColors[] = new Color[] { new Color(126, 126, 0),
+            new Color(255, 247, 35), new Color(255, 255, 174),
+            new Color(255, 255, 255), new Color(207, 199, 0) };
+
     private static void layDownTiles(Level l, PdfContentByte cb) {
+        PdfPatternPainter blockPats[] = createBlockPatterns(cb);
+        layDownBlockTile(l, cb, T_GREY, grayColors, blockPats);
+        layDownBlockTile(l, cb, T_RED, redColors, blockPats);
+        layDownBlockTile(l, cb, T_BLUE, blueColors, blockPats);
+        layDownBlockTile(l, cb, T_GREEN, greenColors, blockPats);
+        layDownBlockTile(l, cb, T_GOLD, goldColors, blockPats);
+
         /*
-        // bricks
-        T_RED
-        T_BLUE
-        T_GREY
-        T_GREEN
-        T_GOLD
-        T_BROKEN
-
-        // simple overlay
-        T_EXIT
-        T_HOLE
-        T_LASER
-        T_STOP
-        T_ELECTRIC
-        T_TRANSPORT
-        T_BLACK
-        T_BUP
-        T_BDOWN
-        T_RUP
-        T_RDOWN
-        T_GUP
-        T_GDOWN
-        T_TRAP2
-        T_TRAP1
-        T_HEARTFRAMER
-        T_SLEEPINGDOOR
-
-        // spheres
-        T_BSPHERE
-        T_RSPHERE
-        T_GSPHERE
-        T_SPHERE
-
-        // panels
-        T_PANEL
-        T_BPANEL
-        T_RPANEL
-        T_GPANEL
-
-        // arrows
-        T_RIGHT
-        T_LEFT
-        T_UP
-        T_DOWN
-
-        // electric box
-        T_ON
-        T_OFF
-
-        // other arrows
-        T_LR
-        T_UD
-
-        // 0/1
-        T_0
-        T_1
-
-        // wires
-        T_NS
-        T_NE
-        T_NW
-        T_SE
-        T_SW
-        T_WE
-
-        // button, lights, crossover
-        T_BUTTON
-        T_BLIGHT
-        T_RLIGHT
-        T_GLIGHT
-        T_TRANSPONDER
-        T_NSWE
-
-        // steel
-        T_STEEL
-        T_BSTEEL
-        T_RSTEEL
-        T_GSTEEL
-        */
+         * // simple overlay T_EXIT T_HOLE T_LASER T_STOP T_TRANSPORT T_TRAP2
+         * T_TRAP1 T_HEARTFRAMER T_SLEEPINGDOOR // colored overlays T_ELECTRIC
+         * T_BUP T_BDOWN T_RUP T_RDOWN T_GUP T_GDOWN // bricks T_RED T_BLUE
+         * T_GREY T_GREEN T_GOLD T_BROKEN // spheres T_BSPHERE T_RSPHERE
+         * T_GSPHERE T_SPHERE // panels T_PANEL T_BPANEL T_RPANEL T_GPANEL //
+         * arrows T_RIGHT T_LEFT T_UP T_DOWN // electric box T_ON T_OFF // other
+         * arrows T_LR T_UD // 0/1 T_0 T_1 // wires T_NS T_NE T_NW T_SE T_SW
+         * T_WE // button, lights, crossover T_BUTTON T_BLIGHT T_RLIGHT T_GLIGHT
+         * T_TRANSPONDER T_NSWE // steel T_STEEL T_BSTEEL T_RSTEEL T_GSTEEL
+         */
     }
 
     final static DecimalFormat svgFileFormatter = new DecimalFormat("00");
+
+    private static void layDownBlockTile(Level l, PdfContentByte cb, byte tile,
+            Color colors[], PdfPatternPainter pats[]) {
+        if (!l.hasTile(tile)) {
+            return;
+        }
+
+        cb.saveState();
+        PdfPatternPainter tilePattern = createBlockPattern(cb, colors, pats);
+        makePathsFromTile(l, cb, tile, false);
+        cb.clip();
+        cb.newPath();
+
+        cb.setColorFill(colors[colors.length - 1]);
+        levelPath(l, cb);
+        cb.fill();
+
+        levelPath(l, cb);
+        cb.setPatternFill(tilePattern);
+        cb.fill();
+        
+        cb.restoreState();
+    }
 
     private static void layDownSimpleTile(Level l, PdfContentByte cb, byte tile) {
         if (!l.hasTile(tile)) {
@@ -359,6 +350,83 @@ public class Level2PDF {
 
         cb.setPatternFill(tilePattern);
         cb.fill();
+    }
+
+    private static PdfPatternPainter createBlockPattern(PdfContentByte cb,
+            Color colors[], PdfPatternPainter pats[]) {
+        PdfPatternPainter pat = cb
+                .createPattern(BASE_TILE_SIZE, BASE_TILE_SIZE);
+        for (int i = 0; i < pats.length; i++) {
+            System.out.println(colors[i]);
+            pat.rectangle(0, 0, BASE_TILE_SIZE, BASE_TILE_SIZE);
+            pat.setPatternFill(pats[i], colors[i]);
+            pat.fill();
+        }
+        return pat;
+    }
+
+    private static PdfPatternPainter[] createBlockPatterns(PdfContentByte cb) {
+        try {
+            SVGDocument doc = (SVGDocument) svgDocFactory.createDocument(null,
+                    ResourceUtil.getLocalResourceAsStream("block-pieces.svg"));
+            GVTBuilder gvtb = new GVTBuilder();
+            UserAgent ua = new UserAgentAdapter();
+
+            PdfPatternPainter pats[] = new PdfPatternPainter[4];
+
+            GraphicsNode gn = gvtb.build(new BridgeContext(ua), doc);
+            GVTTreeWalker tw = new GVTTreeWalker(gn);
+            for (int i = 0; i < 4; i++) {
+                System.out.println("node " + i);
+                gn = tw.nextGraphicsNode();
+
+                PdfPatternPainter pat = cb.createPattern(BASE_TILE_SIZE,
+                        BASE_TILE_SIZE, null);
+                pats[i] = pat;
+
+                Shape s = gn.getOutline();
+
+                PathIterator it = s.getPathIterator(null);
+
+                float c[] = new float[6];
+                while (!it.isDone()) {
+                    switch (it.currentSegment(c)) {
+                    case PathIterator.SEG_CLOSE:
+                        System.out.println("close");
+                        pat.closePath();
+                        break;
+                    case PathIterator.SEG_CUBICTO:
+                        System.out.println("cubic " + c[0] + " " + c[1] + " "
+                                + c[2] + " " + c[3] + " " + c[4] + " " + c[5]);
+                        pat.curveTo(c[0], BASE_TILE_SIZE - c[1], c[2],
+                                BASE_TILE_SIZE - c[3], c[4], BASE_TILE_SIZE
+                                        - c[5]);
+                        break;
+                    case PathIterator.SEG_LINETO:
+                        System.out.println("line " + c[0] + " " + c[1]);
+                        pat.lineTo(c[0], BASE_TILE_SIZE - c[1]);
+                        break;
+                    case PathIterator.SEG_MOVETO:
+                        System.out.println("move " + c[0] + " " + c[1]);
+                        pat.moveTo(c[0], BASE_TILE_SIZE - c[1]);
+                        break;
+                    case PathIterator.SEG_QUADTO:
+                        System.out.println("quad " + c[0] + " " + c[1] + " "
+                                + c[2] + " " + c[3]);
+                        pat.curveTo(c[0], BASE_TILE_SIZE - c[1], c[2],
+                                BASE_TILE_SIZE - c[3]);
+                        break;
+                    }
+                    it.next();
+                }
+                pat.fill();
+            }
+
+            return pats;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private static PdfPatternPainter createTilePattern(PdfContentByte cb,
