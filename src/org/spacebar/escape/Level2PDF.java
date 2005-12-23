@@ -202,6 +202,7 @@ public class Level2PDF {
             // nice
             PdfTemplate levelField = cb.createTemplate(l.getWidth()
                     * BASE_TILE_SIZE, l.getHeight() * BASE_TILE_SIZE);
+//            PdfContentByte levelField = cb;
             levelField.saveState();
 
             // every level has T_FLOOR
@@ -229,7 +230,8 @@ public class Level2PDF {
             cb.addTemplate(levelField, (float) mat[0], (float) mat[1],
                     (float) mat[2], (float) mat[3], (float) mat[4],
                     (float) mat[5]);
-
+                    
+            
             document.close();
         } catch (DocumentException de) {
             System.err.println(de.getMessage());
@@ -353,7 +355,7 @@ public class Level2PDF {
         PdfPatternPainter pat = cb
                 .createPattern(BASE_TILE_SIZE, BASE_TILE_SIZE);
         for (int i = 0; i < pats.length; i++) {
-//            System.out.println(colors[i]);
+            // System.out.println(colors[i]);
             pat.rectangle(0, 0, BASE_TILE_SIZE, BASE_TILE_SIZE);
             pat.setPatternFill(pats[i], colors[i]);
             pat.fill();
@@ -361,7 +363,7 @@ public class Level2PDF {
         return pat;
     }
 
-    private static PdfPatternPainter[] createBlockPatterns(PdfContentByte cb) {
+    static PdfPatternPainter[] createBlockPatterns(PdfContentByte cb) {
         try {
             SVGDocument doc = (SVGDocument) svgDocFactory.createDocument(null,
                     ResourceUtil.getLocalResourceAsStream("block-pieces.svg"));
@@ -373,49 +375,15 @@ public class Level2PDF {
             GraphicsNode gn = gvtb.build(new BridgeContext(ua), doc);
             GVTTreeWalker tw = new GVTTreeWalker(gn);
             for (int i = 0; i < 4; i++) {
-//                System.out.println("node " + i);
-                gn = tw.nextGraphicsNode();
-
                 PdfPatternPainter pat = cb.createPattern(BASE_TILE_SIZE,
                         BASE_TILE_SIZE, null);
                 pats[i] = pat;
 
-                Shape s = gn.getOutline();
+                // System.out.println("node " + i);
+                gn = tw.nextGraphicsNode();
 
-                PathIterator it = s.getPathIterator(null);
 
-                float c[] = new float[6];
-                while (!it.isDone()) {
-                    switch (it.currentSegment(c)) {
-                    case PathIterator.SEG_CLOSE:
-//                        System.out.println("close");
-                        pat.closePath();
-                        break;
-                    case PathIterator.SEG_CUBICTO:
-//                        System.out.println("cubic " + c[0] + " " + c[1] + " "
-//                                + c[2] + " " + c[3] + " " + c[4] + " " + c[5]);
-                        pat.curveTo(c[0], BASE_TILE_SIZE - c[1], c[2],
-                                BASE_TILE_SIZE - c[3], c[4], BASE_TILE_SIZE
-                                        - c[5]);
-                        break;
-                    case PathIterator.SEG_LINETO:
-//                        System.out.println("line " + c[0] + " " + c[1]);
-                        pat.lineTo(c[0], BASE_TILE_SIZE - c[1]);
-                        break;
-                    case PathIterator.SEG_MOVETO:
-//                        System.out.println("move " + c[0] + " " + c[1]);
-                        pat.moveTo(c[0], BASE_TILE_SIZE - c[1]);
-                        break;
-                    case PathIterator.SEG_QUADTO:
-//                        System.out.println("quad " + c[0] + " " + c[1] + " "
-//                                + c[2] + " " + c[3]);
-                        pat.curveTo(c[0], BASE_TILE_SIZE - c[1], c[2],
-                                BASE_TILE_SIZE - c[3]);
-                        break;
-                    }
-                    it.next();
-                }
-                pat.fill();
+                readAndStrokeBlocks(pat, gn);
             }
 
             return pats;
@@ -423,6 +391,44 @@ public class Level2PDF {
             e.printStackTrace();
             return null;
         }
+    }
+
+    private static void readAndStrokeBlocks(PdfContentByte cb, GraphicsNode gn) {
+        Shape s = gn.getOutline();
+
+        PathIterator it = s.getPathIterator(null);
+
+        float c[] = new float[6];
+        while (!it.isDone()) {
+            switch (it.currentSegment(c)) {
+            case PathIterator.SEG_CLOSE:
+                // System.out.println("close");
+                cb.closePath();
+                break;
+            case PathIterator.SEG_CUBICTO:
+                // System.out.println("cubic " + c[0] + " " + c[1] + " "
+                // + c[2] + " " + c[3] + " " + c[4] + " " + c[5]);
+                cb.curveTo(c[0], BASE_TILE_SIZE - c[1], c[2], BASE_TILE_SIZE
+                        - c[3], c[4], BASE_TILE_SIZE - c[5]);
+                break;
+            case PathIterator.SEG_LINETO:
+                // System.out.println("line " + c[0] + " " + c[1]);
+                cb.lineTo(c[0], BASE_TILE_SIZE - c[1]);
+                break;
+            case PathIterator.SEG_MOVETO:
+                // System.out.println("move " + c[0] + " " + c[1]);
+                cb.moveTo(c[0], BASE_TILE_SIZE - c[1]);
+                break;
+            case PathIterator.SEG_QUADTO:
+                // System.out.println("quad " + c[0] + " " + c[1] + " "
+                // + c[2] + " " + c[3]);
+                cb.curveTo(c[0], BASE_TILE_SIZE - c[1], c[2], BASE_TILE_SIZE
+                        - c[3]);
+                break;
+            }
+            it.next();
+        }
+        cb.fill();
     }
 
     private static PdfPatternPainter createTilePattern(PdfContentByte cb,
@@ -468,7 +474,7 @@ public class Level2PDF {
     private static void layDownBrick(Level l, PdfContentByte cb,
             PdfPatternPainter pat) {
         // cut out black spots, but not rough
-        makePathsFromTile(l, cb, T_BLACK, true);
+        makePathsFromTile(l, cb, T_FLOOR, false);
         cb.clip();
         cb.newPath();
 
