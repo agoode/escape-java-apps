@@ -202,7 +202,7 @@ public class Level2PDF {
             // nice
             PdfTemplate levelField = cb.createTemplate(l.getWidth()
                     * BASE_TILE_SIZE, l.getHeight() * BASE_TILE_SIZE);
-//            PdfContentByte levelField = cb;
+            // PdfContentByte levelField = cb;
             levelField.saveState();
 
             // every level has T_FLOOR
@@ -230,8 +230,7 @@ public class Level2PDF {
             cb.addTemplate(levelField, (float) mat[0], (float) mat[1],
                     (float) mat[2], (float) mat[3], (float) mat[4],
                     (float) mat[5]);
-                    
-            
+
             document.close();
         } catch (DocumentException de) {
             System.err.println(de.getMessage());
@@ -323,7 +322,7 @@ public class Level2PDF {
 
         cb.saveState();
         PdfPatternPainter tilePattern = createBlockPattern(cb, colors, pats);
-        makePathsFromTile(l, cb, tile, false);
+        makePathsFromTile(l, cb, new byte[] { tile });
         cb.clip();
         cb.newPath();
 
@@ -344,7 +343,7 @@ public class Level2PDF {
         }
 
         PdfPatternPainter tilePattern = createTilePattern(cb, tile);
-        makePathsFromTile(l, cb, tile, false);
+        makePathsFromTile(l, cb, new byte[] { tile });
 
         cb.setPatternFill(tilePattern);
         cb.fill();
@@ -381,7 +380,6 @@ public class Level2PDF {
 
                 // System.out.println("node " + i);
                 gn = tw.nextGraphicsNode();
-
 
                 readAndStrokeBlocks(pat, gn);
             }
@@ -458,7 +456,7 @@ public class Level2PDF {
 
     private static void layDownRough(Level l, PdfContentByte cb,
             PdfPatternPainter pat) {
-        makePathsFromTile(l, cb, T_ROUGH, false);
+        makePathsFromTile(l, cb, new byte[] { T_ROUGH });
         cb.clip();
         cb.newPath();
 
@@ -474,7 +472,12 @@ public class Level2PDF {
     private static void layDownBrick(Level l, PdfContentByte cb,
             PdfPatternPainter pat) {
         // cut out black spots, but not rough
-        makePathsFromTile(l, cb, T_FLOOR, false);
+        makePathsFromTile(l, cb, new byte[] { T_FLOOR, T_EXIT, T_HOLE, T_LASER,
+                T_PANEL, T_STOP, T_ELECTRIC, T_TRANSPORT, T_BUP, T_BDOWN,
+                T_RUP, T_RDOWN, T_GUP, T_GDOWN, T_SPHERE, T_GSPHERE, T_RSPHERE,
+                T_BSPHERE, T_TRAP2, T_TRAP1, T_RPANEL, T_BPANEL, T_GPANEL,
+                T_HEARTFRAMER, T_SLEEPINGDOOR });
+
         cb.clip();
         cb.newPath();
 
@@ -518,9 +521,9 @@ public class Level2PDF {
     }
 
     private static void makePathsFromTile(Level l, PdfContentByte cb,
-            byte tile, boolean invert) {
+            byte tiles[]) {
 
-        boolean map[][] = makeTileMap(l, tile, invert);
+        boolean map[][] = makeTileMap(l, tiles);
         printMap(map);
 
         // zip across and find all the edges, jcreed-style!
@@ -743,7 +746,7 @@ public class Level2PDF {
         }
     }
 
-    private static boolean[][] makeTileMap(Level l, byte tile, boolean invert) {
+    private static boolean[][] makeTileMap(Level l, byte tiles[]) {
         int w = l.getWidth();
         int h = l.getHeight();
 
@@ -751,8 +754,12 @@ public class Level2PDF {
         for (int y = 0; y < space.length; y++) {
             boolean[] row = space[y];
             for (int x = 0; x < row.length; x++) {
-                if (invert ^ l.tileAt(x, y) == tile) {
-                    row[x] = true;
+                COORDINATE: for (int i = 0; i < tiles.length; i++) {
+                    byte t = l.tileAt(x, y);
+                    if (t == tiles[i]) {
+                        row[x] = true;
+                        continue COORDINATE;
+                    }
                 }
             }
         }
