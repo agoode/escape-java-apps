@@ -197,6 +197,7 @@ public class Level2PDF {
 
             layDownBlack(l, cb);
             cb.restoreState();
+            cb.saveState();
 
             // create the level as a form XObject, so that patterns come out
             // nice
@@ -220,17 +221,27 @@ public class Level2PDF {
             levelField.saveState();
             layDownTiles(l, levelField);
             layDownSprites(l, levelField);
-
+            levelField.restoreState();
+            
             // hit it
             af = new AffineTransform();
             af.translate(margin + padding + xOff, margin + padding + yOff);
             af.scale(masterScale, masterScale);
             double mat[] = new double[6];
             af.getMatrix(mat);
-            cb.addTemplate(levelField, (float) mat[0], (float) mat[1],
-                    (float) mat[2], (float) mat[3], (float) mat[4],
-                    (float) mat[5]);
+            cb.saveState();
+//            cb.addTemplate(levelField, (float) mat[0], (float) mat[1],
+//                    (float) mat[2], (float) mat[3], (float) mat[4],
+//                    (float) mat[5]);
+            cb.restoreState();
+            cb.restoreState();
 
+            PdfGState gs = new PdfGState();
+            gs.setBlendMode(PdfGState.BM_NORMAL);
+            gs.setFillOpacity(1.0f);
+            gs.setStrokeOpacity(1.0f);
+            cb.setGState(gs);
+            
             document.close();
         } catch (DocumentException de) {
             System.err.println(de.getMessage());
@@ -292,6 +303,7 @@ public class Level2PDF {
             new Color(255, 255, 255), new Color(207, 199, 0) };
 
     private static void layDownTiles(Level l, PdfContentByte cb) {
+        // blocks
         PdfPatternPainter blockPats[] = createBlockPatterns(cb);
         layDownBlockTile(l, cb, T_GREY, grayColors, blockPats);
         layDownBlockTile(l, cb, T_RED, redColors, blockPats);
@@ -299,9 +311,21 @@ public class Level2PDF {
         layDownBlockTile(l, cb, T_GREEN, greenColors, blockPats);
         layDownBlockTile(l, cb, T_GOLD, goldColors, blockPats);
 
+        // TODO broken
+        
+        
+        // simple overlay
+        layDownSimpleTile(l, cb, T_EXIT);
+        layDownSimpleTile(l, cb, T_HOLE);
+        layDownSimpleTile(l, cb, T_LASER);
+        layDownSimpleTile(l, cb, T_STOP);
+//        layDownSimpleTile(l, cb, T_TRANSPORT);
+//        layDownSimpleTile(l, cb, T_TRAP2);
+//        layDownSimpleTile(l, cb, T_TRAP1);
+//        layDownSimpleTile(l, cb, T_HEARTFRAMER);
+//        layDownSimpleTile(l, cb, T_SLEEPINGDOOR);
         /*
-         * // simple overlay T_EXIT T_HOLE T_LASER T_STOP T_TRANSPORT T_TRAP2
-         * T_TRAP1 T_HEARTFRAMER T_SLEEPINGDOOR // colored overlays T_ELECTRIC
+         * // colored overlays T_ELECTRIC
          * T_BUP T_BDOWN T_RUP T_RDOWN T_GUP T_GDOWN // bricks T_RED T_BLUE
          * T_GREY T_GREEN T_GOLD T_BROKEN // spheres T_BSPHERE T_RSPHERE
          * T_GSPHERE T_SPHERE // panels T_PANEL T_BPANEL T_RPANEL T_GPANEL //
@@ -342,11 +366,13 @@ public class Level2PDF {
             return;
         }
 
+        cb.saveState();
         PdfPatternPainter tilePattern = createTilePattern(cb, tile);
         makePathsFromTile(l, cb, new byte[] { tile });
-
+        
         cb.setPatternFill(tilePattern);
         cb.fill();
+        cb.restoreState();
     }
 
     private static PdfPatternPainter createBlockPattern(PdfContentByte cb,
@@ -446,7 +472,6 @@ public class Level2PDF {
             System.out.println("painting svg");
             gn.paint(g2);
             g2.dispose();
-
             return pat;
         } catch (IOException e) {
             e.printStackTrace();
