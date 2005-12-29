@@ -15,5 +15,6 @@
 	<classpathentry kind="lib" path="lib/batik-dom.jar"/>
 	<classpathentry kind="lib" path="lib/batik-parser.jar"/>
 	<classpathentry kind="lib" path="lib/batik-awt-util.jar"/>
+	<classpathentry kind="lib" path="lib/xerces_2_5_0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
