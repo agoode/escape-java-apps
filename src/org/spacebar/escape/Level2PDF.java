@@ -17,17 +17,12 @@ import java.util.List;
 
 import org.apache.batik.bridge.BridgeContext;
 import org.apache.batik.bridge.GVTBuilder;
-import org.apache.batik.bridge.UserAgent;
 import org.apache.batik.bridge.UserAgentAdapter;
 import org.apache.batik.dom.svg.SAXSVGDocumentFactory;
 import org.apache.batik.gvt.GVTTreeWalker;
 import org.apache.batik.gvt.GraphicsNode;
 import org.apache.batik.util.XMLResourceDescriptor;
-import org.spacebar.escape.common.BitInputStream;
-import org.spacebar.escape.common.Characters;
-import org.spacebar.escape.common.IntPair;
-import org.spacebar.escape.common.Level;
-import org.spacebar.escape.common.StyleStack;
+import org.spacebar.escape.common.*;
 import org.spacebar.escape.j2se.ResourceUtil;
 import org.spacebar.escape.j2se.StyleStack2;
 import org.w3c.dom.svg.SVGDocument;
@@ -41,6 +36,11 @@ public class Level2PDF {
     private static final float PAD_FACTOR = 0.25f;
 
     final public static String id = "$Id$";
+
+    final private static BridgeContext bc = new BridgeContext(
+            new UserAgentAdapter());
+
+    final private static GVTBuilder gvtb = new GVTBuilder();
 
     final public static String creator = id
             .replaceAll("^\\$Id: (.*)\\$$", "$1");
@@ -187,6 +187,9 @@ public class Level2PDF {
             System.out.println("xOff: " + xOff + ", yOff: " + yOff);
 
             PdfContentByte cb = writer.getDirectContent();
+            PdfGState gs = new PdfGState();
+            gs.setBlendMode(PdfGState.BM_NORMAL);
+            cb.setGState(gs);
             cb.saveState();
 
             // transform to fit into page
@@ -202,6 +205,7 @@ public class Level2PDF {
             // nice
             PdfTemplate levelField = cb.createTemplate(l.getWidth()
                     * BASE_TILE_SIZE, l.getHeight() * BASE_TILE_SIZE);
+
             // PdfContentByte levelField = cb;
             levelField.saveState();
 
@@ -229,9 +233,13 @@ public class Level2PDF {
             double mat[] = new double[6];
             af.getMatrix(mat);
 
+            levelField.saveState();
+
             cb.addTemplate(levelField, (float) mat[0], (float) mat[1],
                     (float) mat[2], (float) mat[3], (float) mat[4],
                     (float) mat[5]);
+            levelField.restoreState();
+
             document.close();
         } catch (DocumentException de) {
             System.err.println(de.getMessage());
@@ -242,12 +250,8 @@ public class Level2PDF {
 
     private static PdfPatternPainter createRoughPattern(PdfContentByte cb) {
         try {
-            System.out.println("reading rough svg");
-            SVGDocument doc = (SVGDocument) svgDocFactory.createDocument(null,
-                    ResourceUtil.getLocalResourceAsStream("rough-pieces.svg"));
-            GVTBuilder gvtb = new GVTBuilder();
-            UserAgent ua = new UserAgentAdapter();
-            GraphicsNode gn = gvtb.build(new BridgeContext(ua), doc);
+            SVGDocument doc = loadSVG("rough-pieces.svg");
+            GraphicsNode gn = gvtb.build(bc, doc);
             Rectangle2D bounds = gn.getBounds();
             PdfPatternPainter pat = cb.createPattern(
                     (float) (bounds.getX() + bounds.getWidth()),
@@ -265,6 +269,14 @@ public class Level2PDF {
             e.printStackTrace();
             return null;
         }
+    }
+
+    private static SVGDocument loadSVG(String name) throws IOException {
+        // TODO: caching
+        System.out.println("reading " + name);
+        SVGDocument doc = (SVGDocument) svgDocFactory.createDocument(null,
+                ResourceUtil.getLocalResourceAsStream(name));
+        return doc;
     }
 
     private static void layDownSprites(Level l, PdfContentByte cb) {
@@ -294,6 +306,16 @@ public class Level2PDF {
 
     private static void layDownTiles(Level l, PdfContentByte cb) {
 
+        // colors
+        layDownColor(l, cb, new byte[] { T_ELECTRIC }, new Color(255, 246, 0,
+                180));
+        layDownColor(l, cb, new byte[] { T_BUP, T_BDOWN }, new Color(0, 0, 255,
+                127));
+        layDownColor(l, cb, new byte[] { T_RUP, T_RDOWN }, new Color(255, 0, 0,
+                127));
+        layDownColor(l, cb, new byte[] { T_GUP, T_GDOWN }, new Color(0, 255, 0,
+                180));
+
         // blocks
         PdfTemplate blockTemps[] = createBlockTemplates(cb);
         layDownBlockTile(l, cb, T_GREY, grayColors, blockTemps);
@@ -301,28 +323,21 @@ public class Level2PDF {
         layDownBlockTile(l, cb, T_BLUE, blueColors, blockTemps);
         layDownBlockTile(l, cb, T_GREEN, greenColors, blockTemps);
         layDownBlockTile(l, cb, T_GOLD, goldColors, blockTemps);
-        // TODO broken
+        
+        // broken is gray + extra stuff
+        layDownBlockTile(l, cb, T_BROKEN, grayColors, blockTemps);
+        layDownTileByName(l, cb, T_BROKEN, "broken-pieces.svg");
 
         // simple overlay
         layDownSimpleTile(l, cb, T_EXIT);
-        layDownSimpleTile(l, cb, T_HOLE);
-        layDownSimpleTile(l, cb, T_LASER);
         layDownSimpleTile(l, cb, T_STOP);
+        layDownSimpleTile(l, cb, T_HEARTFRAMER);
+        layDownSimpleTile(l, cb, T_SLEEPINGDOOR);
         layDownSimpleTile(l, cb, T_TRANSPORT);
         layDownSimpleTile(l, cb, T_TRAP2);
         layDownSimpleTile(l, cb, T_TRAP1);
-        layDownSimpleTile(l, cb, T_HEARTFRAMER);
-        layDownSimpleTile(l, cb, T_SLEEPINGDOOR);
-
-        // colors
-        layDownColor(l, cb, new byte[] { T_ELECTRIC }, new Color(255, 246, 0,
-                180));
-        layDownColor(l, cb, new byte[] { T_BUP, T_BDOWN }, new Color(0, 0, 255,
-                180));
-        layDownColor(l, cb, new byte[] { T_RUP, T_RDOWN }, new Color(255, 0, 0,
-                180));
-        layDownColor(l, cb, new byte[] { T_GUP, T_GDOWN }, new Color(0, 255, 0,
-                180));
+        layDownSimpleTile(l, cb, T_HOLE);
+        layDownSimpleTile(l, cb, T_LASER);
 
         /*
          * // spheres T_BSPHERE T_RSPHERE T_GSPHERE T_SPHERE // panels T_PANEL
@@ -337,17 +352,44 @@ public class Level2PDF {
          */
     }
 
+    private static void layDownTileByName(Level l, PdfContentByte cb,
+            byte tile, String name) {
+        if (!l.hasTile(tile)) {
+            return;
+        }
+
+        PdfTemplate tileTemplate = createTileTemplate(cb, name);
+        boolean whereToDraw[][] = makeTileMap(l, new byte[] { tile });
+
+        drawTiles(l, cb, tileTemplate, whereToDraw);
+    }
+
+    private static PdfTemplate createTileTemplate(PdfContentByte cb, String name) {
+        try {
+            SVGDocument doc = loadSVG(name);
+            PdfTemplate t = createTileTemplate(cb, doc);
+            return t;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    final private static PdfName BM_COLOR = new PdfName("Color");
+
     private static void layDownColor(Level l, PdfContentByte cb, byte[] tiles,
             Color color) {
         cb.setColorFill(color);
 
+        cb.saveState();
         PdfGState gs = new PdfGState();
         gs.setFillOpacity(color.getAlpha() / 255f);
-        gs.setBlendMode(PdfGState.BM_HARDLIGHT);
+        gs.setBlendMode(PdfGState.BM_COLORDODGE);
         cb.setGState(gs);
 
         makePathsFromTile(l, cb, tiles);
         cb.fill();
+        cb.restoreState();
     }
 
     final static DecimalFormat svgFileFormatter = new DecimalFormat("00");
@@ -410,14 +452,11 @@ public class Level2PDF {
 
     static PdfTemplate[] createBlockTemplates(PdfContentByte cb) {
         try {
-            SVGDocument doc = (SVGDocument) svgDocFactory.createDocument(null,
-                    ResourceUtil.getLocalResourceAsStream("block-pieces.svg"));
-            GVTBuilder gvtb = new GVTBuilder();
-            UserAgent ua = new UserAgentAdapter();
+            SVGDocument doc = loadSVG("block-pieces.svg");
 
             PdfTemplate temps[] = new PdfTemplate[4];
 
-            GraphicsNode gn = gvtb.build(new BridgeContext(ua), doc);
+            GraphicsNode gn = gvtb.build(bc, doc);
             GVTTreeWalker tw = new GVTTreeWalker(gn);
             for (int i = 0; i < 4; i++) {
                 PdfTemplate t = cb.createTemplate(BASE_TILE_SIZE,
@@ -477,23 +516,25 @@ public class Level2PDF {
 
     private static PdfTemplate createTileTemplate(PdfContentByte cb, byte tile) {
         try {
-            System.out.println("reading " + tile + " svg");
-            SVGDocument doc = (SVGDocument) svgDocFactory.createDocument(null,
-                    ResourceUtil.getLocalResourceAsStream("tiles/"
-                            + svgFileFormatter.format(tile) + ".svg"));
-            GVTBuilder gvtb = new GVTBuilder();
-            UserAgent ua = new UserAgentAdapter();
-            GraphicsNode gn = gvtb.build(new BridgeContext(ua), doc);
-            PdfTemplate t = cb.createTemplate(BASE_TILE_SIZE, BASE_TILE_SIZE);
-            Graphics2D g2 = t.createGraphicsShapes(t.getWidth(), t.getHeight());
-            System.out.println("painting svg");
-            gn.paint(g2);
-            g2.dispose();
+            SVGDocument doc = loadSVG("tiles/" + svgFileFormatter.format(tile)
+                    + ".svg");
+            PdfTemplate t = createTileTemplate(cb, doc);
             return t;
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
+    }
+
+    private static PdfTemplate createTileTemplate(PdfContentByte cb,
+            SVGDocument doc) {
+        GraphicsNode gn = gvtb.build(bc, doc);
+        PdfTemplate t = cb.createTemplate(BASE_TILE_SIZE, BASE_TILE_SIZE);
+        Graphics2D g2 = t.createGraphicsShapes(t.getWidth(), t.getHeight());
+        System.out.println("painting svg");
+        gn.paint(g2);
+        g2.dispose();
+        return t;
     }
 
     private static void layDownRough(Level l, PdfContentByte cb,
@@ -814,9 +855,7 @@ public class Level2PDF {
             System.out.println("reading bricks svg");
             SVGDocument doc = (SVGDocument) svgDocFactory.createDocument(null,
                     ResourceUtil.getLocalResourceAsStream("brick-pieces.svg"));
-            GVTBuilder gvtb = new GVTBuilder();
-            UserAgent ua = new UserAgentAdapter();
-            GraphicsNode gn = gvtb.build(new BridgeContext(ua), doc);
+            GraphicsNode gn = gvtb.build(bc, doc);
             PdfPatternPainter pat = cb.createPattern(BASE_TILE_SIZE + 5,
                     BASE_TILE_SIZE, BASE_TILE_SIZE, BASE_TILE_SIZE);
             pat.setPatternMatrix(1, 0, 0, 1, -5, 4);
