@@ -283,25 +283,25 @@ public class Level2PDF {
 
     }
 
-    final static Color grayColors[] = new Color[] { new Color(75, 75, 75),
-            new Color(127, 127, 127), new Color(137, 137, 137),
-            new Color(159, 159, 159), new Color(103, 103, 103) };
+    final static Color grayColors[] = new Color[] { new Color(127, 127, 127),
+            new Color(137, 137, 137), new Color(159, 159, 159),
+            new Color(75, 75, 75), new Color(103, 103, 103) };
 
-    final static Color redColors[] = new Color[] { new Color(79, 0, 0),
-            new Color(162, 0, 0), new Color(180, 0, 0), new Color(206, 0, 0),
+    final static Color redColors[] = new Color[] { new Color(162, 0, 0),
+            new Color(180, 0, 0), new Color(206, 0, 0), new Color(79, 0, 0),
             new Color(121, 0, 0) };
 
-    final static Color blueColors[] = new Color[] { new Color(0, 0, 79),
-            new Color(0, 0, 185), new Color(0, 0, 208), new Color(63, 63, 255),
+    final static Color blueColors[] = new Color[] { new Color(0, 0, 185),
+            new Color(0, 0, 208), new Color(63, 63, 255), new Color(0, 0, 79),
             new Color(0, 0, 135) };
 
-    final static Color greenColors[] = new Color[] { new Color(7, 79, 0),
-            new Color(7, 127, 0), new Color(5, 138, 0), new Color(5, 165, 0),
+    final static Color greenColors[] = new Color[] { new Color(7, 127, 0),
+            new Color(5, 138, 0), new Color(5, 165, 0), new Color(7, 79, 0),
             new Color(7, 103, 0) };
 
-    final static Color goldColors[] = new Color[] { new Color(126, 126, 0),
-            new Color(255, 247, 35), new Color(255, 255, 174),
-            new Color(255, 255, 255), new Color(207, 199, 0) };
+    final static Color goldColors[] = new Color[] { new Color(255, 247, 35),
+            new Color(255, 254, 103), new Color(255, 255, 255),
+            new Color(126, 126, 0), new Color(207, 199, 0) };
 
     final static Color graySColors[] = new Color[] { new Color(139, 139, 139),
             new Color(195, 195, 195), new Color(96, 96, 96),
@@ -560,7 +560,7 @@ public class Level2PDF {
     private static void readAndStrokeBlocks(PdfContentByte cb, GraphicsNode gn) {
         System.out.println(gn);
         System.out.println(gn.getBounds());
-        
+
         Shape s = gn.getOutline();
 
         PathIterator it = s.getPathIterator(null);
