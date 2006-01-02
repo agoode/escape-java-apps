@@ -260,7 +260,6 @@ public class Level2PDF {
             pat.setPatternMatrix(1, 0, 0, 1, -1.5f, .5f);
             Graphics2D g2 = pat.createGraphicsShapes(pat.getWidth(), pat
                     .getHeight());
-            System.out.println("painting svg");
             gn.paint(g2);
             g2.dispose();
 
@@ -284,28 +283,47 @@ public class Level2PDF {
 
     }
 
-    static Color grayColors[] = new Color[] { new Color(75, 75, 75),
+    final static Color grayColors[] = new Color[] { new Color(75, 75, 75),
             new Color(127, 127, 127), new Color(137, 137, 137),
             new Color(159, 159, 159), new Color(103, 103, 103) };
 
-    static Color redColors[] = new Color[] { new Color(79, 0, 0),
+    final static Color redColors[] = new Color[] { new Color(79, 0, 0),
             new Color(162, 0, 0), new Color(180, 0, 0), new Color(206, 0, 0),
             new Color(121, 0, 0) };
 
-    static Color blueColors[] = new Color[] { new Color(0, 0, 79),
+    final static Color blueColors[] = new Color[] { new Color(0, 0, 79),
             new Color(0, 0, 185), new Color(0, 0, 208), new Color(63, 63, 255),
             new Color(0, 0, 135) };
 
-    static Color greenColors[] = new Color[] { new Color(7, 79, 0),
+    final static Color greenColors[] = new Color[] { new Color(7, 79, 0),
             new Color(7, 127, 0), new Color(5, 138, 0), new Color(5, 165, 0),
             new Color(7, 103, 0) };
 
-    static Color goldColors[] = new Color[] { new Color(126, 126, 0),
+    final static Color goldColors[] = new Color[] { new Color(126, 126, 0),
             new Color(255, 247, 35), new Color(255, 255, 174),
             new Color(255, 255, 255), new Color(207, 199, 0) };
 
-    private static void layDownTiles(Level l, PdfContentByte cb) {
+    final static Color graySColors[] = new Color[] { new Color(139, 139, 139),
+            new Color(195, 195, 195), new Color(96, 96, 96),
+            new Color(106, 106, 106), new Color(76, 76, 76),
+            new Color(39, 39, 39) };
 
+    final static Color blueSColors[] = new Color[] { new Color(67, 90, 140),
+            new Color(195, 195, 195), new Color(39, 73, 148),
+            new Color(67, 90, 140), new Color(38, 61, 111),
+            new Color(39, 39, 39) };
+
+    final static Color redSColors[] = new Color[] { new Color(132, 75, 75),
+            new Color(195, 195, 195), new Color(136, 51, 51),
+            new Color(132, 75, 75), new Color(103, 46, 46),
+            new Color(51, 51, 51) };
+
+    final static Color greenSColors[] = new Color[] { new Color(83, 125, 83),
+            new Color(195, 195, 195), new Color(62, 126, 62),
+            new Color(84, 126, 84), new Color(55, 97, 55),
+            new Color(39, 39, 39) };
+
+    private static void layDownTiles(Level l, PdfContentByte cb) {
         // colors
         layDownColor(l, cb, new byte[] { T_ELECTRIC }, new Color(255, 246, 0,
                 180));
@@ -317,16 +335,30 @@ public class Level2PDF {
                 180));
 
         // blocks
-        PdfTemplate blockTemps[] = createBlockTemplates(cb);
-        layDownBlockTile(l, cb, T_GREY, grayColors, blockTemps);
-        layDownBlockTile(l, cb, T_RED, redColors, blockTemps);
-        layDownBlockTile(l, cb, T_BLUE, blueColors, blockTemps);
-        layDownBlockTile(l, cb, T_GREEN, greenColors, blockTemps);
-        layDownBlockTile(l, cb, T_GOLD, goldColors, blockTemps);
-        
-        // broken is gray + extra stuff
-        layDownBlockTile(l, cb, T_BROKEN, grayColors, blockTemps);
-        layDownTileByName(l, cb, T_BROKEN, "broken-pieces.svg");
+        if (l.hasTile(T_GREY) || l.hasTile(T_RED) || l.hasTile(T_BLUE)
+                || l.hasTile(T_GREEN) || l.hasTile(T_GOLD)
+                || l.hasTile(T_BROKEN)) {
+            PdfTemplate blockTemps[] = createBlockTemplates(cb);
+            layDownBlockTile(l, cb, T_GREY, grayColors, blockTemps);
+            layDownBlockTile(l, cb, T_RED, redColors, blockTemps);
+            layDownBlockTile(l, cb, T_BLUE, blueColors, blockTemps);
+            layDownBlockTile(l, cb, T_GREEN, greenColors, blockTemps);
+            layDownBlockTile(l, cb, T_GOLD, goldColors, blockTemps);
+
+            // broken is gray + extra stuff
+            layDownBlockTile(l, cb, T_BROKEN, grayColors, blockTemps);
+            layDownTileByName(l, cb, T_BROKEN, "broken-pieces.svg");
+        }
+
+        // spheres
+        if (l.hasTile(T_SPHERE) || l.hasTile(T_RSPHERE) || l.hasTile(T_GSPHERE)
+                || l.hasTile(T_BSPHERE)) {
+            PdfTemplate sphereTemps[] = createSphereTemplates(cb);
+            layDownSphereTile(l, cb, T_SPHERE, graySColors, sphereTemps);
+            layDownSphereTile(l, cb, T_RSPHERE, redSColors, sphereTemps);
+            layDownSphereTile(l, cb, T_GSPHERE, greenSColors, sphereTemps);
+            layDownSphereTile(l, cb, T_BSPHERE, blueSColors, sphereTemps);
+        }
 
         // simple overlay
         layDownSimpleTile(l, cb, T_EXIT);
@@ -340,16 +372,59 @@ public class Level2PDF {
         layDownSimpleTile(l, cb, T_LASER);
 
         /*
-         * // spheres T_BSPHERE T_RSPHERE T_GSPHERE T_SPHERE // panels T_PANEL
-         * T_BPANEL T_RPANEL T_GPANEL // arrows T_RIGHT T_LEFT T_UP T_DOWN //
-         * electric box T_ON T_OFF // other arrows T_LR T_UD // 0/1 T_0 T_1 //
-         * wires T_NS T_NE T_NW T_SE T_SW T_WE // button, lights, crossover
-         * T_BUTTON T_BLIGHT T_RLIGHT T_GLIGHT T_TRANSPONDER T_NSWE // steel
-         * T_STEEL T_BSTEEL T_RSTEEL T_GSTEEL private static void
+         * // panels T_PANEL T_BPANEL T_RPANEL T_GPANEL // arrows T_RIGHT T_LEFT
+         * T_UP T_DOWN // electric box T_ON T_OFF // other arrows T_LR T_UD //
+         * 0/1 T_0 T_1 // wires T_NS T_NE T_NW T_SE T_SW T_WE // button, lights,
+         * crossover T_BUTTON T_BLIGHT T_RLIGHT T_GLIGHT T_TRANSPONDER T_NSWE //
+         * steel T_STEEL T_BSTEEL T_RSTEEL T_GSTEEL private static void
          * layDownColor(Level l, PdfContentByte cb, byte[] bs, Color color) { //
          * TODO Auto-generated method stub }
          * 
          */
+    }
+
+    private static void layDownSphereTile(Level l, PdfContentByte cb,
+            byte tile, Color[] colors, PdfTemplate[] temps) {
+        if (!l.hasTile(tile)) {
+            return;
+        }
+
+        cb.saveState();
+        PdfTemplate tileTemplate = createColorTemplate(cb, colors, temps);
+
+        // draw the background
+        boolean whereToDraw[][] = makeTileMap(l, new byte[] { tile });
+
+        // draw each tile
+        drawTiles(l, cb, tileTemplate, whereToDraw);
+
+        cb.restoreState();
+    }
+
+    private static PdfTemplate[] createSphereTemplates(PdfContentByte cb) {
+        try {
+            SVGDocument doc = loadSVG("sphere-pieces.svg");
+
+            PdfTemplate temps[] = new PdfTemplate[1];
+
+            GraphicsNode gn = gvtb.build(bc, doc);
+            GVTTreeWalker tw = new GVTTreeWalker(gn);
+            for (int i = 0; i < temps.length; i++) {
+                PdfTemplate t = cb.createTemplate(BASE_TILE_SIZE,
+                        BASE_TILE_SIZE);
+                temps[i] = t;
+
+                // System.out.println("node " + i);
+                gn = tw.nextGraphicsNode();
+
+                readAndStrokeBlocks(t, gn);
+            }
+
+            return temps;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private static void layDownTileByName(Level l, PdfContentByte cb,
@@ -375,8 +450,6 @@ public class Level2PDF {
         }
     }
 
-    final private static PdfName BM_COLOR = new PdfName("Color");
-
     private static void layDownColor(Level l, PdfContentByte cb, byte[] tiles,
             Color color) {
         cb.setColorFill(color);
@@ -401,7 +474,7 @@ public class Level2PDF {
         }
 
         cb.saveState();
-        PdfTemplate tileTemplate = createBlockTemplate(cb, colors, temps);
+        PdfTemplate tileTemplate = createColorTemplate(cb, colors, temps);
 
         // draw the background
         boolean whereToDraw[][] = makePathsFromTile(l, cb, new byte[] { tile });
@@ -439,7 +512,7 @@ public class Level2PDF {
         drawTiles(l, cb, tileTemplate, whereToDraw);
     }
 
-    private static PdfTemplate createBlockTemplate(PdfContentByte cb,
+    private static PdfTemplate createColorTemplate(PdfContentByte cb,
             Color colors[], PdfTemplate temps[]) {
         PdfTemplate t = cb.createTemplate(BASE_TILE_SIZE, BASE_TILE_SIZE);
         for (int i = 0; i < temps.length; i++) {
@@ -458,7 +531,7 @@ public class Level2PDF {
 
             GraphicsNode gn = gvtb.build(bc, doc);
             GVTTreeWalker tw = new GVTTreeWalker(gn);
-            for (int i = 0; i < 4; i++) {
+            for (int i = 0; i < temps.length; i++) {
                 PdfTemplate t = cb.createTemplate(BASE_TILE_SIZE,
                         BASE_TILE_SIZE);
                 temps[i] = t;
@@ -531,7 +604,6 @@ public class Level2PDF {
         GraphicsNode gn = gvtb.build(bc, doc);
         PdfTemplate t = cb.createTemplate(BASE_TILE_SIZE, BASE_TILE_SIZE);
         Graphics2D g2 = t.createGraphicsShapes(t.getWidth(), t.getHeight());
-        System.out.println("painting svg");
         gn.paint(g2);
         g2.dispose();
         return t;
@@ -852,16 +924,13 @@ public class Level2PDF {
 
     private static PdfPatternPainter createBrickPattern(PdfContentByte cb) {
         try {
-            System.out.println("reading bricks svg");
-            SVGDocument doc = (SVGDocument) svgDocFactory.createDocument(null,
-                    ResourceUtil.getLocalResourceAsStream("brick-pieces.svg"));
+            SVGDocument doc = loadSVG("brick-pieces.svg");
             GraphicsNode gn = gvtb.build(bc, doc);
             PdfPatternPainter pat = cb.createPattern(BASE_TILE_SIZE + 5,
                     BASE_TILE_SIZE, BASE_TILE_SIZE, BASE_TILE_SIZE);
             pat.setPatternMatrix(1, 0, 0, 1, -5, 4);
             Graphics2D g2 = pat.createGraphicsShapes(pat.getWidth(), pat
                     .getHeight());
-            System.out.println("painting svg");
             gn.paint(g2);
             g2.dispose();
 
