@@ -21,6 +21,7 @@ import org.apache.batik.bridge.UserAgentAdapter;
 import org.apache.batik.dom.svg.SAXSVGDocumentFactory;
 import org.apache.batik.gvt.GVTTreeWalker;
 import org.apache.batik.gvt.GraphicsNode;
+import org.apache.batik.gvt.ShapeNode;
 import org.apache.batik.util.XMLResourceDescriptor;
 import org.spacebar.escape.common.*;
 import org.spacebar.escape.j2se.ResourceUtil;
@@ -36,11 +37,6 @@ public class Level2PDF {
     private static final float PAD_FACTOR = 0.25f;
 
     final public static String id = "$Id$";
-
-    final private static BridgeContext bc = new BridgeContext(
-            new UserAgentAdapter());
-
-    final private static GVTBuilder gvtb = new GVTBuilder();
 
     final public static String creator = id
             .replaceAll("^\\$Id: (.*)\\$$", "$1");
@@ -251,6 +247,10 @@ public class Level2PDF {
     private static PdfPatternPainter createRoughPattern(PdfContentByte cb) {
         try {
             SVGDocument doc = loadSVG("rough-pieces.svg");
+
+            BridgeContext bc = new BridgeContext(new UserAgentAdapter());
+            GVTBuilder gvtb = new GVTBuilder();
+
             GraphicsNode gn = gvtb.build(bc, doc);
             Rectangle2D bounds = gn.getBounds();
             PdfPatternPainter pat = cb.createPattern(
@@ -405,18 +405,22 @@ public class Level2PDF {
         try {
             SVGDocument doc = loadSVG("sphere-pieces.svg");
 
-            PdfTemplate temps[] = new PdfTemplate[1];
+            PdfTemplate temps[] = new PdfTemplate[6];
+
+            BridgeContext bc = new BridgeContext(new UserAgentAdapter());
+            GVTBuilder gvtb = new GVTBuilder();
 
             GraphicsNode gn = gvtb.build(bc, doc);
             GVTTreeWalker tw = new GVTTreeWalker(gn);
+            gn = tw.nextGraphicsNode();
             for (int i = 0; i < temps.length; i++) {
                 PdfTemplate t = cb.createTemplate(BASE_TILE_SIZE,
                         BASE_TILE_SIZE);
                 temps[i] = t;
 
                 // System.out.println("node " + i);
-                gn = tw.nextGraphicsNode();
 
+                gn = tw.nextGraphicsNode();
                 readAndStrokeBlocks(t, gn);
             }
 
@@ -529,8 +533,12 @@ public class Level2PDF {
 
             PdfTemplate temps[] = new PdfTemplate[4];
 
+            BridgeContext bc = new BridgeContext(new UserAgentAdapter());
+            GVTBuilder gvtb = new GVTBuilder();
+
             GraphicsNode gn = gvtb.build(bc, doc);
             GVTTreeWalker tw = new GVTTreeWalker(gn);
+            gn = tw.nextGraphicsNode();
             for (int i = 0; i < temps.length; i++) {
                 PdfTemplate t = cb.createTemplate(BASE_TILE_SIZE,
                         BASE_TILE_SIZE);
@@ -550,6 +558,9 @@ public class Level2PDF {
     }
 
     private static void readAndStrokeBlocks(PdfContentByte cb, GraphicsNode gn) {
+        System.out.println(gn);
+        System.out.println(gn.getBounds());
+        
         Shape s = gn.getOutline();
 
         PathIterator it = s.getPathIterator(null);
@@ -601,6 +612,9 @@ public class Level2PDF {
 
     private static PdfTemplate createTileTemplate(PdfContentByte cb,
             SVGDocument doc) {
+        BridgeContext bc = new BridgeContext(new UserAgentAdapter());
+        GVTBuilder gvtb = new GVTBuilder();
+
         GraphicsNode gn = gvtb.build(bc, doc);
         PdfTemplate t = cb.createTemplate(BASE_TILE_SIZE, BASE_TILE_SIZE);
         Graphics2D g2 = t.createGraphicsShapes(t.getWidth(), t.getHeight());
@@ -925,6 +939,10 @@ public class Level2PDF {
     private static PdfPatternPainter createBrickPattern(PdfContentByte cb) {
         try {
             SVGDocument doc = loadSVG("brick-pieces.svg");
+
+            BridgeContext bc = new BridgeContext(new UserAgentAdapter());
+            GVTBuilder gvtb = new GVTBuilder();
+
             GraphicsNode gn = gvtb.build(bc, doc);
             PdfPatternPainter pat = cb.createPattern(BASE_TILE_SIZE + 5,
                     BASE_TILE_SIZE, BASE_TILE_SIZE, BASE_TILE_SIZE);
