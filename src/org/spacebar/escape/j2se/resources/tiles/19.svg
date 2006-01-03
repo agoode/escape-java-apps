@@ -238,17 +238,17 @@
     </linearGradient>
   </defs>
   <sodipodi:namedview
-     inkscape:window-y="31"
-     inkscape:window-x="6"
+     inkscape:window-y="10"
+     inkscape:window-x="0"
      inkscape:window-height="677"
      inkscape:window-width="887"
      inkscape:document-units="px"
      inkscape:grid-bbox="false"
      showgrid="true"
      inkscape:current-layer="layer1"
-     inkscape:cy="4.3784433"
-     inkscape:cx="24.544405"
-     inkscape:zoom="8"
+     inkscape:cy="18.205553"
+     inkscape:cx="26.247655"
+     inkscape:zoom="16"
      inkscape:pageshadow="2"
      inkscape:pageopacity="0.0"
      borderopacity="1.0"
@@ -271,18 +271,16 @@
      inkscape:groupmode="layer"
      inkscape:label="Layer 1"
      id="layer1">
+    <path
+       id="path2838"
+       style="opacity:1;fill:#000000;fill-opacity:0.325;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 32,32 L 32,0 L 0,0 L 0,32 L 32,32 z "
+       sodipodi:nodetypes="ccccc" />
     <g
        transform="translate(6.325810,9.391560)"
        id="g6956"
        inkscape:label="Layer 1"
        inkscape:groupmode="layer" />
-    <rect
-       style="opacity:1;color:#000000;fill:#808080;fill-opacity:0.35625;fill-rule:nonzero;stroke:none;stroke-width:1.79999995;stroke-linecap:square;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
-       id="rect2836"
-       width="20"
-       height="20"
-       x="6.0002127"
-       y="6" />
     <path
        id="path2842"
        style="fill:#ffffff;fill-opacity:0.43125;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
@@ -313,11 +311,6 @@
          sodipodi:nodetypes="cssssc"
          transform="translate(-48.08581,-5.582665e-2)" />
     </g>
-    <path
-       id="path2838"
-       style="opacity:1;fill:#000000;fill-opacity:0.325;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 32,32 L 32,0 L 26,6 L 26,26 L 6,26 L 0,32 L 32,32 z "
-       sodipodi:nodetypes="ccccccc" />
     <use
        x="0"
        y="0"
@@ -342,5 +335,14 @@
        transform="matrix(1,0,0,-1,0,32.0018)"
        width="32"
        height="32" />
+    <rect
+       style="opacity:1;color:#000000;fill:#808080;fill-opacity:0.35625;fill-rule:nonzero;stroke:none;stroke-width:1.79999995;stroke-linecap:square;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
+       id="rect2836"
+       width="20.338236"
+       height="20.338236"
+       x="5.8308821"
+       y="5.8308821"
+       ry="1.125"
+       rx="1.125" />
   </g>
 </svg>
