@@ -21,7 +21,6 @@ import org.apache.batik.bridge.UserAgentAdapter;
 import org.apache.batik.dom.svg.SAXSVGDocumentFactory;
 import org.apache.batik.gvt.GVTTreeWalker;
 import org.apache.batik.gvt.GraphicsNode;
-import org.apache.batik.gvt.ShapeNode;
 import org.apache.batik.util.XMLResourceDescriptor;
 import org.spacebar.escape.common.*;
 import org.spacebar.escape.j2se.ResourceUtil;
@@ -201,8 +200,6 @@ public class Level2PDF {
             // nice
             PdfTemplate levelField = cb.createTemplate(l.getWidth()
                     * BASE_TILE_SIZE, l.getHeight() * BASE_TILE_SIZE);
-
-            // PdfContentByte levelField = cb;
             levelField.saveState();
 
             // every level has T_FLOOR
@@ -218,6 +215,7 @@ public class Level2PDF {
                 levelField.saveState();
             }
 
+            layDownTransparency(l, levelField);
             layDownTiles(l, levelField);
             levelField.restoreState();
             layDownSprites(l, levelField);
@@ -242,6 +240,45 @@ public class Level2PDF {
         }
 
         // done
+    }
+
+    private static void layDownTransparency(Level l, PdfTemplate levelField) {
+        // create the knockout layer, and paint electric, up blocks, down
+        // blocks,
+        // and transporter (later arrows?)
+
+        if (!(l.hasTile(T_ELECTRIC) || l.hasTile(T_BUP) || l.hasTile(T_BDOWN)
+                || l.hasTile(T_RUP) || l.hasTile(T_RDOWN) || l.hasTile(T_GUP)
+                || l.hasTile(T_GDOWN) || l.hasTile(T_TRANSPORT))) {
+            return;
+        }
+
+        PdfTemplate t = levelField.createTemplate(levelField.getWidth(),
+                levelField.getHeight());
+        PdfTransparencyGroup tg = new PdfTransparencyGroup();
+        tg.setKnockout(true);
+        t.setGroup(tg);
+
+
+        // electric, up, down
+        t.saveState();
+        PdfGState gs = new PdfGState();
+        gs.setBlendMode(BM_COLOR);
+        t.setGState(gs);
+        
+        layDownColor(l, t, new byte[] { T_ELECTRIC }, new Color(255, 246, 0,
+                200));
+        layDownColor(l, t, new byte[] { T_BUP, T_BDOWN }, new Color(0, 0, 255,
+                255));
+        layDownColor(l, t, new byte[] { T_RUP, T_RDOWN }, new Color(255, 0, 0,
+                200));
+        layDownColor(l, t, new byte[] { T_GUP, T_GDOWN }, new Color(0, 255, 0,
+                200));
+
+        t.restoreState();
+        layDownSimpleTile(l, t, T_TRANSPORT);
+
+        levelField.addTemplate(t, 0, 0);
     }
 
     private static PdfPatternPainter createRoughPattern(PdfContentByte cb) {
@@ -324,16 +361,6 @@ public class Level2PDF {
             new Color(39, 39, 39) };
 
     private static void layDownTiles(Level l, PdfContentByte cb) {
-        // colors
-        layDownColor(l, cb, new byte[] { T_ELECTRIC }, new Color(255, 246, 0,
-                200));
-        layDownColor(l, cb, new byte[] { T_BUP, T_BDOWN }, new Color(0, 0, 255,
-                255));
-        layDownColor(l, cb, new byte[] { T_RUP, T_RDOWN }, new Color(255, 0, 0,
-                200));
-        layDownColor(l, cb, new byte[] { T_GUP, T_GDOWN }, new Color(0, 255, 0,
-                200));
-
         // blocks
         if (l.hasTile(T_GREY) || l.hasTile(T_RED) || l.hasTile(T_BLUE)
                 || l.hasTile(T_GREEN) || l.hasTile(T_GOLD)
@@ -347,7 +374,7 @@ public class Level2PDF {
 
             // broken is gray + extra stuff
             layDownBlockTile(l, cb, T_BROKEN, grayColors, blockTemps);
-            layDownTileByName(l, cb, T_BROKEN, "broken-pieces.svg", false);
+            layDownTileByName(l, cb, T_BROKEN, "broken-pieces.svg");
         }
 
         // spheres
@@ -365,7 +392,6 @@ public class Level2PDF {
         layDownSimpleTile(l, cb, T_STOP);
         layDownSimpleTile(l, cb, T_HEARTFRAMER);
         layDownSimpleTile(l, cb, T_SLEEPINGDOOR);
-        layDownSimpleTile(l, cb, T_TRANSPORT, true);  // knockout
         layDownSimpleTile(l, cb, T_TRAP2);
         layDownSimpleTile(l, cb, T_TRAP1);
         layDownSimpleTile(l, cb, T_HOLE);
@@ -376,15 +402,8 @@ public class Level2PDF {
          * T_UP T_DOWN // electric box T_ON T_OFF // other arrows T_LR T_UD //
          * 0/1 T_0 T_1 // wires T_NS T_NE T_NW T_SE T_SW T_WE // button, lights,
          * crossover T_BUTTON T_BLIGHT T_RLIGHT T_GLIGHT T_TRANSPONDER T_NSWE //
-         * steel T_STEEL T_BSTEEL T_RSTEEL T_GSTEEL private static void
-         * layDownColor(Level l, PdfContentByte cb, byte[] bs, Color color) { //
-         * TODO Auto-generated method stub }
-         * 
+         * steel T_STEEL T_BSTEEL T_RSTEEL T_GSTEEL
          */
-    }
-
-    private static void layDownSimpleTile(Level l, PdfContentByte cb, byte tile) {
-        layDownSimpleTile(l, cb, tile, false);
     }
 
     private static void layDownSphereTile(Level l, PdfContentByte cb,
@@ -436,22 +455,21 @@ public class Level2PDF {
     }
 
     private static void layDownTileByName(Level l, PdfContentByte cb,
-            byte tile, String name, boolean knockout) {
+            byte tile, String name) {
         if (!l.hasTile(tile)) {
             return;
         }
 
-        PdfTemplate tileTemplate = createTileTemplate(cb, name, knockout);
+        PdfTemplate tileTemplate = createTileTemplate(cb, name);
         boolean whereToDraw[][] = makeTileMap(l, new byte[] { tile });
 
         drawTiles(l, cb, tileTemplate, whereToDraw);
     }
 
-    private static PdfTemplate createTileTemplate(PdfContentByte cb,
-            String name, boolean knockout) {
+    private static PdfTemplate createTileTemplate(PdfContentByte cb, String name) {
         try {
             SVGDocument doc = loadSVG(name);
-            PdfTemplate t = createTileTemplate(cb, doc, knockout);
+            PdfTemplate t = createTileTemplate(cb, doc);
             return t;
         } catch (IOException e) {
             e.printStackTrace();
@@ -459,7 +477,7 @@ public class Level2PDF {
         }
     }
 
-    final private static PdfName BM_COLOR = new PdfName("Color");
+    final static PdfName BM_COLOR = new PdfName("Color");
 
     private static void layDownColor(Level l, PdfContentByte cb, byte[] tiles,
             Color color) {
@@ -468,9 +486,6 @@ public class Level2PDF {
         cb.saveState();
         PdfGState gs = new PdfGState();
         gs.setFillOpacity(color.getAlpha() / 255f);
-        // gs.setBlendMode(BM_COLOR);
-        gs.setBlendMode(PdfGState.BM_OVERLAY);
-        cb.setGState(gs);
 
         makePathsFromTile(l, cb, tiles);
         cb.fill();
@@ -513,13 +528,12 @@ public class Level2PDF {
         }
     }
 
-    private static void layDownSimpleTile(Level l, PdfContentByte cb,
-            byte tile, boolean knockout) {
+    private static void layDownSimpleTile(Level l, PdfContentByte cb, byte tile) {
         if (!l.hasTile(tile)) {
             return;
         }
 
-        PdfTemplate tileTemplate = createTileTemplate(cb, tile, knockout);
+        PdfTemplate tileTemplate = createTileTemplate(cb, tile);
         boolean whereToDraw[][] = makeTileMap(l, new byte[] { tile });
 
         drawTiles(l, cb, tileTemplate, whereToDraw);
@@ -567,8 +581,8 @@ public class Level2PDF {
     }
 
     private static void readAndStrokeBlocks(PdfContentByte cb, GraphicsNode gn) {
-//        System.out.println(gn);
-//        System.out.println(gn.getBounds());
+        // System.out.println(gn);
+        // System.out.println(gn.getBounds());
 
         Shape s = gn.getOutline();
 
@@ -607,11 +621,11 @@ public class Level2PDF {
         cb.fill();
     }
 
-    private static PdfTemplate createTileTemplate(PdfContentByte cb, byte tile, boolean knockout) {
+    private static PdfTemplate createTileTemplate(PdfContentByte cb, byte tile) {
         try {
             SVGDocument doc = loadSVG("tiles/" + svgFileFormatter.format(tile)
                     + ".svg");
-            PdfTemplate t = createTileTemplate(cb, doc, knockout);
+            PdfTemplate t = createTileTemplate(cb, doc);
             return t;
         } catch (IOException e) {
             e.printStackTrace();
@@ -620,17 +634,12 @@ public class Level2PDF {
     }
 
     private static PdfTemplate createTileTemplate(PdfContentByte cb,
-            SVGDocument doc, boolean knockout) {
+            SVGDocument doc) {
         BridgeContext bc = new BridgeContext(new UserAgentAdapter());
         GVTBuilder gvtb = new GVTBuilder();
 
         GraphicsNode gn = gvtb.build(bc, doc);
         PdfTemplate t = cb.createTemplate(BASE_TILE_SIZE, BASE_TILE_SIZE);
-        if (knockout) {
-            PdfTransparencyGroup tg = new PdfTransparencyGroup();
-            tg.setKnockout(true);
-            t.setGroup(tg);
-        }
         Graphics2D g2 = t.createGraphicsShapes(t.getWidth(), t.getHeight());
         gn.paint(g2);
         g2.dispose();
