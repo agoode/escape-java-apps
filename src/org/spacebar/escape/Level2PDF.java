@@ -259,24 +259,38 @@ public class Level2PDF {
         tg.setKnockout(true);
         t.setGroup(tg);
 
-
         // electric, up, down
         t.saveState();
         PdfGState gs = new PdfGState();
-        gs.setBlendMode(BM_COLOR);
+//        gs.setBlendMode(BM_COLOR);
         t.setGState(gs);
-        
-        layDownColor(l, t, new byte[] { T_ELECTRIC }, new Color(255, 246, 0,
-                200));
-        layDownColor(l, t, new byte[] { T_BUP, T_BDOWN }, new Color(0, 0, 255,
-                255));
-        layDownColor(l, t, new byte[] { T_RUP, T_RDOWN }, new Color(255, 0, 0,
-                200));
-        layDownColor(l, t, new byte[] { T_GUP, T_GDOWN }, new Color(0, 255, 0,
-                200));
 
+        PdfTemplate ct = t.createTemplate(levelField.getWidth(), levelField
+                .getHeight());
+        PdfTransparencyGroup tg2 = new PdfTransparencyGroup();
+        tg2.setKnockout(false);
+        ct.setGroup(tg2);
+        
+        layDownColor(l, ct, new byte[] { T_ELECTRIC }, new Color(255, 246, 0,
+                150));
+        layDownColor(l, ct, new byte[] { T_BUP, T_BDOWN }, new Color(0, 0, 255,
+                150));
+        layDownColor(l, ct, new byte[] { T_RUP, T_RDOWN }, new Color(255, 0, 0,
+                150));
+        layDownColor(l, ct, new byte[] { T_GUP, T_GDOWN }, new Color(0, 255, 0,
+                150));
+
+        layDownTilesByName(l, ct, new byte[] { T_BUP, T_RUP, T_GUP },
+                "up-shadow.svg");
+
+        t.addTemplate(ct, 0, 0);
         t.restoreState();
+
+        // transport (easy)
         layDownSimpleTile(l, t, T_TRANSPORT);
+
+        layDownTilesByName(l, t, new byte[] { T_BUP, T_RUP, T_GUP },
+                "up-pieces.svg");
 
         levelField.addTemplate(t, 0, 0);
     }
@@ -374,7 +388,8 @@ public class Level2PDF {
 
             // broken is gray + extra stuff
             layDownBlockTile(l, cb, T_BROKEN, grayColors, blockTemps);
-            layDownTileByName(l, cb, T_BROKEN, "broken-pieces.svg");
+            layDownTilesByName(l, cb, new byte[] { T_BROKEN },
+                    "broken-pieces.svg");
         }
 
         // spheres
@@ -454,14 +469,20 @@ public class Level2PDF {
         }
     }
 
-    private static void layDownTileByName(Level l, PdfContentByte cb,
-            byte tile, String name) {
-        if (!l.hasTile(tile)) {
+    private static void layDownTilesByName(Level l, PdfContentByte cb,
+            byte tiles[], String name) {
+
+        // check
+        for (int i = 0; i < tiles.length; i++) {
+            byte t = tiles[i];
+            if (l.hasTile(t)) {
+                break;
+            }
             return;
         }
 
         PdfTemplate tileTemplate = createTileTemplate(cb, name);
-        boolean whereToDraw[][] = makeTileMap(l, new byte[] { tile });
+        boolean whereToDraw[][] = makeTileMap(l, tiles);
 
         drawTiles(l, cb, tileTemplate, whereToDraw);
     }
@@ -486,7 +507,7 @@ public class Level2PDF {
         cb.saveState();
         PdfGState gs = new PdfGState();
         gs.setFillOpacity(color.getAlpha() / 255f);
-
+        cb.setGState(gs);
         makePathsFromTile(l, cb, tiles);
         cb.fill();
         cb.restoreState();
