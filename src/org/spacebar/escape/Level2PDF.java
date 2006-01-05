@@ -43,7 +43,7 @@ public class Level2PDF {
     final static BaseFont BASE_FONT;
     static {
         ByteBuffer.HIGH_PRECISION = true;
-        Document.compress = false; // XXX
+//        Document.compress = false; // XXX
 
         // get the font
         BaseFont f = null;
@@ -243,9 +243,10 @@ public class Level2PDF {
     }
 
     private static void layDownTransparency(Level l, PdfTemplate levelField) {
-        // create the knockout layer, and paint electric, up blocks, down
-        // blocks,
-        // and transporter (later arrows?)
+        /*
+         * create the knockout layer, and paint electric, up blocks, down
+         * blocks, and transporter (later arrows?)
+         */
 
         if (!(l.hasTile(T_ELECTRIC) || l.hasTile(T_BUP) || l.hasTile(T_BDOWN)
                 || l.hasTile(T_RUP) || l.hasTile(T_RDOWN) || l.hasTile(T_GUP)
@@ -259,39 +260,51 @@ public class Level2PDF {
         tg.setKnockout(true);
         t.setGroup(tg);
 
-        // electric, up, down
-        t.saveState();
-        PdfGState gs = new PdfGState();
-//        gs.setBlendMode(BM_COLOR);
-        t.setGState(gs);
-
+        // non-knockout group for fancy effect
         PdfTemplate ct = t.createTemplate(levelField.getWidth(), levelField
                 .getHeight());
         PdfTransparencyGroup tg2 = new PdfTransparencyGroup();
         tg2.setKnockout(false);
         ct.setGroup(tg2);
         
-        layDownColor(l, ct, new byte[] { T_ELECTRIC }, new Color(255, 246, 0,
-                150));
-        layDownColor(l, ct, new byte[] { T_BUP, T_BDOWN }, new Color(0, 0, 255,
-                150));
-        layDownColor(l, ct, new byte[] { T_RUP, T_RDOWN }, new Color(255, 0, 0,
-                150));
-        layDownColor(l, ct, new byte[] { T_GUP, T_GDOWN }, new Color(0, 255, 0,
-                150));
+        // blending mode for some colors
+        ct.saveState();
+        PdfGState gs = new PdfGState();
+        gs.setBlendMode(BM_COLOR);
+        ct.setGState(gs);
 
+        // colors
+        layDownColor(l, ct, new byte[] { T_ELECTRIC }, new Color(255, 246, 0,
+                255));
+        layDownColor(l, ct, new byte[] { T_GUP, T_GDOWN }, new Color(0, 255, 0,
+                255));
+
+        gs = new PdfGState();
+        gs.setBlendMode(PdfGState.BM_SOFTLIGHT);
+        ct.setGState(gs);
+
+        layDownColor(l, ct, new byte[] { T_RUP, T_RDOWN }, new Color(255, 0, 0,
+                255));
+        layDownColor(l, ct, new byte[] { T_BUP, T_BDOWN }, new Color(0, 0, 255,
+                255));
+
+        ct.restoreState();
+        
+        // colored shadow
         layDownTilesByName(l, ct, new byte[] { T_BUP, T_RUP, T_GUP },
                 "up-shadow.svg");
 
+        // add this group to the knockout group
         t.addTemplate(ct, 0, 0);
-        t.restoreState();
-
+        
         // transport (easy)
         layDownSimpleTile(l, t, T_TRANSPORT);
 
+        // now, knockout the color with this!
         layDownTilesByName(l, t, new byte[] { T_BUP, T_RUP, T_GUP },
                 "up-pieces.svg");
 
+        // bam
         levelField.addTemplate(t, 0, 0);
     }
 

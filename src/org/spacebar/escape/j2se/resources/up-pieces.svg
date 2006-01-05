@@ -18,8 +18,8 @@
   <defs
      id="defs3" />
   <sodipodi:namedview
-     inkscape:window-y="62"
-     inkscape:window-x="204"
+     inkscape:window-y="86"
+     inkscape:window-x="188"
      inkscape:window-height="569"
      inkscape:window-width="722"
      inkscape:document-units="px"
@@ -51,12 +51,12 @@
      inkscape:label="Layer 1"
      id="layer1">
     <path
-       style="color:#000000;fill:#dcdcdc;fill-opacity:0.8;fill-rule:nonzero;stroke:none;stroke-width:20;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;marker:none;marker-start:none;marker-mid:none;marker-end:none;visibility:visible;display:inline;overflow:visible"
+       style="color:#000000;fill:#cecece;fill-opacity:0.80000001;fill-rule:nonzero;stroke:none;stroke-width:20;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;marker:none;marker-start:none;marker-mid:none;marker-end:none;visibility:visible;display:inline;overflow:visible"
        d="M 5,4.9999828 L 27,4.9999828 L 25.055456,23.143828 L 5,24.999983 L 5,4.9999828 z "
        id="rect18817"
        sodipodi:nodetypes="ccccc" />
     <path
-       style="color:#000000;fill:#9d9d9d;fill-opacity:0.85490197;fill-rule:nonzero;stroke:none;stroke-width:20;stroke-linecap:square;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
+       style="color:#000000;fill:#737373;fill-opacity:0.85490197;fill-rule:nonzero;stroke:none;stroke-width:20;stroke-linecap:square;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
        d="M 27,5.0128 L 23,7.99998 L 8.8125,7.98155 L 9,21.99998 L 5,25.0128 L 27.125,25.1378 L 27,5.0128 z M 22.8125,8.23155 L 22.4375,21.3878 L 9.4375,21.66905 L 9.78125,8.9503 L 22.8125,8.23155 z M 23,8.54405 L 23.40625,22.41905 L 9.53125,22.2003 L 22.84375,21.66905 L 23,8.54405 z "
        id="path18819"
        sodipodi:nodetypes="ccccccccccccccccc" />
