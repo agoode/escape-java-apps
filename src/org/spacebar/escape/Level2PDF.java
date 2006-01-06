@@ -182,9 +182,6 @@ public class Level2PDF {
             System.out.println("xOff: " + xOff + ", yOff: " + yOff);
 
             PdfContentByte cb = writer.getDirectContent();
-            PdfGState gs = new PdfGState();
-            gs.setBlendMode(PdfGState.BM_NORMAL);
-            cb.setGState(gs);
             cb.saveState();
 
             // transform to fit into page
@@ -270,13 +267,12 @@ public class Level2PDF {
         // blending mode for some colors
         ct.saveState();
         PdfGState gs = new PdfGState();
+//        gs.setBlendMode(PdfGState.BM_OVERLAY);
         gs.setBlendMode(BM_COLOR);
         ct.setGState(gs);
 
         // colors
-        layDownColor(l, ct, new byte[] { T_ELECTRIC }, new Color(255, 246, 0,
-                255));
-        layDownColor(l, ct, new byte[] { T_GUP, T_GDOWN }, new Color(0, 255, 0,
+        layDownColor(l, ct, new byte[] { T_ELECTRIC }, new Color(255, 216, 0,
                 255));
 
         gs = new PdfGState();
@@ -286,6 +282,8 @@ public class Level2PDF {
         layDownColor(l, ct, new byte[] { T_RUP, T_RDOWN }, new Color(255, 0, 0,
                 255));
         layDownColor(l, ct, new byte[] { T_BUP, T_BDOWN }, new Color(0, 0, 255,
+                255));
+        layDownColor(l, ct, new byte[] { T_GUP, T_GDOWN }, new Color(0, 255, 0,
                 255));
 
         ct.restoreState();
