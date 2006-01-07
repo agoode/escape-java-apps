@@ -435,20 +435,33 @@ public class Level2PDF {
         layDownColorPanel(l, cb, T_BPANEL, new Color(39, 61, 112, 80));
 
         // arrows
-        layDownTilesByName(l, cb, new byte[] { T_RIGHT, T_LEFT, T_UP, T_DOWN },
-                "arrow-back.svg");
+        byte arrowTiles[] = new byte[] { T_RIGHT, T_LEFT, T_UP, T_DOWN };
+        drawSolid(l, cb, arrowTiles, new Color(177, 177, 177));
+        layDownTilesByName(l, cb, arrowTiles, "arrow-back.svg");
         layDownSimpleTile(l, cb, T_RIGHT);
         layDownSimpleTile(l, cb, T_LEFT);
         layDownSimpleTile(l, cb, T_UP);
         layDownSimpleTile(l, cb, T_DOWN);
-        
+
+        // electric box
+        layDownSimpleTile(l, cb, T_ON);  // XXX: need to optimize background
+        layDownSimpleTile(l, cb, T_OFF);
+
         /*
-         * // electric box T_ON T_OFF //
          * other arrows T_LR T_UD // 0/1 T_0 T_1 // wires T_NS T_NE T_NW T_SE
          * T_SW T_WE // button, lights, crossover T_BUTTON T_BLIGHT T_RLIGHT
          * T_GLIGHT T_TRANSPONDER T_NSWE // steel T_STEEL T_BSTEEL T_RSTEEL
          * T_GSTEEL
          */
+    }
+
+    private static boolean[][] drawSolid(Level l, PdfContentByte cb,
+            byte[] tiles, Color c) {
+        boolean whereToDraw[][] = makePathsFromTile(l, cb, tiles);
+        cb.setColorFill(c);
+        cb.fill();
+
+        return whereToDraw;
     }
 
     private static void layDownColorPanel(Level l, PdfContentByte cb,
@@ -620,9 +633,8 @@ public class Level2PDF {
         PdfTemplate tileTemplate = createColorTemplate(cb, colors, temps);
 
         // draw the background
-        boolean whereToDraw[][] = makePathsFromTile(l, cb, new byte[] { tile });
-        cb.setColorFill(colors[colors.length - 1]);
-        cb.fill();
+        boolean whereToDraw[][] = drawSolid(l, cb, new byte[] { tile },
+                colors[colors.length - 1]);
 
         // draw each tile
         drawTiles(l, cb, tileTemplate, whereToDraw);
