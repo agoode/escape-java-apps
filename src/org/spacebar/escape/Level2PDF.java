@@ -454,9 +454,14 @@ public class Level2PDF {
         layDownSimpleTile(l, cb, T_LR);
         layDownSimpleTile(l, cb, T_UD);
 
-        
+        // 0/1
+        byte numTiles[] = new byte[] { T_0, T_1};
+        drawSolid(l, cb, numTiles, new Color(142, 142, 142));
+        layDownTilesByName(l, cb, numTiles, "num-back.svg");
+        layDownSimpleTile(l, cb, T_0);
+        layDownSimpleTile(l, cb, T_1);
         /*
-         * // 0/1 T_0 T_1 // wires T_NS T_NE T_NW T_SE
+         * // wires T_NS T_NE T_NW T_SE
          * T_SW T_WE // button, lights, crossover T_BUTTON T_BLIGHT T_RLIGHT
          * T_GLIGHT T_TRANSPONDER T_NSWE // steel T_STEEL T_BSTEEL T_RSTEEL
          * T_GSTEEL
