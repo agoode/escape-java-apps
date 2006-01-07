@@ -444,7 +444,7 @@ public class Level2PDF {
         layDownSimpleTile(l, cb, T_DOWN);
 
         // electric box
-        layDownSimpleTile(l, cb, T_ON);  // XXX: need to optimize background
+        layDownSimpleTile(l, cb, T_ON); // XXX: need to optimize background
         layDownSimpleTile(l, cb, T_OFF);
 
         // twisty
@@ -455,16 +455,38 @@ public class Level2PDF {
         layDownSimpleTile(l, cb, T_UD);
 
         // 0/1
-        byte numTiles[] = new byte[] { T_0, T_1};
+        byte numTiles[] = new byte[] { T_0, T_1 };
         drawSolid(l, cb, numTiles, new Color(142, 142, 142));
         layDownTilesByName(l, cb, numTiles, "num-back.svg");
         layDownSimpleTile(l, cb, T_0);
         layDownSimpleTile(l, cb, T_1);
+
+        // for wires, complex:
+
+        // must draw the individual tiles
+        drawSolid(l, cb,
+                new byte[] { T_NS, T_NE, T_NW, T_SE, T_SW, T_WE, T_BUTTON,
+                        T_BLIGHT, T_RLIGHT, T_GLIGHT, T_NSWE, T_TRANSPONDER },
+                new Color(140, 140, 140));
+        layDownSimpleTile(l, cb, T_NS);
+        layDownSimpleTile(l, cb, T_NE);
+        layDownSimpleTile(l, cb, T_NW);
+        layDownSimpleTile(l, cb, T_SE);
+        layDownSimpleTile(l, cb, T_SW);
+        layDownSimpleTile(l, cb, T_WE);
+
+        layDownTilesByName(l, cb, new byte[] { T_BUTTON, T_BLIGHT, T_RLIGHT,
+                T_GLIGHT, T_NSWE, T_TRANSPONDER }, "crossover.svg");
+
+        // then draw the wire in one pass
+        // XXX: how to do this?
+
+        // then the things on top
+
         /*
-         * // wires T_NS T_NE T_NW T_SE
-         * T_SW T_WE // button, lights, crossover T_BUTTON T_BLIGHT T_RLIGHT
-         * T_GLIGHT T_TRANSPONDER T_NSWE // steel T_STEEL T_BSTEEL T_RSTEEL
-         * T_GSTEEL
+         * // wires T_NS T_NE T_NW T_SE T_SW T_WE // button, lights, crossover
+         * T_BUTTON T_BLIGHT T_RLIGHT T_GLIGHT T_TRANSPONDER T_NSWE // steel
+         * T_STEEL T_BSTEEL T_RSTEEL T_GSTEEL
          */
     }
 
