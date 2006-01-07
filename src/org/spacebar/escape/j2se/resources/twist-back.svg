@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://inkscape.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="32px"
+   height="32px"
+   id="svg2525"
+   sodipodi:version="0.32"
+   inkscape:version="0.43"
+   sodipodi:docbase="/home/adam/workspace/Escape-j2se/src/org/spacebar/escape/j2se/resources"
+   sodipodi:docname="twist-back.svg">
+  <defs
+     id="defs2527" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="11.197802"
+     inkscape:cx="27.439109"
+     inkscape:cy="16.588153"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     inkscape:grid-bbox="true"
+     inkscape:document-units="px"
+     inkscape:window-width="722"
+     inkscape:window-height="569"
+     inkscape:window-x="4"
+     inkscape:window-y="54" />
+  <metadata
+     id="metadata2530">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="layer1"
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer">
+    <path
+       style="fill:#2a2a2a"
+       d="M 0.44995,30.73018 C 0.17091,30.00299 0.06801,22.90372 0.2213,14.95401 L 0.5,0.50000051 L 16,0.50000051 L 31.5,0.50000051 L 31.5,16 L 31.5,31.5 L 16.22865,31.77616 C 4.29192,31.99202 0.84652,31.76362 0.44995,30.73018 z M 30,15.5 L 30,1.0000005 L 15.5,1.0000005 L 1,1.0000005 L 1,15.5 L 1,30 L 15.5,30 L 30,30 L 30,15.5 z "
+       id="path2427"
+       sodipodi:nodetypes="cccccccccccccccccc" />
+    <rect
+       style="fill:#727272;fill-opacity:1;stroke:none"
+       id="rect1366"
+       width="23"
+       height="23"
+       x="3"
+       y="3" />
+    <rect
+       style="fill:#979797;fill-opacity:1;stroke:none"
+       id="rect1374"
+       width="17"
+       height="17"
+       x="5"
+       y="5" />
+  </g>
+</svg>

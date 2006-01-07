@@ -447,8 +447,16 @@ public class Level2PDF {
         layDownSimpleTile(l, cb, T_ON);  // XXX: need to optimize background
         layDownSimpleTile(l, cb, T_OFF);
 
+        // twisty
+        byte twistTiles[] = new byte[] { T_LR, T_UD };
+        drawSolid(l, cb, twistTiles, new Color(85, 85, 85));
+        layDownTilesByName(l, cb, twistTiles, "twist-back.svg");
+        layDownSimpleTile(l, cb, T_LR);
+        layDownSimpleTile(l, cb, T_UD);
+
+        
         /*
-         * other arrows T_LR T_UD // 0/1 T_0 T_1 // wires T_NS T_NE T_NW T_SE
+         * // 0/1 T_0 T_1 // wires T_NS T_NE T_NW T_SE
          * T_SW T_WE // button, lights, crossover T_BUTTON T_BLIGHT T_RLIGHT
          * T_GLIGHT T_TRANSPONDER T_NSWE // steel T_STEEL T_BSTEEL T_RSTEEL
          * T_GSTEEL
