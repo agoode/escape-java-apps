@@ -484,8 +484,7 @@ public class Level2PDF {
         // then the things on top
 
         /*
-         * // wires T_NS T_NE T_NW T_SE T_SW T_WE // button, lights, crossover
-         * T_BUTTON T_BLIGHT T_RLIGHT T_GLIGHT T_TRANSPONDER T_NSWE // steel
+         * // steel
          * T_STEEL T_BSTEEL T_RSTEEL T_GSTEEL
          */
     }
