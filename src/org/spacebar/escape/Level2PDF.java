@@ -391,6 +391,27 @@ public class Level2PDF {
             new Color(84, 126, 84), new Color(55, 97, 55),
             new Color(39, 39, 39) };
 
+    final static Color grayStColors[] = new Color[] { new Color(255, 255, 255),
+            new Color(131, 131, 131), new Color(101, 101, 101),
+            new Color(76, 76, 76), new Color(56, 56, 56),
+            new Color(14, 14, 14), new Color(249, 249, 249) };
+
+    final static Color blueStColors[] = new Color[] { new Color(255, 255, 255),
+            new Color(61, 50, 212), new Color(43, 34, 165),
+            new Color(32, 26, 121), new Color(26, 21, 97),
+            new Color(10, 8, 36), new Color(207, 204, 244) };
+
+    final static Color redStColors[] = new Color[] { new Color(255, 255, 255),
+            new Color(212, 51, 51), new Color(165, 36, 36),
+            new Color(120, 26, 26), new Color(102, 22, 22),
+            new Color(23, 5, 5), new Color(244, 204, 204) };
+
+    final static Color greenStColors[] = new Color[] {
+            new Color(255, 255, 255), new Color(76, 212, 51),
+            new Color(56, 165, 36), new Color(41, 120, 26),
+            new Color(35, 102, 22), new Color(12, 36, 8),
+            new Color(210, 244, 204) };
+
     private static void layDownTiles(Level l, PdfContentByte cb) {
         // blocks
         if (l.hasTile(T_GREY) || l.hasTile(T_RED) || l.hasTile(T_BLUE)
@@ -417,6 +438,16 @@ public class Level2PDF {
             layDownSphereTile(l, cb, T_RSPHERE, redSColors, sphereTemps);
             layDownSphereTile(l, cb, T_GSPHERE, greenSColors, sphereTemps);
             layDownSphereTile(l, cb, T_BSPHERE, blueSColors, sphereTemps);
+        }
+
+        // steel
+        if (l.hasTile(T_STEEL) || l.hasTile(T_RSTEEL) || l.hasTile(T_GSTEEL)
+                || l.hasTile(T_BSTEEL)) {
+            PdfTemplate steelTemps[] = createSteelTemplates(cb);
+            layDownBlockTile(l, cb, T_STEEL, grayStColors, steelTemps);
+            layDownBlockTile(l, cb, T_RSTEEL, redStColors, steelTemps);
+            layDownBlockTile(l, cb, T_GSTEEL, greenStColors, steelTemps);
+            layDownBlockTile(l, cb, T_BSTEEL, blueStColors, steelTemps);
         }
 
         // simple overlay
@@ -483,10 +514,40 @@ public class Level2PDF {
 
         // then the things on top
 
-        /*
-         * // steel
-         * T_STEEL T_BSTEEL T_RSTEEL T_GSTEEL
-         */
+    }
+
+    private static PdfTemplate[] createSteelTemplates(PdfContentByte cb) {
+        try {
+            SVGDocument doc = loadSVG("steel-pieces.svg");
+
+            PdfTemplate temps[] = new PdfTemplate[6];
+
+            createSteelOrBlockTemplates(cb, doc, temps);
+
+            return temps;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private static void createSteelOrBlockTemplates(PdfContentByte cb, SVGDocument doc, PdfTemplate[] temps) {
+        BridgeContext bc = new BridgeContext(new UserAgentAdapter());
+        GVTBuilder gvtb = new GVTBuilder();
+
+        GraphicsNode gn = gvtb.build(bc, doc);
+        GVTTreeWalker tw = new GVTTreeWalker(gn);
+        gn = tw.nextGraphicsNode();
+        for (int i = 0; i < temps.length; i++) {
+            PdfTemplate t = cb.createTemplate(BASE_TILE_SIZE,
+                    BASE_TILE_SIZE);
+            temps[i] = t;
+
+             System.out.println("node " + i);
+            gn = tw.nextGraphicsNode();
+
+            readAndStrokeBlocks(t, gn);
+        }
     }
 
     private static boolean[][] drawSolid(Level l, PdfContentByte cb,
@@ -592,22 +653,7 @@ public class Level2PDF {
 
             PdfTemplate temps[] = new PdfTemplate[6];
 
-            BridgeContext bc = new BridgeContext(new UserAgentAdapter());
-            GVTBuilder gvtb = new GVTBuilder();
-
-            GraphicsNode gn = gvtb.build(bc, doc);
-            GVTTreeWalker tw = new GVTTreeWalker(gn);
-            gn = tw.nextGraphicsNode();
-            for (int i = 0; i < temps.length; i++) {
-                PdfTemplate t = cb.createTemplate(BASE_TILE_SIZE,
-                        BASE_TILE_SIZE);
-                temps[i] = t;
-
-                // System.out.println("node " + i);
-
-                gn = tw.nextGraphicsNode();
-                readAndStrokeBlocks(t, gn);
-            }
+            createSteelOrBlockTemplates(cb, doc, temps);
 
             return temps;
         } catch (IOException e) {
@@ -620,11 +666,15 @@ public class Level2PDF {
             byte tiles[], String name) {
 
         // check
+        boolean hasTiles = false;
         for (int i = 0; i < tiles.length; i++) {
             byte t = tiles[i];
             if (l.hasTile(t)) {
+                hasTiles = true;
                 break;
             }
+        }
+        if (!hasTiles) {
             return;
         }
 
@@ -712,28 +762,13 @@ public class Level2PDF {
         return t;
     }
 
-    static PdfTemplate[] createBlockTemplates(PdfContentByte cb) {
+    private static PdfTemplate[] createBlockTemplates(PdfContentByte cb) {
         try {
             SVGDocument doc = loadSVG("block-pieces.svg");
 
             PdfTemplate temps[] = new PdfTemplate[4];
 
-            BridgeContext bc = new BridgeContext(new UserAgentAdapter());
-            GVTBuilder gvtb = new GVTBuilder();
-
-            GraphicsNode gn = gvtb.build(bc, doc);
-            GVTTreeWalker tw = new GVTTreeWalker(gn);
-            gn = tw.nextGraphicsNode();
-            for (int i = 0; i < temps.length; i++) {
-                PdfTemplate t = cb.createTemplate(BASE_TILE_SIZE,
-                        BASE_TILE_SIZE);
-                temps[i] = t;
-
-                // System.out.println("node " + i);
-                gn = tw.nextGraphicsNode();
-
-                readAndStrokeBlocks(t, gn);
-            }
+            createSteelOrBlockTemplates(cb, doc, temps);
 
             return temps;
         } catch (IOException e) {
@@ -743,8 +778,8 @@ public class Level2PDF {
     }
 
     private static void readAndStrokeBlocks(PdfContentByte cb, GraphicsNode gn) {
-        // System.out.println(gn);
-        // System.out.println(gn.getBounds());
+         System.out.println(gn);
+         System.out.println(gn.getBounds());
 
         Shape s = gn.getOutline();
 
