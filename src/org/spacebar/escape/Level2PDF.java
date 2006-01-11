@@ -199,7 +199,7 @@ public class Level2PDF {
                     * BASE_TILE_SIZE, l.getHeight() * BASE_TILE_SIZE);
             levelField.saveState();
 
-            // every level has T_FLOOR
+            // every level has T_FLOOR, if it has T_EXIT
             PdfPatternPainter brickPattern = createBrickPattern(levelField);
             layDownBrick(l, levelField, brickPattern);
             levelField.restoreState();
@@ -215,8 +215,8 @@ public class Level2PDF {
             layDownTransparency(l, levelField);
             layDownTiles(l, levelField);
             levelField.restoreState();
-            layDownSprites(l, levelField);
             drawLaser(l, levelField);
+            layDownSprites(l, levelField);
 
             // hit it
             af = new AffineTransform();
@@ -241,8 +241,59 @@ public class Level2PDF {
     }
 
     private static void drawLaser(Level l, PdfContentByte cb) {
-        // TODO Auto-generated method stub
+        IntTriple laser = l.getLaser();
 
+        if (laser == null) {
+            return;
+        }
+
+        float lx = laser.x * BASE_TILE_SIZE;
+        float ly = (l.getHeight() - laser.y) * BASE_TILE_SIZE;
+
+        float px = l.getPlayerX() * BASE_TILE_SIZE;
+        float py = (l.getHeight() - l.getPlayerY()) * BASE_TILE_SIZE;
+
+        switch (laser.d) {
+        case Entity.DIR_DOWN:
+            lx += BASE_TILE_SIZE / 2f;
+            ly -= BASE_TILE_SIZE - 0.5f;
+            px += BASE_TILE_SIZE / 2f;
+            py -= BASE_TILE_SIZE / 2f;
+
+            break;
+        case Entity.DIR_UP:
+            lx += BASE_TILE_SIZE / 2f;
+            ly -= 0.5f;
+            px += BASE_TILE_SIZE / 2f;
+            py -= BASE_TILE_SIZE / 2f;
+            break;
+        case Entity.DIR_RIGHT:
+            lx += BASE_TILE_SIZE - 0.5f;
+            ly -= BASE_TILE_SIZE / 2f;
+            px += BASE_TILE_SIZE / 2f;
+            py -= BASE_TILE_SIZE / 2f;
+
+            break;
+        case Entity.DIR_LEFT:
+            lx += 0.5f;
+            ly -= BASE_TILE_SIZE / 2f;
+            px += BASE_TILE_SIZE / 2f;
+            py -= BASE_TILE_SIZE / 2f;
+            break;
+        }
+
+
+        cb.setColorStroke(Color.RED);
+        cb.setLineWidth(3);
+        cb.moveTo(lx, ly);
+        cb.lineTo(px, py);
+        cb.stroke();
+        
+        cb.setColorStroke(Color.WHITE);
+        cb.setLineWidth(1);
+        cb.moveTo(lx, ly);
+        cb.lineTo(px, py);
+        cb.stroke();
     }
 
     private static void layDownTransparency(Level l, PdfTemplate levelField) {
@@ -451,7 +502,7 @@ public class Level2PDF {
         }
 
         // simple overlay
-        layDownSimpleTile(l, cb, T_EXIT);
+        layDownExit(l, cb);
         layDownSimpleTile(l, cb, T_STOP);
         layDownSimpleTile(l, cb, T_HEARTFRAMER);
         layDownSimpleTile(l, cb, T_SLEEPINGDOOR);
@@ -531,7 +582,8 @@ public class Level2PDF {
         }
     }
 
-    private static void createSteelOrBlockTemplates(PdfContentByte cb, SVGDocument doc, PdfTemplate[] temps) {
+    private static void createSteelOrBlockTemplates(PdfContentByte cb,
+            SVGDocument doc, PdfTemplate[] temps) {
         BridgeContext bc = new BridgeContext(new UserAgentAdapter());
         GVTBuilder gvtb = new GVTBuilder();
 
@@ -539,11 +591,10 @@ public class Level2PDF {
         GVTTreeWalker tw = new GVTTreeWalker(gn);
         gn = tw.nextGraphicsNode();
         for (int i = 0; i < temps.length; i++) {
-            PdfTemplate t = cb.createTemplate(BASE_TILE_SIZE,
-                    BASE_TILE_SIZE);
+            PdfTemplate t = cb.createTemplate(BASE_TILE_SIZE, BASE_TILE_SIZE);
             temps[i] = t;
 
-             System.out.println("node " + i);
+            System.out.println("node " + i);
             gn = tw.nextGraphicsNode();
 
             readAndStrokeBlocks(t, gn);
@@ -751,6 +802,45 @@ public class Level2PDF {
         drawTiles(l, cb, tileTemplate, whereToDraw);
     }
 
+    private static void layDownExit(Level l, PdfContentByte cb) {
+        if (!l.hasTile(T_EXIT)) {
+            return;
+        }
+
+        // 2 different things, depending on entity/no entity
+        byte tiles[] = new byte[] { T_EXIT };
+
+        boolean whereToDraw[][] = makeEntitySensitiveTileMap(l, tiles, false);
+        boolean whereToDraw2[][] = makeEntitySensitiveTileMap(l, tiles, true);
+
+        boolean nonEntExit = false;
+        boolean entExit = false;
+        for (int y = 0; y < whereToDraw.length; y++) {
+            boolean row[] = whereToDraw[y];
+            boolean row2[] = whereToDraw2[y];
+            for (int x = 0; x < row.length; x++) {
+                if (row[x]) {
+                    nonEntExit = true;
+                }
+                if (row2[x]) {
+                    entExit = true;
+                }
+                if (nonEntExit && entExit) {
+                    break;
+                }
+            }
+        }
+
+        if (nonEntExit) {
+            PdfTemplate tileTemplate = createTileTemplate(cb, T_EXIT);
+            drawTiles(l, cb, tileTemplate, whereToDraw);
+        }
+        if (entExit) {
+            PdfTemplate tileTemplate = createTileTemplate(cb, "door-open.svg");
+            drawTiles(l, cb, tileTemplate, whereToDraw2);
+        }
+    }
+
     private static PdfTemplate createColorTemplate(PdfContentByte cb,
             Color colors[], PdfTemplate temps[]) {
         PdfTemplate t = cb.createTemplate(BASE_TILE_SIZE, BASE_TILE_SIZE);
@@ -778,8 +868,8 @@ public class Level2PDF {
     }
 
     private static void readAndStrokeBlocks(PdfContentByte cb, GraphicsNode gn) {
-         System.out.println(gn);
-         System.out.println(gn.getBounds());
+        System.out.println(gn);
+        System.out.println(gn.getBounds());
 
         Shape s = gn.getOutline();
 
@@ -1147,6 +1237,27 @@ public class Level2PDF {
                 COORDINATE: for (int i = 0; i < tiles.length; i++) {
                     byte t = l.tileAt(x, y);
                     if (t == tiles[i]) {
+                        row[x] = true;
+                        continue COORDINATE;
+                    }
+                }
+            }
+        }
+        return space;
+    }
+
+    private static boolean[][] makeEntitySensitiveTileMap(Level l,
+            byte tiles[], boolean hasEntity) {
+        int w = l.getWidth();
+        int h = l.getHeight();
+
+        boolean space[][] = new boolean[h][w];
+        for (int y = 0; y < space.length; y++) {
+            boolean[] row = space[y];
+            for (int x = 0; x < row.length; x++) {
+                COORDINATE: for (int i = 0; i < tiles.length; i++) {
+                    byte t = l.tileAt(x, y);
+                    if (t == tiles[i] && (l.isEntityAt(x, y) == hasEntity)) {
                         row[x] = true;
                         continue COORDINATE;
                     }
