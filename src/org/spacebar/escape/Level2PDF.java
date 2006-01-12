@@ -284,13 +284,13 @@ public class Level2PDF {
 
 
         cb.setColorStroke(Color.RED);
-        cb.setLineWidth(3);
+        cb.setLineWidth(2.0f);
         cb.moveTo(lx, ly);
         cb.lineTo(px, py);
         cb.stroke();
         
         cb.setColorStroke(Color.WHITE);
-        cb.setLineWidth(1);
+        cb.setLineWidth(0.5f);
         cb.moveTo(lx, ly);
         cb.lineTo(px, py);
         cb.stroke();
