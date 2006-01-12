@@ -28,6 +28,7 @@ import org.spacebar.escape.common.*;
 import org.spacebar.escape.j2se.ResourceUtil;
 import org.spacebar.escape.j2se.StyleStack2;
 import org.w3c.dom.svg.SVGDocument;
+import org.w3c.dom.svg.SVGRect;
 
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.*;
@@ -437,12 +438,14 @@ public class Level2PDF {
                         drawSprite(cb, x, y, "animation/deadrobot.svg");
                         break;
                     case Entity.B_DALEK:
+                        drawSprite(cb, x, y, "common-bot.svg");
                         drawSprite(cb, x, y, "animation/dalek_forward_0.svg");
                         break;
                     case Entity.B_DALEK_ASLEEP:
                         drawSprite(cb, x, y, "animation/dalek_asleep.svg");
                         break;
                     case Entity.B_HUGBOT:
+                        drawSprite(cb, x, y, "common-bot.svg");
                         drawSprite(cb, x, y, "animation/hugbot_forward_0.svg");
                         break;
                     case Entity.B_HUGBOT_ASLEEP:
@@ -457,7 +460,7 @@ public class Level2PDF {
 
     private static void drawSprite(PdfContentByte cb, int x, int y, String name) {
         PdfTemplate t = getSpriteTemplate(cb, name);
-        if (t != null) {
+        if (t != null) { // XXX
             cb.addTemplate(t, x * BASE_TILE_SIZE, y * BASE_TILE_SIZE);
         }
     }
@@ -479,18 +482,19 @@ public class Level2PDF {
         try {
             doc = loadSVG(name);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
-            return null;
+            return null; // XXX
         }
 
         BridgeContext bc = new BridgeContext(new UserAgentAdapter());
         GVTBuilder gvtb = new GVTBuilder();
 
         GraphicsNode gn = gvtb.build(bc, doc);
+
         Rectangle2D bounds = gn.getBounds();
-        PdfTemplate t = cb.createTemplate((float) bounds.getWidth(),
-                (float) bounds.getHeight());
+        PdfTemplate t = cb.createTemplate((float) (bounds.getX() + bounds
+                .getWidth()), (float) (bounds.getY() + bounds.getHeight()));
+
         Graphics2D g2 = t.createGraphicsShapes(t.getWidth(), t.getHeight());
         gn.paint(g2);
         g2.dispose();
