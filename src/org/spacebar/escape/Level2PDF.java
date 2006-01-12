@@ -12,8 +12,10 @@ import java.awt.geom.Rectangle2D;
 import java.io.*;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.batik.bridge.BridgeContext;
 import org.apache.batik.bridge.GVTBuilder;
@@ -282,13 +284,12 @@ public class Level2PDF {
             break;
         }
 
-
         cb.setColorStroke(Color.RED);
         cb.setLineWidth(2.0f);
         cb.moveTo(lx, ly);
         cb.lineTo(px, py);
         cb.stroke();
-        
+
         cb.setColorStroke(Color.WHITE);
         cb.setLineWidth(0.5f);
         cb.moveTo(lx, ly);
@@ -398,8 +399,102 @@ public class Level2PDF {
     }
 
     private static void layDownSprites(Level l, PdfContentByte cb) {
-        // TODO Auto-generated method stub
+        // draw in correct z-order
+        List<List<Entity>> entityList = new ArrayList<List<Entity>>();
+        for (int y = 0; y < l.getHeight(); y++) {
+            entityList.add(new ArrayList<Entity>());
+        }
 
+        for (int i = 0; i < l.getBotCount(); i++) {
+            Bot b = l.getBot(i);
+            entityList.get(b.getY()).add(b);
+        }
+
+        Player p = l.getPlayer();
+        entityList.get(p.getY()).add(p);
+
+        // draw
+        int y = l.getHeight() - 1;
+        for (List<Entity> row : entityList) {
+            for (Entity e : row) {
+                int x = e.getX();
+                if (e.isPlayer()) {
+                    // draw player
+                    if (l.isDead()) {
+                        drawSprite(cb, x, y, "animation/lasered2.svg");
+                    } else {
+                        drawSprite(cb, x, y, "animation/walk_forward_0.svg");
+                    }
+                } else {
+                    Bot b = (Bot) e;
+                    switch (b.getBotType()) {
+                    case Entity.B_BOMB_0:
+                    case Entity.B_BOMB_MAX:
+                    case Entity.B_BOMB_X:
+                        drawSprite(cb, x, y, "animation/bomb_still.svg");
+                        break;
+                    case Entity.B_BROKEN:
+                        drawSprite(cb, x, y, "animation/deadrobot.svg");
+                        break;
+                    case Entity.B_DALEK:
+                        drawSprite(cb, x, y, "animation/dalek_forward_0.svg");
+                        break;
+                    case Entity.B_DALEK_ASLEEP:
+                        drawSprite(cb, x, y, "animation/dalek_asleep.svg");
+                        break;
+                    case Entity.B_HUGBOT:
+                        drawSprite(cb, x, y, "animation/hugbot_forward_0.svg");
+                        break;
+                    case Entity.B_HUGBOT_ASLEEP:
+                        drawSprite(cb, x, y, "animation/hugbot_asleep.svg");
+                        break;
+                    }
+                }
+            }
+            y--;
+        }
+    }
+
+    private static void drawSprite(PdfContentByte cb, int x, int y, String name) {
+        PdfTemplate t = getSpriteTemplate(cb, name);
+        if (t != null) {
+            cb.addTemplate(t, x * BASE_TILE_SIZE, y * BASE_TILE_SIZE);
+        }
+    }
+
+    private static Map<String, PdfTemplate> spriteTemplateMap = new HashMap<String, PdfTemplate>();
+
+    private static PdfTemplate getSpriteTemplate(PdfContentByte cb, String name) {
+        if (!spriteTemplateMap.containsKey(name)) {
+            PdfTemplate t = createSpriteTemplate(cb, name);
+            spriteTemplateMap.put(name, t);
+        }
+
+        return spriteTemplateMap.get(name);
+    }
+
+    private static PdfTemplate createSpriteTemplate(PdfContentByte cb,
+            String name) {
+        SVGDocument doc = null;
+        try {
+            doc = loadSVG(name);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return null;
+        }
+
+        BridgeContext bc = new BridgeContext(new UserAgentAdapter());
+        GVTBuilder gvtb = new GVTBuilder();
+
+        GraphicsNode gn = gvtb.build(bc, doc);
+        Rectangle2D bounds = gn.getBounds();
+        PdfTemplate t = cb.createTemplate((float) bounds.getWidth(),
+                (float) bounds.getHeight());
+        Graphics2D g2 = t.createGraphicsShapes(t.getWidth(), t.getHeight());
+        gn.paint(g2);
+        g2.dispose();
+        return t;
     }
 
     final static Color grayColors[] = new Color[] { new Color(127, 127, 127),
@@ -836,7 +931,8 @@ public class Level2PDF {
             drawTiles(l, cb, tileTemplate, whereToDraw);
         }
         if (entExit) {
-            PdfTemplate tileTemplate = createTileTemplate(cb, "door-open.svg");
+            PdfTemplate tileTemplate = createTileTemplate(cb,
+                    "animation/door_opens2.svg");
             drawTiles(l, cb, tileTemplate, whereToDraw2);
         }
     }
