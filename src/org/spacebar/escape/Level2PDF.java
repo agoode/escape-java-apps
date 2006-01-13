@@ -675,10 +675,109 @@ public class Level2PDF {
                 T_GLIGHT, T_NSWE, T_TRANSPONDER }, "crossover.svg");
 
         // then draw the wire in one pass
-        // XXX: how to do this?
+        drawWire(l, cb);
 
         // then the things on top
 
+    }
+
+    private static void drawWire(Level l, PdfContentByte cb) {
+        // make map of wire spots
+        int w = l.getWidth();
+        int h = l.getHeight();
+
+        boolean map[][] = new boolean[h * 3][w * 3];
+        for (int y = 0; y < map.length; y += 3) {
+            boolean[] row = map[y];
+            for (int x = 0; x < row.length; x += 3) {
+                byte t = l.tileAt(x / 3, y / 3);
+
+                // mark center
+                map[y + 1][x + 1] = true;
+
+                // customize
+                switch (t) {
+                case T_NS:
+                    setNorth(map, y, x);
+                    setSouth(map, y, x);
+                    break;
+                case T_NE:
+                    setNorth(map, y, x);
+                    setEast(map, y, x);
+                    break;
+                case T_NW:
+                    setNorth(map, y, x);
+                    setWest(map, y, x);
+                    break;
+                case T_SE:
+                    setSouth(map, y, x);
+                    setEast(map, y, x);
+                    break;
+                case T_SW:
+                    setSouth(map, y, x);
+                    setWest(map, y, x);
+                    break;
+                case T_WE:
+                    setWest(map, y, x);
+                    setEast(map, y, x);
+                    break;
+                case T_BUTTON:
+                case T_BLIGHT:
+                case T_RLIGHT:
+                case T_GLIGHT:
+                case T_NSWE:
+                case T_TRANSPONDER:
+                    setNorth(map, y, x);
+                    setSouth(map, y, x);
+                    setWest(map, y, x);
+                    setEast(map, y, x);
+                    break;
+                default:
+                    // not wire at all, unmark center
+                    map[y + 1][x + 1] = false;
+                }
+            }
+        }
+
+        byte[][] edges = findEdges(map);
+        printMap(edges, map);
+
+        List<List<Pair>> paths = simplifyPaths(makePathsFromEdges(edges));
+
+        // draw
+        cb.setColorFill(new Color(47, 47, 47));
+        for (Iterator<List<Pair>> iter = paths.iterator(); iter.hasNext();) {
+            List path = iter.next();
+            System.out.println("simple path: " + path);
+
+            Iterator i = path.iterator();
+            Pair p = (Pair) i.next();
+            cb.moveTo(p.x * BASE_TILE_SIZE / 3, (h * 3 - (p.y))
+                    * BASE_TILE_SIZE / 3);
+            while (i.hasNext()) {
+                p = (Pair) i.next();
+                cb.lineTo(p.x * BASE_TILE_SIZE / 3, (h * 3 - (p.y))
+                        * BASE_TILE_SIZE / 3);
+            }
+            cb.closePath();
+        }
+        cb.fill();
+    }
+
+    private static void setWest(boolean[][] map, int y, int x) {
+        map[y + 1][x] = true;
+    }
+
+    private static void setEast(boolean[][] map, int y, int x) {
+        map[y + 1][x + 2] = true;
+    }
+
+    private static void setSouth(boolean[][] map, int y, int x) {
+        map[y + 2][x + 1] = true;
+    }
+
+    private static void setNorth(boolean[][] map, int y, int x) {
+        map[y][x + 1] = true;
     }
 
     private static PdfTemplate[] createSteelTemplates(PdfContentByte cb) {
@@ -708,7 +807,7 @@ public class Level2PDF {
             PdfTemplate t = cb.createTemplate(BASE_TILE_SIZE, BASE_TILE_SIZE);
             temps[i] = t;
 
-            System.out.println("node " + i);
+            // System.out.println("node " + i);
             gn = tw.nextGraphicsNode();
 
             readAndStrokeBlocks(t, gn);
@@ -983,8 +1082,8 @@ public class Level2PDF {
     }
 
     private static void readAndStrokeBlocks(PdfContentByte cb, GraphicsNode gn) {
-        System.out.println(gn);
-        System.out.println(gn.getBounds());
+        // System.out.println(gn);
+        // System.out.println(gn.getBounds());
 
         Shape s = gn.getOutline();
 
@@ -1118,91 +1217,41 @@ public class Level2PDF {
             byte tiles[]) {
 
         boolean map[][] = makeTileMap(l, tiles);
-        printMap(map);
+        // printMap(map);
 
-        // zip across and find all the edges, jcreed-style!
-        byte[][] edges = new byte[l.getHeight() + 1][l.getWidth() + 1];
-        for (int y = 0; y < edges.length; y++) {
-            for (int x = 0; x < edges[0].length; x++) {
-                // edge generation!
-                boolean ul = getVal(map, x - 1, y - 1);
-                boolean ur = getVal(map, x, y - 1);
-                boolean ll = getVal(map, x - 1, y);
-                boolean lr = getVal(map, x, y);
-
-                if (ul && !ur && !ll && lr) {
-                    edges[y][x] = DIR_LEFT_RIGHT;
-                } else if (!ul && ur && ll && !lr) {
-                    edges[y][x] = DIR_UP_DOWN;
-                } else if (!ul && ur) {
-                    edges[y][x] = DIR_UP;
-                } else if (ll && !lr) {
-                    edges[y][x] = DIR_DOWN;
-                } else if (!ur && lr) {
-                    edges[y][x] = DIR_RIGHT;
-                } else if (ul && !ll) {
-                    edges[y][x] = DIR_LEFT;
-                }
-            }
-        }
+        byte[][] edges = findEdges(map);
 
         System.out.println();
         printMap(edges, map);
 
-        // make the paths list
-        java.util.List<List<Pair>> paths = new ArrayList<List<Pair>>();
-
-        Pair start = new Pair(0, 0);
-        while ((start = getNextStart(edges, start)) != null) {
-            // new path
-            java.util.List<Pair> path = new ArrayList<Pair>();
-            paths.add(path);
-
-            path.add(start);
-
-            int y = start.y;
-            int x = start.x;
-
-            byte dir;
-            while ((dir = edges[y][x]) != DIR_NONE) {
-                // move to the next spot
-                switch (dir) {
-                case DIR_UP_DOWN:
-                    // up sounds good
-                    edges[y][x] = DIR_DOWN;
-                    y--;
-                    break;
-                case DIR_LEFT_RIGHT:
-                    // left sounds good
-                    edges[y][x] = DIR_RIGHT;
-                    x--;
-                    break;
-                case DIR_DOWN:
-                    edges[y][x] = DIR_NONE;
-                    y++;
-                    break;
-                case DIR_UP:
-                    edges[y][x] = DIR_NONE;
-                    y--;
-                    break;
-                case DIR_LEFT:
-                    edges[y][x] = DIR_NONE;
-                    x--;
-                    break;
-                case DIR_RIGHT:
-                    edges[y][x] = DIR_NONE;
-                    x++;
-                    break;
-                }
-                path.add(new Pair(x, y));
-            }
-        }
+        java.util.List<List<Pair>> paths = makePathsFromEdges(edges);
 
         for (Iterator<List<Pair>> iter = paths.iterator(); iter.hasNext();) {
             List path = iter.next();
             System.out.println("path: " + path);
         }
 
+        List<List<Pair>> simplePaths = simplifyPaths(paths);
+
+        int h = l.getHeight();
+        for (Iterator<List<Pair>> iter = simplePaths.iterator(); iter.hasNext();) {
+            List path = iter.next();
+            System.out.println("simple path: " + path);
+
+            Iterator i = path.iterator();
+            Pair p = (Pair) i.next();
+            cb.moveTo(p.x * BASE_TILE_SIZE, (h - p.y) * BASE_TILE_SIZE);
+            while (i.hasNext()) {
+                p = (Pair) i.next();
+                cb.lineTo(p.x * BASE_TILE_SIZE, (h - p.y) * BASE_TILE_SIZE);
+            }
+            cb.closePath();
+        }
+        return map;
+    }
+
+    private static List<List<Pair>> simplifyPaths(
+            java.util.List<List<Pair>> paths) {
         List<List<Pair>> simplePaths = new ArrayList<List<Pair>>();
         // now, we have the segments, so get it down to corners
         for (Iterator<List<Pair>> iter = paths.iterator(); iter.hasNext();) {
@@ -1251,22 +1300,88 @@ public class Level2PDF {
                 }
             }
         }
+        return simplePaths;
+    }
 
-        int h = l.getHeight();
-        for (Iterator<List<Pair>> iter = simplePaths.iterator(); iter.hasNext();) {
-            List path = iter.next();
-            System.out.println("simple path: " + path);
+    private static java.util.List<List<Pair>> makePathsFromEdges(byte[][] edges) {
+        // make the paths list
+        java.util.List<List<Pair>> paths = new ArrayList<List<Pair>>();
 
-            Iterator i = path.iterator();
-            Pair p = (Pair) i.next();
-            cb.moveTo(p.x * BASE_TILE_SIZE, (h - p.y) * BASE_TILE_SIZE);
-            while (i.hasNext()) {
-                p = (Pair) i.next();
-                cb.lineTo(p.x * BASE_TILE_SIZE, (h - p.y) * BASE_TILE_SIZE);
+        Pair start = new Pair(0, 0);
+        while ((start = getNextStart(edges, start)) != null) {
+            // new path
+            java.util.List<Pair> path = new ArrayList<Pair>();
+            paths.add(path);
+
+            path.add(start);
+
+            int y = start.y;
+            int x = start.x;
+
+            byte dir;
+            while ((dir = edges[y][x]) != DIR_NONE) {
+                // move to the next spot
+                switch (dir) {
+                case DIR_UP_DOWN:
+                    // up sounds good
+                    edges[y][x] = DIR_DOWN;
+                    y--;
+                    break;
+                case DIR_LEFT_RIGHT:
+                    // left sounds good
+                    edges[y][x] = DIR_RIGHT;
+                    x--;
+                    break;
+                case DIR_DOWN:
+                    edges[y][x] = DIR_NONE;
+                    y++;
+                    break;
+                case DIR_UP:
+                    edges[y][x] = DIR_NONE;
+                    y--;
+                    break;
+                case DIR_LEFT:
+                    edges[y][x] = DIR_NONE;
+                    x--;
+                    break;
+                case DIR_RIGHT:
+                    edges[y][x] = DIR_NONE;
+                    x++;
+                    break;
+                }
+                path.add(new Pair(x, y));
             }
-            cb.closePath();
         }
-        return map;
+        return paths;
+    }
+
+    private static byte[][] findEdges(boolean[][] map) {
+        // zip across and find all the edges, jcreed-style!
+        byte[][] edges = new byte[map.length + 1][map[0].length + 1];
+        for (int y = 0; y < edges.length; y++) {
+            for (int x = 0; x < edges[0].length; x++) {
+                // edge generation!
+                boolean ul = getVal(map, x - 1, y - 1);
+                boolean ur = getVal(map, x, y - 1);
+                boolean ll = getVal(map, x - 1, y);
+                boolean lr = getVal(map, x, y);
+
+                if (ul && !ur && !ll && lr) {
+                    edges[y][x] = DIR_LEFT_RIGHT;
+                } else if (!ul && ur && ll && !lr) {
+                    edges[y][x] = DIR_UP_DOWN;
+                } else if (!ul && ur) {
+                    edges[y][x] = DIR_UP;
+                } else if (ll && !lr) {
+                    edges[y][x] = DIR_DOWN;
+                } else if (!ur && lr) {
+                    edges[y][x] = DIR_RIGHT;
+                } else if (ul && !ll) {
+                    edges[y][x] = DIR_LEFT;
+                }
+            }
+        }
+        return edges;
     }
 
     private static Pair getNextStart(byte[][] edges, Pair start) {
@@ -1285,7 +1400,7 @@ public class Level2PDF {
         return null;
     }
 
-    private static void printMap(boolean[][] map) {
+    static void printMap(boolean[][] map) {
         for (int y = 0; y < map.length; y++) {
             boolean[] row = map[y];
             for (int x = 0; x < row.length; x++) {
@@ -1295,7 +1410,7 @@ public class Level2PDF {
         }
     }
 
-    private static void printMap(byte[][] edges, boolean[][] map) {
+    static void printMap(byte[][] edges, boolean[][] map) {
         for (int y = 0; y < edges.length; y++) {
             byte[] row = edges[y];
             for (int x = 0; x < row.length; x++) {
@@ -1326,7 +1441,7 @@ public class Level2PDF {
             System.out.println();
             if (y < edges.length - 1) {
                 for (int x = 0; x < row.length - 1; x++) {
-                    System.out.print(map[y][x] ? " X" : "  ");
+                    System.out.print(map[y][x] ? " X" : " .");
                 }
                 System.out.println();
             }
