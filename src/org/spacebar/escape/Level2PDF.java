@@ -5,6 +5,7 @@ import static org.spacebar.escape.common.Level.*;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.PathIterator;
@@ -28,7 +29,6 @@ import org.spacebar.escape.common.*;
 import org.spacebar.escape.j2se.ResourceUtil;
 import org.spacebar.escape.j2se.StyleStack2;
 import org.w3c.dom.svg.SVGDocument;
-import org.w3c.dom.svg.SVGRect;
 
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.*;
@@ -742,20 +742,20 @@ public class Level2PDF {
         byte[][] edges = findEdges(map);
         printMap(edges, map);
 
-        List<List<Pair>> paths = simplifyPaths(makePathsFromEdges(edges));
+        List<List<Point>> paths = simplifyPaths(makePathsFromEdges(edges));
 
         // draw
         cb.setColorFill(new Color(47, 47, 47));
-        for (Iterator<List<Pair>> iter = paths.iterator(); iter.hasNext();) {
+        for (Iterator<List<Point>> iter = paths.iterator(); iter.hasNext();) {
             List path = iter.next();
             System.out.println("simple path: " + path);
 
             Iterator i = path.iterator();
-            Pair p = (Pair) i.next();
+            Point p = (Point) i.next();
             cb.moveTo(p.x * BASE_TILE_SIZE / 3, (h * 3 - (p.y))
                     * BASE_TILE_SIZE / 3);
             while (i.hasNext()) {
-                p = (Pair) i.next();
+                p = (Point) i.next();
                 cb.lineTo(p.x * BASE_TILE_SIZE / 3, (h * 3 - (p.y))
                         * BASE_TILE_SIZE / 3);
             }
@@ -1188,31 +1188,6 @@ public class Level2PDF {
                 * BASE_TILE_SIZE);
     }
 
-    static class Pair extends IntPair {
-        public Pair(int x, int y) {
-            super(x, y);
-        }
-
-        @Override
-        public String toString() {
-            return "(" + x + "," + y + ")";
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj instanceof IntPair) {
-                IntPair i = (IntPair) obj;
-                return x == i.x && y == i.y;
-            }
-            return false;
-        }
-
-        @Override
-        public int hashCode() {
-            return x + 1000000 * y; // XXX: heh
-        }
-    }
-
     private static boolean[][] makePathsFromTile(Level l, PdfContentByte cb,
             byte tiles[]) {
 
@@ -1224,25 +1199,25 @@ public class Level2PDF {
         System.out.println();
         printMap(edges, map);
 
-        java.util.List<List<Pair>> paths = makePathsFromEdges(edges);
+        java.util.List<List<Point>> paths = makePathsFromEdges(edges);
 
-        for (Iterator<List<Pair>> iter = paths.iterator(); iter.hasNext();) {
+        for (Iterator<List<Point>> iter = paths.iterator(); iter.hasNext();) {
             List path = iter.next();
             System.out.println("path: " + path);
         }
 
-        List<List<Pair>> simplePaths = simplifyPaths(paths);
+        List<List<Point>> simplePaths = simplifyPaths(paths);
 
         int h = l.getHeight();
-        for (Iterator<List<Pair>> iter = simplePaths.iterator(); iter.hasNext();) {
+        for (Iterator<List<Point>> iter = simplePaths.iterator(); iter.hasNext();) {
             List path = iter.next();
             System.out.println("simple path: " + path);
 
             Iterator i = path.iterator();
-            Pair p = (Pair) i.next();
+            Point p = (Point) i.next();
             cb.moveTo(p.x * BASE_TILE_SIZE, (h - p.y) * BASE_TILE_SIZE);
             while (i.hasNext()) {
-                p = (Pair) i.next();
+                p = (Point) i.next();
                 cb.lineTo(p.x * BASE_TILE_SIZE, (h - p.y) * BASE_TILE_SIZE);
             }
             cb.closePath();
@@ -1250,24 +1225,24 @@ public class Level2PDF {
         return map;
     }
 
-    private static List<List<Pair>> simplifyPaths(
-            java.util.List<List<Pair>> paths) {
-        List<List<Pair>> simplePaths = new ArrayList<List<Pair>>();
+    private static List<List<Point>> simplifyPaths(
+            java.util.List<List<Point>> paths) {
+        List<List<Point>> simplePaths = new ArrayList<List<Point>>();
         // now, we have the segments, so get it down to corners
-        for (Iterator<List<Pair>> iter = paths.iterator(); iter.hasNext();) {
+        for (Iterator<List<Point>> iter = paths.iterator(); iter.hasNext();) {
             List path = iter.next();
-            List<Pair> newPath = new ArrayList<Pair>();
+            List<Point> newPath = new ArrayList<Point>();
             simplePaths.add(newPath);
 
             Iterator iter2 = path.iterator();
-            Pair prev;
-            Pair current = (Pair) iter2.next();
+            Point prev;
+            Point current = (Point) iter2.next();
             newPath.add(current);
 
             byte oldDir = DIR_NONE;
             while (iter2.hasNext()) {
                 prev = current;
-                current = (Pair) iter2.next();
+                current = (Point) iter2.next();
 
                 int x = current.x;
                 int y = current.y;
@@ -1303,14 +1278,14 @@ public class Level2PDF {
         return simplePaths;
     }
 
-    private static java.util.List<List<Pair>> makePathsFromEdges(byte[][] edges) {
+    private static java.util.List<List<Point>> makePathsFromEdges(byte[][] edges) {
         // make the paths list
-        java.util.List<List<Pair>> paths = new ArrayList<List<Pair>>();
+        java.util.List<List<Point>> paths = new ArrayList<List<Point>>();
 
-        Pair start = new Pair(0, 0);
+        Point start = new Point(0, 0);
         while ((start = getNextStart(edges, start)) != null) {
             // new path
-            java.util.List<Pair> path = new ArrayList<Pair>();
+            java.util.List<Point> path = new ArrayList<Point>();
             paths.add(path);
 
             path.add(start);
@@ -1349,7 +1324,7 @@ public class Level2PDF {
                     x++;
                     break;
                 }
-                path.add(new Pair(x, y));
+                path.add(new Point(x, y));
             }
         }
         return paths;
@@ -1384,7 +1359,7 @@ public class Level2PDF {
         return edges;
     }
 
-    private static Pair getNextStart(byte[][] edges, Pair start) {
+    private static Point getNextStart(byte[][] edges, Point start) {
         int startX = start.x;
         for (int y = start.y; y < edges.length; y++) {
             byte[] row = edges[y];
@@ -1393,7 +1368,7 @@ public class Level2PDF {
             }
             for (int x = startX; x < row.length; x++) {
                 if (row[x] != DIR_NONE) {
-                    return new Pair(x, y);
+                    return new Point(x, y);
                 }
             }
         }
