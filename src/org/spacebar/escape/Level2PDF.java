@@ -391,12 +391,16 @@ public class Level2PDF {
         }
     }
 
+    private static Map<String, SVGDocument> svgDocMap = new HashMap<String, SVGDocument>();
+
     private static SVGDocument loadSVG(String name) throws IOException {
-        // TODO: caching
-        System.out.println("reading " + name);
-        SVGDocument doc = (SVGDocument) svgDocFactory.createDocument(null,
-                ResourceUtil.getLocalResourceAsStream(name));
-        return doc;
+        if (!svgDocMap.containsKey(name)) {
+            System.out.println("reading " + name);
+            SVGDocument doc = (SVGDocument) svgDocFactory.createDocument(null,
+                    ResourceUtil.getLocalResourceAsStream(name));
+            svgDocMap.put(name, doc);
+        }
+        return svgDocMap.get(name);
     }
 
     private static void layDownSprites(Level l, PdfContentByte cb) {
@@ -414,6 +418,8 @@ public class Level2PDF {
         Player p = l.getPlayer();
         entityList.get(p.getY()).add(p);
 
+        Map<String, PdfTemplate> sprites = new HashMap<String, PdfTemplate>();
+
         // draw
         int y = l.getHeight() - 1;
         for (List<Entity> row : entityList) {
@@ -422,9 +428,10 @@ public class Level2PDF {
                 if (e.isPlayer()) {
                     // draw player
                     if (l.isDead()) {
-                        drawSprite(cb, x, y, "animation/lasered2.svg");
+                        drawSprite(cb, x, y, sprites, "animation/lasered2.svg");
                     } else {
-                        drawSprite(cb, x, y, "animation/walk_forward_0.svg");
+                        drawSprite(cb, x, y, sprites,
+                                "animation/walk_forward_0.svg");
                     }
                 } else {
                     Bot b = (Bot) e;
@@ -432,24 +439,29 @@ public class Level2PDF {
                     case Entity.B_BOMB_0:
                     case Entity.B_BOMB_MAX:
                     case Entity.B_BOMB_X:
-                        drawSprite(cb, x, y, "animation/bomb_still.svg");
+                        drawSprite(cb, x, y, sprites,
+                                "animation/bomb_still.svg");
                         break;
                     case Entity.B_BROKEN:
-                        drawSprite(cb, x, y, "animation/deadrobot.svg");
+                        drawSprite(cb, x, y, sprites, "animation/deadrobot.svg");
                         break;
                     case Entity.B_DALEK:
-                        drawSprite(cb, x, y, "common-bot.svg");
-                        drawSprite(cb, x, y, "animation/dalek_forward_0.svg");
+                        drawSprite(cb, x, y, sprites, "common-bot.svg");
+                        drawSprite(cb, x, y, sprites,
+                                "animation/dalek_forward_0.svg");
                         break;
                     case Entity.B_DALEK_ASLEEP:
-                        drawSprite(cb, x, y, "animation/dalek_asleep.svg");
+                        drawSprite(cb, x, y, sprites,
+                                "animation/dalek_asleep.svg");
                         break;
                     case Entity.B_HUGBOT:
-                        drawSprite(cb, x, y, "common-bot.svg");
-                        drawSprite(cb, x, y, "animation/hugbot_forward_0.svg");
+                        drawSprite(cb, x, y, sprites, "common-bot.svg");
+                        drawSprite(cb, x, y, sprites,
+                                "animation/hugbot_forward_0.svg");
                         break;
                     case Entity.B_HUGBOT_ASLEEP:
-                        drawSprite(cb, x, y, "animation/hugbot_asleep.svg");
+                        drawSprite(cb, x, y, sprites,
+                                "animation/hugbot_asleep.svg");
                         break;
                     }
                 }
@@ -458,22 +470,22 @@ public class Level2PDF {
         }
     }
 
-    private static void drawSprite(PdfContentByte cb, int x, int y, String name) {
-        PdfTemplate t = getSpriteTemplate(cb, name);
+    private static void drawSprite(PdfContentByte cb, int x, int y,
+            Map<String, PdfTemplate> sprites, String name) {
+        PdfTemplate t = getSpriteTemplate(cb, sprites, name);
         if (t != null) { // XXX
             cb.addTemplate(t, x * BASE_TILE_SIZE, y * BASE_TILE_SIZE);
         }
     }
 
-    private static Map<String, PdfTemplate> spriteTemplateMap = new HashMap<String, PdfTemplate>();
-
-    private static PdfTemplate getSpriteTemplate(PdfContentByte cb, String name) {
-        if (!spriteTemplateMap.containsKey(name)) {
+    private static PdfTemplate getSpriteTemplate(PdfContentByte cb,
+            Map<String, PdfTemplate> sprites, String name) {
+        if (!sprites.containsKey(name)) {
             PdfTemplate t = createSpriteTemplate(cb, name);
-            spriteTemplateMap.put(name, t);
+            sprites.put(name, t);
         }
 
-        return spriteTemplateMap.get(name);
+        return sprites.get(name);
     }
 
     private static PdfTemplate createSpriteTemplate(PdfContentByte cb,
