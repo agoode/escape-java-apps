@@ -625,7 +625,10 @@ public class Level2PDF {
         layDownSimpleTile(l, cb, T_DOWN);
 
         // electric box
-        layDownSimpleTile(l, cb, T_ON); // XXX: need to optimize background
+        byte onOffTiles[] = new byte[] { T_ON, T_OFF };
+        drawSolid(l, cb, onOffTiles, new Color(142, 142, 142));
+        layDownTilesByName(l, cb, onOffTiles, "on-off-common.svg");
+        layDownSimpleTile(l, cb, T_ON);
         layDownSimpleTile(l, cb, T_OFF);
 
         // twisty
