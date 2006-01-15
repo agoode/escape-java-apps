@@ -758,25 +758,32 @@ public class Level2PDF {
 
     private static void fillWire(PdfContentByte cb, List<List<Point2D>> paths,
             int h) {
-        for (Iterator<List<Point2D>> iter = paths.iterator(); iter.hasNext();) {
-            List path = iter.next();
+        for (List<Point2D> path : paths) {
             System.out.println("simple path: " + path);
 
-            Iterator i = path.iterator();
-            Point2D p = (Point2D) i.next();
-            cb.moveTo((float) p.getX() * BASE_TILE_SIZE / 3,
-                    (float) (h * 3 - (p.getY())) * BASE_TILE_SIZE / 3);
-            while (i.hasNext()) {
-                p = (Point2D) i.next();
+            Point2D p = transformForWire(h, path.get(0));
+            cb.moveTo((float) p.getX(), (float) p.getY());
+            for (int i = 1; i < path.size(); i++) {
+                p = path.get(i);
                 double x = p.getX();
                 double y = p.getY();
 
-                cb.lineTo((float) x * BASE_TILE_SIZE / 3, (float) (h * 3 - y)
-                        * BASE_TILE_SIZE / 3);
+                Point2D tP = transformForWire(h, x, y);
+                cb.lineTo((float) tP.getX(), (float) tP.getY());
             }
             cb.closePath();
+            cb.fill();
         }
-        cb.fill();
+    }
+
+    private static Point2D transformForWire(int h, Point2D p) {
+        return transformForWire(h, p.getX(), p.getY());
+    }
+
+    private static Point2D transformForWire(int h, double x, double y) {
+        Point2D tP = new Point2D.Double(x * BASE_TILE_SIZE / 3, (h * 3 - y)
+                * BASE_TILE_SIZE / 3);
+        return tP;
     }
 
     private static List<List<Point2D>> shrinkPathsForWire(
@@ -1254,17 +1261,10 @@ public class Level2PDF {
 
         java.util.List<List<Point2D>> paths = makePathsFromEdges(edges);
 
-        for (Iterator<List<Point2D>> iter = paths.iterator(); iter.hasNext();) {
-            List path = iter.next();
-            System.out.println("path: " + path);
-        }
-
         List<List<Point2D>> simplePaths = simplifyPaths(paths);
 
         int h = l.getHeight();
-        for (Iterator<List<Point2D>> iter = simplePaths.iterator(); iter
-                .hasNext();) {
-            List path = iter.next();
+        for (List<Point2D> path : simplePaths) {
             System.out.println("simple path: " + path);
 
             Iterator i = path.iterator();
