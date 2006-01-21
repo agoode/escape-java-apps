@@ -452,6 +452,7 @@ public class Level2PDF {
                                 "animation/dalek_forward_0.svg");
                         break;
                     case Entity.B_DALEK_ASLEEP:
+                        drawSprite(cb, x, y, sprites, "common-sleep-bot.svg");
                         drawSprite(cb, x, y, sprites,
                                 "animation/dalek_asleep.svg");
                         break;
@@ -461,6 +462,7 @@ public class Level2PDF {
                                 "animation/hugbot_forward_0.svg");
                         break;
                     case Entity.B_HUGBOT_ASLEEP:
+                        drawSprite(cb, x, y, sprites, "common-sleep-bot.svg");
                         drawSprite(cb, x, y, sprites,
                                 "animation/hugbot_asleep.svg");
                         break;
@@ -474,9 +476,7 @@ public class Level2PDF {
     private static void drawSprite(PdfContentByte cb, int x, int y,
             Map<String, PdfTemplate> sprites, String name) {
         PdfTemplate t = getSpriteTemplate(cb, sprites, name);
-        if (t != null) { // XXX
-            cb.addTemplate(t, x * BASE_TILE_SIZE, y * BASE_TILE_SIZE);
-        }
+        cb.addTemplate(t, x * BASE_TILE_SIZE, y * BASE_TILE_SIZE);
     }
 
     private static PdfTemplate getSpriteTemplate(PdfContentByte cb,
@@ -496,7 +496,6 @@ public class Level2PDF {
             doc = loadSVG(name);
         } catch (IOException e) {
             e.printStackTrace();
-            return null; // XXX
         }
 
         BridgeContext bc = new BridgeContext(new UserAgentAdapter());
@@ -675,7 +674,6 @@ public class Level2PDF {
         layDownTilesByName(l, cb, new byte[] { T_BUTTON, T_BLIGHT, T_RLIGHT,
                 T_GLIGHT, T_NSWE, T_TRANSPONDER }, "crossover.svg");
 
-        // then draw the wire in one pass
         drawWire(l, cb);
 
         // then the things on top
