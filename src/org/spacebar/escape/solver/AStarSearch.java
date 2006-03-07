@@ -438,6 +438,15 @@ public class AStarSearch implements Runnable {
 
     public static void main(String[] args) {
         System.out.println(VERSION);
+
+        // dummy
+        try {
+            new Robot();
+        } catch (AWTException e1) {
+            e1.printStackTrace();
+        }
+
+
         try {
             EquateableLevel l = new EquateableLevel(new BitInputStream(
                     new FileInputStream(args[0])));
@@ -515,14 +524,18 @@ public class AStarSearch implements Runnable {
     private static void robot(List<Byte> s) {
         int time = 2;
         String options[] = { "Type The Solution", "Exit" };
+
         int result = JOptionPane.showOptionDialog(null,
                 "Do you want to run the solution?", "Solution Found",
                 JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null,
                 options, options[0]);
 
+//        System.out.println("result = " + result);
+        
         if (result == JOptionPane.YES_OPTION) {
             Robot r = null;
             try {
+//                System.out.println("Initializing robot...");
                 r = new Robot();
             } catch (AWTException e) {
                 e.printStackTrace();
