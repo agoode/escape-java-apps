@@ -16,8 +16,6 @@ import org.apache.batik.gvt.GraphicsNode;
 import org.apache.batik.util.XMLResourceDescriptor;
 import org.w3c.dom.svg.SVGDocument;
 
-import com.lowagie.text.pdf.PdfTemplate;
-
 public class SVGColorExtract {
     final static String parser = XMLResourceDescriptor.getXMLParserClassName();
 
