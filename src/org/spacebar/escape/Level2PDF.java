@@ -436,13 +436,8 @@ public class Level2PDF {
                     }
                 } else {
                     Bot b = (Bot) e;
-                    switch (b.getBotType()) {
-                    case Entity.B_BOMB_0:
-                    case Entity.B_BOMB_MAX:
-                    case Entity.B_BOMB_X:
-                        drawSprite(cb, x, y, sprites,
-                                "animation/bomb_still.svg");
-                        break;
+                    byte type = b.getBotType();
+                    switch (type) {
                     case Entity.B_BROKEN:
                         drawSprite(cb, x, y, sprites, "animation/deadrobot.svg");
                         break;
@@ -466,6 +461,14 @@ public class Level2PDF {
                         drawSprite(cb, x, y, sprites,
                                 "animation/hugbot_asleep.svg");
                         break;
+                    default:
+                        // bomb?
+                        if (type >= Entity.B_BOMB_0 && type <= Entity.B_BOMB_MAX) {
+                            drawSprite(cb, x, y, sprites,
+                                    "animation/bomb_still.svg");
+                        }
+                        break;
+
                     }
                 }
             }
@@ -1555,6 +1558,7 @@ public class Level2PDF {
         cb.rectangle(0, 0, (l.getWidth() + 2 * PAD_FACTOR) * BASE_TILE_SIZE, (l
                 .getHeight() + 2 * PAD_FACTOR)
                 * BASE_TILE_SIZE);
+        cb.setColorFill(Color.BLACK);
         cb.fill();
     }
 
