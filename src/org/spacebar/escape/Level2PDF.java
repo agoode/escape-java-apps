@@ -463,7 +463,8 @@ public class Level2PDF {
                         break;
                     default:
                         // bomb?
-                        if (type >= Entity.B_BOMB_0 && type <= Entity.B_BOMB_MAX) {
+                        if (type >= Entity.B_BOMB_0
+                                && type <= Entity.B_BOMB_MAX) {
                             drawSprite(cb, x, y, sprites,
                                     "animation/bomb_still.svg");
                         }
@@ -909,7 +910,8 @@ public class Level2PDF {
         tileTemplate.restoreState();
 
         // go
-        boolean whereToDraw[][] = makeTileMap(l, new byte[] { tile });
+        boolean whereToDraw[][] = makeTileMap(l, TileCondition
+                .createTileMatchCondition(tile));
 
         drawTiles(l, cb, tileTemplate, whereToDraw);
     }
@@ -949,7 +951,8 @@ public class Level2PDF {
         tileTemplate.restoreState();
 
         // go
-        boolean whereToDraw[][] = makeTileMap(l, new byte[] { tile });
+        boolean whereToDraw[][] = makeTileMap(l, TileCondition
+                .createTileMatchCondition(tile));
 
         drawTiles(l, cb, tileTemplate, whereToDraw);
     }
@@ -964,7 +967,8 @@ public class Level2PDF {
         PdfTemplate tileTemplate = createColorTemplate(cb, colors, temps);
 
         // draw the background
-        boolean whereToDraw[][] = makeTileMap(l, new byte[] { tile });
+        boolean whereToDraw[][] = makeTileMap(l, TileCondition
+                .createTileMatchCondition(tile));
 
         // draw each tile
         drawTiles(l, cb, tileTemplate, whereToDraw);
@@ -1004,7 +1008,8 @@ public class Level2PDF {
         }
 
         PdfTemplate tileTemplate = createTileTemplate(cb, name);
-        boolean whereToDraw[][] = makeTileMap(l, tiles);
+        boolean whereToDraw[][] = makeTileMap(l, TileCondition
+                .createTileMatchCondition(tiles));
 
         drawTiles(l, cb, tileTemplate, whereToDraw);
     }
@@ -1071,7 +1076,8 @@ public class Level2PDF {
         }
 
         PdfTemplate tileTemplate = createTileTemplate(cb, tile);
-        boolean whereToDraw[][] = makeTileMap(l, new byte[] { tile });
+        boolean whereToDraw[][] = makeTileMap(l, TileCondition
+                .createTileMatchCondition(tile));
 
         drawTiles(l, cb, tileTemplate, whereToDraw);
     }
@@ -1082,10 +1088,12 @@ public class Level2PDF {
         }
 
         // 2 different things, depending on entity/no entity
-        byte tiles[] = new byte[] { T_EXIT };
+        byte tile = T_EXIT;
 
-        boolean whereToDraw[][] = makeEntitySensitiveTileMap(l, tiles, false);
-        boolean whereToDraw2[][] = makeEntitySensitiveTileMap(l, tiles, true);
+        boolean whereToDraw[][] = makeTileMap(l, TileCondition
+                .createTileMatchCondition(tile, false));
+        boolean whereToDraw2[][] = makeTileMap(l, TileCondition
+                .createTileMatchCondition(tile, true));
 
         boolean nonEntExit = false;
         boolean entExit = false;
@@ -1252,7 +1260,8 @@ public class Level2PDF {
     private static boolean[][] makePathsFromTile(Level l, PdfContentByte cb,
             byte tiles[]) {
 
-        boolean map[][] = makeTileMap(l, tiles);
+        boolean map[][] = makeTileMap(l, TileCondition
+                .createTileMatchCondition(tiles));
         // printMap(map);
 
         byte[][] edges = findEdges(map);
@@ -1490,7 +1499,7 @@ public class Level2PDF {
         }
     }
 
-    private static boolean[][] makeTileMap(Level l, byte tiles[]) {
+    private static boolean[][] makeTileMap(Level l, TileCondition c) {
         int w = l.getWidth();
         int h = l.getHeight();
 
@@ -1498,33 +1507,8 @@ public class Level2PDF {
         for (int y = 0; y < space.length; y++) {
             boolean[] row = space[y];
             for (int x = 0; x < row.length; x++) {
-                COORDINATE: for (int i = 0; i < tiles.length; i++) {
-                    byte t = l.tileAt(x, y);
-                    if (t == tiles[i]) {
-                        row[x] = true;
-                        continue COORDINATE;
-                    }
-                }
-            }
-        }
-        return space;
-    }
-
-    private static boolean[][] makeEntitySensitiveTileMap(Level l,
-            byte tiles[], boolean hasEntity) {
-        int w = l.getWidth();
-        int h = l.getHeight();
-
-        boolean space[][] = new boolean[h][w];
-        for (int y = 0; y < space.length; y++) {
-            boolean[] row = space[y];
-            for (int x = 0; x < row.length; x++) {
-                COORDINATE: for (int i = 0; i < tiles.length; i++) {
-                    byte t = l.tileAt(x, y);
-                    if (t == tiles[i] && (l.isEntityAt(x, y) == hasEntity)) {
-                        row[x] = true;
-                        continue COORDINATE;
-                    }
+                if (c.test(l, x, y)) {
+                    row[x] = true;
                 }
             }
         }
