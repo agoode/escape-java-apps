@@ -736,23 +736,203 @@ public class Level2PDF {
         }
 
         printMap(map);
-        
-/*
-        byte[][] edges = findEdges(map);
-        printMap(edges, map);
 
-        List<List<Point2D>> simplePaths = simplifyPaths(makePathsFromEdges(edges));
+        // now, we have wire endpoints, so follow them
+        List<List<Point2D>> paths = new ArrayList<List<Point2D>>();
+        for (int y = 0; y < map.length; y++) {
+            boolean[] row = map[y];
+            for (int x = 0; x < row.length; x++) {
+                if (!map[y][x]) {
+                    continue;
+                }
+                // mark as taken
+                map[y][x] = false;
 
-        List<List<Point2D>> paths1 = shrinkPathsForWire(simplePaths, 0.3f);
-        List<List<Point2D>> paths2 = shrinkPathsForWire(simplePaths, 0.35f);
+                // follow
+                List<Point2D> path = followWire(l, map, y, x);
+                paths.add(path);
+            }
+        }
+
+        // simplify
+        List<List<Point2D>> simplePaths = simplifyPaths(paths);
+
+        System.out.println(paths);
 
         // draw
         // cb.setColorFill(new Color(47, 47, 47));
         cb.setColorFill(Color.BLUE);
-        fillWire(cb, paths1, h);
+        cb.setLineWidth(5f);
+        strokeWire(cb, simplePaths, h);
         cb.setColorFill(Color.RED);
-        fillWire(cb, paths2, h);
-        */
+        cb.setLineWidth(3f);
+        strokeWire(cb, simplePaths, h);
+    }
+
+    private static List<Point2D> followWire(Level l, boolean[][] map, int y,
+            int x) {
+        List<Point2D> path = new ArrayList<Point2D>();
+        // add initial point
+        path.add(new Point2D.Float(x, y));
+
+        byte lastDir = Entity.DIR_NONE;
+        while (!map[y][x]) {
+            // move onto the next tile
+            switch (lastDir) {
+            case Entity.DIR_UP:
+                y--;
+                break;
+
+            case Entity.DIR_DOWN:
+                y++;
+                break;
+
+            case Entity.DIR_LEFT:
+                x--;
+                break;
+
+            case Entity.DIR_RIGHT:
+                x++;
+                break;
+            }
+
+            // get the new tile
+            byte t = l.tileAt(x / 3, y / 3);
+            System.out.println("following (" + x + "," + y + "): " + t);
+
+            // follow it
+            switch (t) {
+            case T_NS:
+                if (y % 3 == 0) {
+                    // top, moving down
+                    y += 2;
+                    lastDir = Entity.DIR_DOWN;
+                } else {
+                    // bottom, moving up
+                    y -= 2;
+                    lastDir = Entity.DIR_UP;
+                }
+                path.add(new Point2D.Float(x, y));
+                break;
+
+            case T_NE:
+                if (y % 3 == 0) {
+                    // top, moving down, then right
+                    y += 1;
+                    path.add(new Point2D.Float(x, y));
+                    x += 1;
+                    path.add(new Point2D.Float(x, y));
+                    lastDir = Entity.DIR_RIGHT;
+                } else {
+                    // right, moving left, then up
+                    x -= 1;
+                    path.add(new Point2D.Float(x, y));
+                    y -= 2;
+                    path.add(new Point2D.Float(x, y));
+                    lastDir = Entity.DIR_UP;
+                }
+                break;
+
+            case T_NW:
+                if (y % 3 == 0) {
+                    // top, moving down, then left
+                    y += 1;
+                    path.add(new Point2D.Float(x, y));
+                    x -= 1;
+                    path.add(new Point2D.Float(x, y));
+                    lastDir = Entity.DIR_LEFT;
+                } else {
+                    // left, moving right, then up
+                    x += 1;
+                    path.add(new Point2D.Float(x, y));
+                    y -= 1;
+                    path.add(new Point2D.Float(x, y));
+                    lastDir = Entity.DIR_UP;
+                }
+                break;
+
+            case T_SE:
+                if (y % 3 == 2) {
+                    // bottom, moving up, then right
+                    y -= 1;
+                    path.add(new Point2D.Float(x, y));
+                    x += 1;
+                    path.add(new Point2D.Float(x, y));
+                    lastDir = Entity.DIR_RIGHT;
+                } else {
+                    // right, moving left, then down
+                    x -= 1;
+                    path.add(new Point2D.Float(x, y));
+                    y += 1;
+                    path.add(new Point2D.Float(x, y));
+                    lastDir = Entity.DIR_DOWN;
+                }
+                break;
+
+            case T_SW:
+                if (y % 3 == 0) {
+                    // bottom, moving up, then left
+                    y -= 1;
+                    path.add(new Point2D.Float(x, y));
+                    x -= 1;
+                    path.add(new Point2D.Float(x, y));
+                    lastDir = Entity.DIR_LEFT;
+                } else {
+                    // left, moving right, then down
+                    x += 1;
+                    path.add(new Point2D.Float(x, y));
+                    y += 1;
+                    path.add(new Point2D.Float(x, y));
+                    lastDir = Entity.DIR_DOWN;
+                }
+                break;
+
+            case T_WE:
+                if (x % 3 == 0) {
+                    // left, moving right
+                    x += 2;
+                    lastDir = Entity.DIR_RIGHT;
+                } else {
+                    // right, moving left
+                    x -= 2;
+                    lastDir = Entity.DIR_LEFT;
+                }
+                path.add(new Point2D.Float(x, y));
+                break;
+
+            case T_BUTTON:
+            case T_BLIGHT:
+            case T_RLIGHT:
+            case T_GLIGHT:
+            case T_NSWE:
+            case T_TRANSPONDER:
+                if (x % 3 == 0) {
+                    // left, moving right
+                    x += 2;
+                    lastDir = Entity.DIR_RIGHT;
+                } else if (y % 3 == 0) {
+                    // top, moving down
+                    y += 2;
+                    lastDir = Entity.DIR_DOWN;
+                } else if (x % 3 == 2) {
+                    // right, moving left
+                    x -= 2;
+                    lastDir = Entity.DIR_LEFT;
+                } else {
+                    // bottom, moving up
+                    y -= 2;
+                    lastDir = Entity.DIR_UP;
+                }
+                path.add(new Point2D.Float(x, y));
+                break;
+
+            default:
+                assert false : "Should have wire tile";
+            }
+        }
+        map[y][x] = false;
+
+        return path;
     }
 
     private static void checkTermination(Level l, boolean[][] map, int y,
@@ -793,16 +973,16 @@ public class Level2PDF {
 
         case T_NW:
             return dir == Entity.DIR_UP || dir == Entity.DIR_LEFT;
-            
+
         case T_SE:
             return dir == Entity.DIR_DOWN || dir == Entity.DIR_RIGHT;
-            
+
         case T_SW:
             return dir == Entity.DIR_DOWN || dir == Entity.DIR_LEFT;
-            
+
         case T_WE:
             return dir == Entity.DIR_LEFT || dir == Entity.DIR_RIGHT;
-            
+
         case T_BUTTON:
         case T_BLIGHT:
         case T_RLIGHT:
@@ -810,7 +990,7 @@ public class Level2PDF {
         case T_NSWE:
         case T_TRANSPONDER:
             return true;
-            
+
         default:
             return false;
         }
@@ -823,8 +1003,8 @@ public class Level2PDF {
         return l.tileAt(x, y);
     }
 
-    private static void fillWire(PdfContentByte cb, List<List<Point2D>> paths,
-            int h) {
+    private static void strokeWire(PdfContentByte cb,
+            List<List<Point2D>> paths, int h) {
         for (List<Point2D> path : paths) {
             System.out.println("simple path: " + path);
 
@@ -838,9 +1018,8 @@ public class Level2PDF {
                 Point2D tP = transformForWire(h, x, y);
                 cb.lineTo((float) tP.getX(), (float) tP.getY());
             }
-            cb.closePath();
-            cb.fill();
         }
+        cb.stroke();
     }
 
     private static Point2D transformForWire(int h, Point2D p) {
