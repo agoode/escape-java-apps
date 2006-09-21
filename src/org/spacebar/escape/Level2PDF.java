@@ -96,8 +96,8 @@ public class Level2PDF {
 
     /**
      * @param l
-     * @param basename
-     * @throws IOException
+     * @param page
+     * @param out
      */
     public static void makePDF(Level l, Rectangle page, OutputStream out) {
         float levAspect = (float) l.getWidth() / (float) l.getHeight();
@@ -118,7 +118,7 @@ public class Level2PDF {
         try {
 
             // we create a writer that listens to the document
-            // and directs a PDF-stream to a file
+            // and directs a PDF-stream to a stream
             PdfWriter writer = PdfWriter.getInstance(document, out);
 
             // metadata
@@ -685,7 +685,7 @@ public class Level2PDF {
     }
 
     private static void drawWire(Level l, PdfContentByte cb) {
-        // make map of wire spots
+        // make map of wire terminating points
         int w = l.getWidth();
         int h = l.getHeight();
 
@@ -695,53 +695,49 @@ public class Level2PDF {
             for (int x = 0; x < row.length; x += 3) {
                 byte t = l.tileAt(x / 3, y / 3);
 
-                // mark center
-                map[y + 1][x + 1] = true;
-
-                // customize
                 switch (t) {
                 case T_NS:
-                    setNorth(map, y, x);
-                    setSouth(map, y, x);
+                    checkTermination(l, map, y, x, true, true, false, false);
                     break;
+
                 case T_NE:
-                    setNorth(map, y, x);
-                    setEast(map, y, x);
+                    checkTermination(l, map, y, x, true, false, true, false);
                     break;
+
                 case T_NW:
-                    setNorth(map, y, x);
-                    setWest(map, y, x);
+                    checkTermination(l, map, y, x, true, false, false, true);
                     break;
+
                 case T_SE:
-                    setSouth(map, y, x);
-                    setEast(map, y, x);
+                    checkTermination(l, map, y, x, false, true, true, false);
                     break;
+
                 case T_SW:
-                    setSouth(map, y, x);
-                    setWest(map, y, x);
+                    checkTermination(l, map, y, x, false, true, false, true);
                     break;
+
                 case T_WE:
-                    setWest(map, y, x);
-                    setEast(map, y, x);
+                    checkTermination(l, map, y, x, false, false, true, true);
                     break;
+
                 case T_BUTTON:
                 case T_BLIGHT:
                 case T_RLIGHT:
                 case T_GLIGHT:
                 case T_NSWE:
                 case T_TRANSPONDER:
-                    setNorth(map, y, x);
-                    setSouth(map, y, x);
-                    setWest(map, y, x);
-                    setEast(map, y, x);
+                    checkTermination(l, map, y, x, true, true, true, true);
                     break;
+
                 default:
-                    // not wire at all, unmark center
-                    map[y + 1][x + 1] = false;
+                // nothing
                 }
             }
         }
 
+        printMap(map);
+        
+/*
         byte[][] edges = findEdges(map);
         printMap(edges, map);
 
@@ -756,6 +752,75 @@ public class Level2PDF {
         fillWire(cb, paths1, h);
         cb.setColorFill(Color.RED);
         fillWire(cb, paths2, h);
+        */
+    }
+
+    private static void checkTermination(Level l, boolean[][] map, int y,
+            int x, boolean north, boolean south, boolean east, boolean west) {
+        if (north) {
+            byte t = getTile(l, y / 3 - 1, x / 3);
+            if (!wireConnects(t, Entity.DIR_DOWN)) {
+                setNorth(map, y, x);
+            }
+        }
+        if (south) {
+            byte t = getTile(l, y / 3 + 1, x / 3);
+            if (!wireConnects(t, Entity.DIR_UP)) {
+                setSouth(map, y, x);
+            }
+        }
+        if (east) {
+            byte t = getTile(l, y / 3, x / 3 + 1);
+            if (!wireConnects(t, Entity.DIR_LEFT)) {
+                setEast(map, y, x);
+            }
+        }
+        if (west) {
+            byte t = getTile(l, y / 3, x / 3 - 1);
+            if (!wireConnects(t, Entity.DIR_RIGHT)) {
+                setWest(map, y, x);
+            }
+        }
+    }
+
+    private static boolean wireConnects(byte t, byte dir) {
+        switch (t) {
+        case T_NS:
+            return dir == Entity.DIR_UP || dir == Entity.DIR_DOWN;
+
+        case T_NE:
+            return dir == Entity.DIR_UP || dir == Entity.DIR_RIGHT;
+
+        case T_NW:
+            return dir == Entity.DIR_UP || dir == Entity.DIR_LEFT;
+            
+        case T_SE:
+            return dir == Entity.DIR_DOWN || dir == Entity.DIR_RIGHT;
+            
+        case T_SW:
+            return dir == Entity.DIR_DOWN || dir == Entity.DIR_LEFT;
+            
+        case T_WE:
+            return dir == Entity.DIR_LEFT || dir == Entity.DIR_RIGHT;
+            
+        case T_BUTTON:
+        case T_BLIGHT:
+        case T_RLIGHT:
+        case T_GLIGHT:
+        case T_NSWE:
+        case T_TRANSPONDER:
+            return true;
+            
+        default:
+            return false;
+        }
+    }
+
+    private static byte getTile(Level l, int y, int x) {
+        if (y < 0 || x < 0 || y >= l.getHeight() || x >= l.getWidth()) {
+            return -1;
+        }
+        return l.tileAt(x, y);
     }
 
     private static void fillWire(PdfContentByte cb, List<List<Point2D>> paths,

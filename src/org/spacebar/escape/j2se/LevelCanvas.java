@@ -9,8 +9,6 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 
 import org.spacebar.escape.common.*;
 
@@ -151,10 +149,6 @@ public class LevelCanvas extends DoubleBufferCanvas {
                 theLevel.getHeight() * Drawing.getTileSize(scale));
     }
 
-    /**
-     * @throws IOException
-     * @throws FileNotFoundException
-     */
     private void initLevel() {
         showBizarro = false;
         status = null;

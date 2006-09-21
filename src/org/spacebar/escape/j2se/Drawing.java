@@ -129,14 +129,6 @@ public class Drawing {
         return zoom;
     }
 
-    /**
-     * @param g
-     * @param theLevel
-     * @param xScroll
-     * @param yScroll
-     * @param playerDir
-     * @param scale
-     */
     public static void paintSprites(Graphics2D g, Level theLevel, int xScroll,
             int yScroll, int scale) {
         int spriteCount = 1 + theLevel.getBotCount();
@@ -294,15 +286,6 @@ public class Drawing {
         }
     }
 
-    /**
-     * @param theLevel
-     * @param x
-     * @param y
-     * @param xScroll
-     * @param yScroll
-     * @param showBizarro
-     * @return
-     */
     private static int getTile(Level theLevel, int x, int y, boolean showBizarro) {
         int tile;
         if (showBizarro) {

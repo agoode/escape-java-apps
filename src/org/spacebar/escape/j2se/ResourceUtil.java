@@ -68,12 +68,6 @@ public class ResourceUtil {
         return createScaledImages(origImg, smaller, bigger);
     }
 
-    /**
-     * @param original
-     * @param smaller
-     * @param bigger
-     * @return
-     */
     static BufferedImage[] createScaledImages(BufferedImage original,
             int smaller, int bigger) {
         BufferedImage smallerImgs[] = new BufferedImage[smaller + 1];

@@ -80,10 +80,6 @@ public class EscapeFrame extends Frame {
 
     private WindowAdapter escapeSimulator;
 
-    /**
-     * @param l
-     * @param c
-     */
     public void setLevel(Level l) {
         // used to get out of the canvas
         Continuation c = new Continuation() {
