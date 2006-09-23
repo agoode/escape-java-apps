@@ -749,6 +749,8 @@ public class Level2PDF {
                 map[y][x] = false;
 
                 // follow
+                System.out.println("going to start following from (" + x + ","
+                        + y + ")");
                 List<Point2D> path = followWire(l, map, y, x);
                 paths.add(path);
             }
@@ -761,20 +763,17 @@ public class Level2PDF {
 
         // draw
         // cb.setColorFill(new Color(47, 47, 47));
-        cb.setColorFill(Color.BLUE);
+        cb.setColorStroke(Color.BLUE);
         cb.setLineWidth(5f);
-        strokeWire(cb, simplePaths, h);
-        cb.setColorFill(Color.RED);
+        strokeWire(cb, paths, h);
+        cb.setColorStroke(Color.RED);
         cb.setLineWidth(3f);
-        strokeWire(cb, simplePaths, h);
+        strokeWire(cb, paths, h);
     }
 
     private static List<Point2D> followWire(Level l, boolean[][] map, int y,
             int x) {
         List<Point2D> path = new ArrayList<Point2D>();
-        // add initial point
-        path.add(new Point2D.Float(x, y));
-
         byte lastDir = Entity.DIR_NONE;
         while (!map[y][x]) {
             // move onto the next tile
@@ -796,11 +795,14 @@ public class Level2PDF {
                 break;
             }
 
+            // add this point
+            path.add(new Point2D.Double(x, y));
+
             // get the new tile
             byte t = l.tileAt(x / 3, y / 3);
-            System.out.println("following (" + x + "," + y + "): " + t);
+            // System.out.println("following (" + x + "," + y + "): " + t);
 
-            // follow it
+            // follow it within the current tile
             switch (t) {
             case T_NS:
                 if (y % 3 == 0) {
@@ -812,23 +814,23 @@ public class Level2PDF {
                     y -= 2;
                     lastDir = Entity.DIR_UP;
                 }
-                path.add(new Point2D.Float(x, y));
+                path.add(new Point2D.Double(x, y));
                 break;
 
             case T_NE:
                 if (y % 3 == 0) {
                     // top, moving down, then right
                     y += 1;
-                    path.add(new Point2D.Float(x, y));
+                    path.add(new Point2D.Double(x, y));
                     x += 1;
-                    path.add(new Point2D.Float(x, y));
+                    path.add(new Point2D.Double(x, y));
                     lastDir = Entity.DIR_RIGHT;
                 } else {
                     // right, moving left, then up
                     x -= 1;
-                    path.add(new Point2D.Float(x, y));
-                    y -= 2;
-                    path.add(new Point2D.Float(x, y));
+                    path.add(new Point2D.Double(x, y));
+                    y -= 1;
+                    path.add(new Point2D.Double(x, y));
                     lastDir = Entity.DIR_UP;
                 }
                 break;
@@ -837,16 +839,16 @@ public class Level2PDF {
                 if (y % 3 == 0) {
                     // top, moving down, then left
                     y += 1;
-                    path.add(new Point2D.Float(x, y));
+                    path.add(new Point2D.Double(x, y));
                     x -= 1;
-                    path.add(new Point2D.Float(x, y));
+                    path.add(new Point2D.Double(x, y));
                     lastDir = Entity.DIR_LEFT;
                 } else {
                     // left, moving right, then up
                     x += 1;
-                    path.add(new Point2D.Float(x, y));
+                    path.add(new Point2D.Double(x, y));
                     y -= 1;
-                    path.add(new Point2D.Float(x, y));
+                    path.add(new Point2D.Double(x, y));
                     lastDir = Entity.DIR_UP;
                 }
                 break;
@@ -855,16 +857,16 @@ public class Level2PDF {
                 if (y % 3 == 2) {
                     // bottom, moving up, then right
                     y -= 1;
-                    path.add(new Point2D.Float(x, y));
+                    path.add(new Point2D.Double(x, y));
                     x += 1;
-                    path.add(new Point2D.Float(x, y));
+                    path.add(new Point2D.Double(x, y));
                     lastDir = Entity.DIR_RIGHT;
                 } else {
                     // right, moving left, then down
                     x -= 1;
-                    path.add(new Point2D.Float(x, y));
+                    path.add(new Point2D.Double(x, y));
                     y += 1;
-                    path.add(new Point2D.Float(x, y));
+                    path.add(new Point2D.Double(x, y));
                     lastDir = Entity.DIR_DOWN;
                 }
                 break;
@@ -873,16 +875,16 @@ public class Level2PDF {
                 if (y % 3 == 0) {
                     // bottom, moving up, then left
                     y -= 1;
-                    path.add(new Point2D.Float(x, y));
+                    path.add(new Point2D.Double(x, y));
                     x -= 1;
-                    path.add(new Point2D.Float(x, y));
+                    path.add(new Point2D.Double(x, y));
                     lastDir = Entity.DIR_LEFT;
                 } else {
                     // left, moving right, then down
                     x += 1;
-                    path.add(new Point2D.Float(x, y));
+                    path.add(new Point2D.Double(x, y));
                     y += 1;
-                    path.add(new Point2D.Float(x, y));
+                    path.add(new Point2D.Double(x, y));
                     lastDir = Entity.DIR_DOWN;
                 }
                 break;
@@ -897,7 +899,7 @@ public class Level2PDF {
                     x -= 2;
                     lastDir = Entity.DIR_LEFT;
                 }
-                path.add(new Point2D.Float(x, y));
+                path.add(new Point2D.Double(x, y));
                 break;
 
             case T_BUTTON:
@@ -923,7 +925,7 @@ public class Level2PDF {
                     y -= 2;
                     lastDir = Entity.DIR_UP;
                 }
-                path.add(new Point2D.Float(x, y));
+                path.add(new Point2D.Double(x, y));
                 break;
 
             default:
@@ -931,6 +933,9 @@ public class Level2PDF {
             }
         }
         map[y][x] = false;
+
+        // add last point
+        path.add(new Point2D.Double(x, y));
 
         return path;
     }
