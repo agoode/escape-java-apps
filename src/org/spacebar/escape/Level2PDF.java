@@ -1071,16 +1071,47 @@ public class Level2PDF {
             cb.moveTo((float) p.getX(), (float) p.getY());
             for (int i = 1; i < path.size(); i++) {
                 p = path.get(i);
-
                 if (p == null) {
                     // close path
                     cb.closePath();
                 } else {
-                    double x = p.getX();
-                    double y = p.getY();
+                    Point2D tP = transformForWire(h, p);
+                    double tX = tP.getX();
+                    double tY = tP.getY();
 
-                    Point2D tP = transformForWire(h, x, y);
-                    cb.lineTo((float) tP.getX(), (float) tP.getY());
+                    Point2D curveTo1 = null;
+                    Point2D curveTo2 = null;
+                    Point2D curveTo3 = null;
+                    if (i != 0 && i < path.size() - 1) {
+                        Point2D nextP = path.get(i + 1);
+                        if (nextP != null) {
+                            Point2D nP = transformForWire(h, nextP);
+                            Point2D pP = transformForWire(h, path.get(i - 1));
+
+                            double pX = pP.getX();
+                            double pY = pP.getY();
+                            double nX = nP.getX();
+                            double nY = nP.getY();
+
+                            if (nX != pX && nY != pY) {
+                                curveTo1 = new Point2D.Double((pX + tX) / 2.0,
+                                        (pY + tY) / 2.0);
+                                curveTo2 = new Point2D.Double((nX + tX) / 2.0,
+                                        (nY + tY) / 2.0);
+                                curveTo3 = nP;
+                            }
+                        }
+                    }
+
+                    if (curveTo1 != null) {
+                        cb.curveTo((float) curveTo1.getX(), (float) curveTo1
+                                .getY(), (float) curveTo2.getX(),
+                                (float) curveTo2.getY(), (float) curveTo3
+                                        .getX(), (float) curveTo3.getY());
+                        i++;
+                    } else {
+                        cb.lineTo((float) tP.getX(), (float) tP.getY());
+                    }
                 }
             }
         }
