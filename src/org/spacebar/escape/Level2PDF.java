@@ -691,9 +691,9 @@ public class Level2PDF {
 
         // set up wire map so we can find closed-loop wires
         boolean remainingWires[][] = new boolean[h * 3][w * 3];
-        boolean endpointMap[][] = new boolean[h * 3][w * 3];
+        byte endpointMap[][] = new byte[h * 3][w * 3];
         for (int y = 0; y < endpointMap.length; y += 3) {
-            boolean[] row = endpointMap[y];
+            byte[] row = endpointMap[y];
             for (int x = 0; x < row.length; x += 3) {
                 byte t = l.tileAt(x / 3, y / 3);
 
@@ -752,32 +752,17 @@ public class Level2PDF {
         List<List<Point2D>> paths = new ArrayList<List<Point2D>>();
 
         // follow for open-loop wires
-        for (int y = 0; y < endpointMap.length; y++) {
-            boolean[] row = endpointMap[y];
-            for (int x = 0; x < row.length; x++) {
-                if (!endpointMap[y][x]) {
-                    continue;
-                }
-                // mark as taken
-                endpointMap[y][x] = false;
-
-                // follow
-                System.out.println("going to start following from (" + x + ","
-                        + y + ")");
-                List<Point2D> path = followWire(l, endpointMap, remainingWires,
-                        y, x);
-                paths.add(path);
-            }
-        }
+        followAllWireEndpoints(l, remainingWires, endpointMap, paths);
 
         printMap(remainingWires);
 
         // go back, find all wires missed
+        while (markFirstRemainingWire(endpointMap, remainingWires)) {
+            followAllWireEndpoints(l, remainingWires, endpointMap, paths);
+            printMap(remainingWires);
+        }
 
-        // simplify
-        List<List<Point2D>> simplePaths = simplifyPaths(paths);
-
-        System.out.println(paths);
+        // XXX do curve things
 
         // draw
         // cb.setColorFill(new Color(47, 47, 47));
@@ -789,17 +774,48 @@ public class Level2PDF {
         strokeWire(cb, paths, h);
     }
 
-    private static boolean isWire(byte t) {
-        return t == T_NS || t == T_NE || t == T_NW || t == T_SE || t == T_SW
-                || t == T_WE || t == T_BUTTON || t == T_BLIGHT || t == T_RLIGHT
-                || t == T_GLIGHT || t == T_NSWE || t == T_TRANSPONDER;
+    private static boolean markFirstRemainingWire(byte[][] endpointMap,
+            boolean[][] remainingWires) {
+        for (int y = 0; y < remainingWires.length; y++) {
+            boolean row[] = remainingWires[y];
+            for (int x = 0; x < row.length; x++) {
+                // do the mod thing, because we don't want the center
+                if (row[x] && x % 3 != 2 && y % 3 != 2) {
+                    endpointMap[y][x] += 2;
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
-    private static List<Point2D> followWire(Level l, boolean[][] map,
+    private static void followAllWireEndpoints(Level l,
+            boolean[][] remainingWires, byte[][] endpointMap,
+            List<List<Point2D>> paths) {
+        for (int y = 0; y < endpointMap.length; y++) {
+            byte[] row = endpointMap[y];
+            for (int x = 0; x < row.length; x++) {
+                if (endpointMap[y][x] == 0) {
+                    continue;
+                }
+                // mark as taken
+                endpointMap[y][x]--;
+
+                // follow
+                System.out.println("going to start following from (" + x + ","
+                        + y + ")");
+                List<Point2D> path = followWire(l, endpointMap, remainingWires,
+                        y, x);
+                paths.add(path);
+            }
+        }
+    }
+
+    private static List<Point2D> followWire(Level l, byte[][] endpointMap,
             boolean[][] remainingWires, int y, int x) {
         List<Point2D> path = new ArrayList<Point2D>();
         byte lastDir = Entity.DIR_NONE;
-        while (!map[y][x]) {
+        do {
             // move onto the next tile
             switch (lastDir) {
             case Entity.DIR_UP:
@@ -819,7 +835,11 @@ public class Level2PDF {
                 break;
             }
 
-            assert remainingWires[y][x] : "no wire at " + x + " " + y;
+            if (!remainingWires[y][x]) {
+                // we are at the end of a closed loop
+                path.add(null);
+                break;
+            }
             remainingWires[y][x] = false;
 
             // add this point
@@ -962,8 +982,8 @@ public class Level2PDF {
 
             assert remainingWires[y][x] : "no wire at " + x + " " + y;
             remainingWires[y][x] = false;
-        }
-        map[y][x] = false;
+        } while (endpointMap[y][x] == 0);
+        endpointMap[y][x]--;
 
         // add last point
         path.add(new Point2D.Double(x, y));
@@ -971,35 +991,35 @@ public class Level2PDF {
         return path;
     }
 
-    private static void checkTermination(Level l, boolean[][] map,
+    private static void checkTermination(Level l, byte[][] endpointMap,
             boolean[][] remainingWires, int y, int x, boolean north,
             boolean south, boolean east, boolean west) {
         if (north) {
             byte t = getTile(l, y / 3 - 1, x / 3);
             setNorth(remainingWires, y, x);
             if (!wireConnects(t, Entity.DIR_DOWN)) {
-                setNorth(map, y, x);
+                setNorth(endpointMap, y, x);
             }
         }
         if (south) {
             byte t = getTile(l, y / 3 + 1, x / 3);
             setSouth(remainingWires, y, x);
             if (!wireConnects(t, Entity.DIR_UP)) {
-                setSouth(map, y, x);
+                setSouth(endpointMap, y, x);
             }
         }
         if (east) {
             byte t = getTile(l, y / 3, x / 3 + 1);
             setEast(remainingWires, y, x);
             if (!wireConnects(t, Entity.DIR_LEFT)) {
-                setEast(map, y, x);
+                setEast(endpointMap, y, x);
             }
         }
         if (west) {
             byte t = getTile(l, y / 3, x / 3 - 1);
             setWest(remainingWires, y, x);
             if (!wireConnects(t, Entity.DIR_RIGHT)) {
-                setWest(map, y, x);
+                setWest(endpointMap, y, x);
             }
         }
     }
@@ -1047,17 +1067,21 @@ public class Level2PDF {
     private static void strokeWire(PdfContentByte cb,
             List<List<Point2D>> paths, int h) {
         for (List<Point2D> path : paths) {
-            System.out.println("simple path: " + path);
-
             Point2D p = transformForWire(h, path.get(0));
             cb.moveTo((float) p.getX(), (float) p.getY());
             for (int i = 1; i < path.size(); i++) {
                 p = path.get(i);
-                double x = p.getX();
-                double y = p.getY();
 
-                Point2D tP = transformForWire(h, x, y);
-                cb.lineTo((float) tP.getX(), (float) tP.getY());
+                if (p == null) {
+                    // close path
+                    cb.closePath();
+                } else {
+                    double x = p.getX();
+                    double y = p.getY();
+
+                    Point2D tP = transformForWire(h, x, y);
+                    cb.lineTo((float) tP.getX(), (float) tP.getY());
+                }
             }
         }
         cb.stroke();
@@ -1109,6 +1133,22 @@ public class Level2PDF {
         }
 
         return result;
+    }
+
+    private static void setWest(byte[][] map, int y, int x) {
+        map[y + 1][x]++;
+    }
+
+    private static void setEast(byte[][] map, int y, int x) {
+        map[y + 1][x + 2]++;
+    }
+
+    private static void setSouth(byte[][] map, int y, int x) {
+        map[y + 2][x + 1]++;
+    }
+
+    private static void setNorth(byte[][] map, int y, int x) {
+        map[y][x + 1]++;
     }
 
     private static void setWest(boolean[][] map, int y, int x) {
@@ -1596,6 +1636,12 @@ public class Level2PDF {
                 prev = current;
                 current = (Point2D) iter2.next();
 
+                if (current == null) {
+                    // special case where we are signifying closed path
+                    newPath.add(null);
+                    break;
+                }
+
                 double x = current.getX();
                 double y = current.getY();
                 double px = prev.getX();
@@ -1733,6 +1779,16 @@ public class Level2PDF {
             boolean[] row = map[y];
             for (int x = 0; x < row.length; x++) {
                 System.out.print(row[x] ? "X " : ". ");
+            }
+            System.out.println();
+        }
+    }
+
+    static void printMap(byte[][] map) {
+        for (int y = 0; y < map.length; y++) {
+            byte[] row = map[y];
+            for (int x = 0; x < row.length; x++) {
+                System.out.print(row[x] > 0 ? "X " : ". ");
             }
             System.out.println();
         }
