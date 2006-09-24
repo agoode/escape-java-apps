@@ -689,35 +689,43 @@ public class Level2PDF {
         int w = l.getWidth();
         int h = l.getHeight();
 
-        boolean map[][] = new boolean[h * 3][w * 3];
-        for (int y = 0; y < map.length; y += 3) {
-            boolean[] row = map[y];
+        // set up wire map so we can find closed-loop wires
+        boolean remainingWires[][] = new boolean[h * 3][w * 3];
+        boolean endpointMap[][] = new boolean[h * 3][w * 3];
+        for (int y = 0; y < endpointMap.length; y += 3) {
+            boolean[] row = endpointMap[y];
             for (int x = 0; x < row.length; x += 3) {
                 byte t = l.tileAt(x / 3, y / 3);
 
                 switch (t) {
                 case T_NS:
-                    checkTermination(l, map, y, x, true, true, false, false);
+                    checkTermination(l, endpointMap, remainingWires, y, x,
+                            true, true, false, false);
                     break;
 
                 case T_NE:
-                    checkTermination(l, map, y, x, true, false, true, false);
+                    checkTermination(l, endpointMap, remainingWires, y, x,
+                            true, false, true, false);
                     break;
 
                 case T_NW:
-                    checkTermination(l, map, y, x, true, false, false, true);
+                    checkTermination(l, endpointMap, remainingWires, y, x,
+                            true, false, false, true);
                     break;
 
                 case T_SE:
-                    checkTermination(l, map, y, x, false, true, true, false);
+                    checkTermination(l, endpointMap, remainingWires, y, x,
+                            false, true, true, false);
                     break;
 
                 case T_SW:
-                    checkTermination(l, map, y, x, false, true, false, true);
+                    checkTermination(l, endpointMap, remainingWires, y, x,
+                            false, true, false, true);
                     break;
 
                 case T_WE:
-                    checkTermination(l, map, y, x, false, false, true, true);
+                    checkTermination(l, endpointMap, remainingWires, y, x,
+                            false, false, true, true);
                     break;
 
                 case T_BUTTON:
@@ -726,35 +734,45 @@ public class Level2PDF {
                 case T_GLIGHT:
                 case T_NSWE:
                 case T_TRANSPONDER:
-                    checkTermination(l, map, y, x, true, true, true, true);
+                    checkTermination(l, endpointMap, remainingWires, y, x,
+                            true, true, true, true);
                     break;
 
                 default:
-                // nothing
+                    // nothing
                 }
             }
         }
 
-        printMap(map);
+        printMap(endpointMap);
+        System.out.println();
+        printMap(remainingWires);
 
         // now, we have wire endpoints, so follow them
         List<List<Point2D>> paths = new ArrayList<List<Point2D>>();
-        for (int y = 0; y < map.length; y++) {
-            boolean[] row = map[y];
+
+        // follow for open-loop wires
+        for (int y = 0; y < endpointMap.length; y++) {
+            boolean[] row = endpointMap[y];
             for (int x = 0; x < row.length; x++) {
-                if (!map[y][x]) {
+                if (!endpointMap[y][x]) {
                     continue;
                 }
                 // mark as taken
-                map[y][x] = false;
+                endpointMap[y][x] = false;
 
                 // follow
                 System.out.println("going to start following from (" + x + ","
                         + y + ")");
-                List<Point2D> path = followWire(l, map, y, x);
+                List<Point2D> path = followWire(l, endpointMap, remainingWires,
+                        y, x);
                 paths.add(path);
             }
         }
+
+        printMap(remainingWires);
+
+        // go back, find all wires missed
 
         // simplify
         List<List<Point2D>> simplePaths = simplifyPaths(paths);
@@ -771,8 +789,14 @@ public class Level2PDF {
         strokeWire(cb, paths, h);
     }
 
-    private static List<Point2D> followWire(Level l, boolean[][] map, int y,
-            int x) {
+    private static boolean isWire(byte t) {
+        return t == T_NS || t == T_NE || t == T_NW || t == T_SE || t == T_SW
+                || t == T_WE || t == T_BUTTON || t == T_BLIGHT || t == T_RLIGHT
+                || t == T_GLIGHT || t == T_NSWE || t == T_TRANSPONDER;
+    }
+
+    private static List<Point2D> followWire(Level l, boolean[][] map,
+            boolean[][] remainingWires, int y, int x) {
         List<Point2D> path = new ArrayList<Point2D>();
         byte lastDir = Entity.DIR_NONE;
         while (!map[y][x]) {
@@ -795,11 +819,15 @@ public class Level2PDF {
                 break;
             }
 
+            assert remainingWires[y][x] : "no wire at " + x + " " + y;
+            remainingWires[y][x] = false;
+
             // add this point
             path.add(new Point2D.Double(x, y));
 
             // get the new tile
             byte t = l.tileAt(x / 3, y / 3);
+
             // System.out.println("following (" + x + "," + y + "): " + t);
 
             // follow it within the current tile
@@ -872,7 +900,7 @@ public class Level2PDF {
                 break;
 
             case T_SW:
-                if (y % 3 == 0) {
+                if (y % 3 == 2) {
                     // bottom, moving up, then left
                     y -= 1;
                     path.add(new Point2D.Double(x, y));
@@ -929,8 +957,11 @@ public class Level2PDF {
                 break;
 
             default:
-                assert false : "Should have wire tile";
+                throw new RuntimeException("Should have wire tile");
             }
+
+            assert remainingWires[y][x] : "no wire at " + x + " " + y;
+            remainingWires[y][x] = false;
         }
         map[y][x] = false;
 
@@ -940,28 +971,33 @@ public class Level2PDF {
         return path;
     }
 
-    private static void checkTermination(Level l, boolean[][] map, int y,
-            int x, boolean north, boolean south, boolean east, boolean west) {
+    private static void checkTermination(Level l, boolean[][] map,
+            boolean[][] remainingWires, int y, int x, boolean north,
+            boolean south, boolean east, boolean west) {
         if (north) {
             byte t = getTile(l, y / 3 - 1, x / 3);
+            setNorth(remainingWires, y, x);
             if (!wireConnects(t, Entity.DIR_DOWN)) {
                 setNorth(map, y, x);
             }
         }
         if (south) {
             byte t = getTile(l, y / 3 + 1, x / 3);
+            setSouth(remainingWires, y, x);
             if (!wireConnects(t, Entity.DIR_UP)) {
                 setSouth(map, y, x);
             }
         }
         if (east) {
             byte t = getTile(l, y / 3, x / 3 + 1);
+            setEast(remainingWires, y, x);
             if (!wireConnects(t, Entity.DIR_LEFT)) {
                 setEast(map, y, x);
             }
         }
         if (west) {
             byte t = getTile(l, y / 3, x / 3 - 1);
+            setWest(remainingWires, y, x);
             if (!wireConnects(t, Entity.DIR_RIGHT)) {
                 setWest(map, y, x);
             }
