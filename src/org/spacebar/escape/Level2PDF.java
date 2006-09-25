@@ -9,7 +9,6 @@ import java.awt.Point;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.PathIterator;
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.*;
 import java.text.DecimalFormat;
@@ -256,28 +255,28 @@ public class Level2PDF {
         float lx = laser.x * BASE_TILE_SIZE;
         float ly = (l.getHeight() - laser.y) * BASE_TILE_SIZE;
 
-        float px = l.getPlayerX() * BASE_TILE_SIZE;
-        float py = (l.getHeight() - l.getPlayerY()) * BASE_TILE_SIZE;
+        int px = l.getPlayerX() * BASE_TILE_SIZE;
+        int py = (l.getHeight() - l.getPlayerY()) * BASE_TILE_SIZE;
 
         switch (laser.d) {
         case Entity.DIR_DOWN:
             lx += BASE_TILE_SIZE / 2f;
             ly -= BASE_TILE_SIZE - 0.5f;
-            px += BASE_TILE_SIZE / 2f;
-            py -= BASE_TILE_SIZE / 2f;
+            px += BASE_TILE_SIZE / 2;
+            py -= BASE_TILE_SIZE / 2;
 
             break;
         case Entity.DIR_UP:
             lx += BASE_TILE_SIZE / 2f;
             ly -= 0.5f;
-            px += BASE_TILE_SIZE / 2f;
-            py -= BASE_TILE_SIZE / 2f;
+            px += BASE_TILE_SIZE / 2;
+            py -= BASE_TILE_SIZE / 2;
             break;
         case Entity.DIR_RIGHT:
             lx += BASE_TILE_SIZE - 0.5f;
             ly -= BASE_TILE_SIZE / 2f;
-            px += BASE_TILE_SIZE / 2f;
-            py -= BASE_TILE_SIZE / 2f;
+            px += BASE_TILE_SIZE / 2;
+            py -= BASE_TILE_SIZE / 2;
 
             break;
         case Entity.DIR_LEFT:
@@ -764,6 +763,9 @@ public class Level2PDF {
             printMap(remainingWires);
         }
 
+        // simplify
+        List<List<Point>> simplePaths = simplifyPaths(paths);
+
         // rounded
         cb.setLineJoin(PdfContentByte.LINE_JOIN_ROUND);
 
@@ -1072,7 +1074,7 @@ public class Level2PDF {
             int h) {
         for (List<Point> path : paths) {
             Point p = transformForWire(h, path.get(0));
-            cb.moveTo((float) p.getX(), (float) p.getY());
+            cb.moveTo(p.x, p.y);
             for (int i = 1; i < path.size(); i++) {
                 p = path.get(i);
                 if (p == null) {
@@ -1081,7 +1083,7 @@ public class Level2PDF {
                 } else {
                     // this point
                     Point tP = transformForWire(h, p);
-                    cb.lineTo((float) tP.getX(), (float) tP.getY());
+                    cb.lineTo(tP.x, tP.y);
                 }
             }
         }
@@ -1560,47 +1562,44 @@ public class Level2PDF {
         System.out.println();
         printMap(edges, map);
 
-        java.util.List<List<Point2D>> paths = makePathsFromEdges(edges);
+        java.util.List<List<Point>> paths = makePathsFromEdges(edges);
 
-        List<List<Point2D>> simplePaths = simplifyPaths(paths);
+        List<List<Point>> simplePaths = simplifyPaths(paths);
 
         int h = l.getHeight();
-        for (List<Point2D> path : simplePaths) {
+        for (List<Point> path : simplePaths) {
             System.out.println("simple path: " + path);
 
             Iterator i = path.iterator();
-            Point2D p = (Point2D) i.next();
-            cb.moveTo((float) p.getX() * BASE_TILE_SIZE, (float) (h - p.getY())
-                    * BASE_TILE_SIZE);
+            Point p = (Point) i.next();
+            cb.moveTo(p.x * BASE_TILE_SIZE, (h - p.y) * BASE_TILE_SIZE);
             while (i.hasNext()) {
-                p = (Point2D) i.next();
-                cb.lineTo((float) p.getX() * BASE_TILE_SIZE, (float) (h - p
-                        .getY())
-                        * BASE_TILE_SIZE);
+                p = (Point) i.next();
+                cb.lineTo(p.x * BASE_TILE_SIZE, (h - p.y) * BASE_TILE_SIZE);
             }
             cb.closePath();
         }
         return map;
     }
 
-    private static List<List<Point2D>> simplifyPaths(
-            java.util.List<List<Point2D>> paths) {
-        List<List<Point2D>> simplePaths = new ArrayList<List<Point2D>>();
+    private static List<List<Point>> simplifyPaths(
+            java.util.List<List<Point>> paths) {
+        List<List<Point>> simplePaths = new ArrayList<List<Point>>();
         // now, we have the segments, so get it down to corners
-        for (Iterator<List<Point2D>> iter = paths.iterator(); iter.hasNext();) {
+        for (Iterator<List<Point>> iter = paths.iterator(); iter.hasNext();) {
             List path = iter.next();
-            List<Point2D> newPath = new ArrayList<Point2D>();
+            List<Point> newPath = new ArrayList<Point>();
             simplePaths.add(newPath);
 
             Iterator iter2 = path.iterator();
-            Point2D prev;
-            Point2D current = (Point2D) iter2.next();
+            Point prev;
+            Point current = (Point) iter2.next();
             newPath.add(current);
 
             byte oldDir = DIR_NONE;
             while (iter2.hasNext()) {
                 prev = current;
-                current = (Point2D) iter2.next();
+                current = (Point) iter2.next();
 
                 if (current == null) {
                     // special case where we are signifying closed path
@@ -1608,13 +1607,13 @@ public class Level2PDF {
                     break;
                 }
 
-                double x = current.getX();
-                double y = current.getY();
-                double px = prev.getX();
-                double py = prev.getY();
+                final int x = current.x;
+                final int y = current.y;
+                final int px = prev.x;
+                final int py = prev.y;
 
-                double dx = x - px;
-                double dy = y - py;
+                final int dx = x - px;
+                final int dy = y - py;
 
                 byte dir;
                 if (dy == 0) {
@@ -1642,15 +1641,14 @@ public class Level2PDF {
         return simplePaths;
     }
 
-    private static java.util.List<List<Point2D>> makePathsFromEdges(
-            byte[][] edges) {
+    private static java.util.List<List<Point>> makePathsFromEdges(byte[][] edges) {
         // make the paths list
-        java.util.List<List<Point2D>> paths = new ArrayList<List<Point2D>>();
+        java.util.List<List<Point>> paths = new ArrayList<List<Point>>();
 
         Point start = new Point(0, 0);
         while ((start = getNextStart(edges, start)) != null) {
             // new path
-            java.util.List<Point2D> path = new ArrayList<Point2D>();
+            java.util.List<Point> path = new ArrayList<Point>();
             paths.add(path);
 
             path.add(new Point(start.x, start.y));
