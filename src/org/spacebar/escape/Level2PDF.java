@@ -1098,9 +1098,11 @@ public class Level2PDF {
     private static Point transformForWire(int h, int x, int y) {
         final int tileX = x / 3;
         final int tileY = y / 3;
-        Point tP = new Point(tileX * BASE_TILE_SIZE + BASE_TILE_SIZE / 4
-                * (x % 3 + 1), h * BASE_TILE_SIZE
-                - (tileY * BASE_TILE_SIZE + BASE_TILE_SIZE / 4 * (y % 3 + 1)));
+
+        Point tP = new Point((tileX * BASE_TILE_SIZE + BASE_TILE_SIZE / 2
+                * (x % 3)),
+                (h * BASE_TILE_SIZE - (tileY * BASE_TILE_SIZE + BASE_TILE_SIZE
+                        / 2 * (y % 3))));
         return tP;
     }
 
