@@ -127,6 +127,8 @@ public class Level2PDF {
             document.addCreator(creator);
             document.addSubject("Escape");
 
+            // TODO add keywords
+
             document.open();
 
             // title and author
@@ -762,15 +764,18 @@ public class Level2PDF {
             printMap(remainingWires);
         }
 
+        // rounded
+        cb.setLineJoin(PdfContentByte.LINE_JOIN_ROUND);
+
         // draw outer
         cb.setColorStroke(new Color(47, 47, 47));
         cb.setLineWidth(BASE_TILE_SIZE / 4f);
-        strokeWire(cb, paths, h, false);
+        strokeWire(cb, paths, h);
 
         // draw inner
         cb.setColorStroke(new Color(35, 35, 35));
         cb.setLineWidth(BASE_TILE_SIZE / 8f);
-        strokeWire(cb, paths, h, true);
+        strokeWire(cb, paths, h);
     }
 
     private static boolean markFirstRemainingWire(byte[][] endpointMap,
@@ -1064,7 +1069,7 @@ public class Level2PDF {
     }
 
     private static void strokeWire(PdfContentByte cb, List<List<Point>> paths,
-            int h, boolean curved) {
+            int h) {
         for (List<Point> path : paths) {
             Point p = transformForWire(h, path.get(0));
             cb.moveTo((float) p.getX(), (float) p.getY());
@@ -1076,60 +1081,7 @@ public class Level2PDF {
                 } else {
                     // this point
                     Point tP = transformForWire(h, p);
-                    final int tX = tP.x;
-                    final int tY = tP.y;
-
-                    Point2D curveTo1 = null;
-                    Point2D curveTo2 = null;
-                    Point2D curveTo3 = null;
-                    if (i != 0 && i < path.size() - 1) {
-                        Point nextP = path.get(i + 1);
-                        if (nextP != null) {
-                            // next point
-                            Point nP = transformForWire(h, nextP);
-
-                            // previous point
-                            Point pP = transformForWire(h, path.get(i - 1));
-
-                            final int pX = pP.x;
-                            final int pY = pP.y;
-                            final int nX = nP.x;
-                            final int nY = nP.y;
-
-                            // closeness of control points to this point
-                            // a = 1.0: close, a = 0.0: far
-                            final double a = 0.9;
-
-                            if (nX != pX && nY != pY && curved) {
-                                curveTo1 = new Point2D.Double(a * (tX - pX)
-                                        + pX, a * (tY - pY) + pY);
-                                curveTo2 = new Point2D.Double(a * (tX - nX)
-                                        + nX, a * (tY - nY) + nY);
-                                curveTo3 = nP;
-                            }
-                        }
-                    }
-
-                    if (curveTo1 != null) {
-                        float c1x = (float) curveTo1.getX();
-                        float c1y = (float) curveTo1.getY();
-                        float c2x = (float) curveTo2.getX();
-                        float c2y = (float) curveTo2.getY();
-                        float c3x = (float) curveTo3.getX();
-                        float c3y = (float) curveTo3.getY();
-                        if (false) {
-                            // debug
-                            cb.rectangle(c1x, c1y, 1.0f, 1.0f);
-                            cb.rectangle(c2x, c2y, 1.0f, 1.0f);
-                            cb.moveTo(c3x, c3y);
-
-                        } else {
-                            cb.curveTo(c1x, c1y, c2x, c2y, c3x, c3y);
-                        }
-                        i++;
-                    } else {
-                        cb.lineTo((float) tP.getX(), (float) tP.getY());
-                    }
+                    cb.lineTo((float) tP.getX(), (float) tP.getY());
                 }
             }
         }

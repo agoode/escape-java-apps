@@ -6,11 +6,11 @@
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://inkscape.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    sodipodi:docname="25.svg"
    sodipodi:docbase="/home/adam/workspace/Escape-j2se/src/org/spacebar/escape/j2se/resources/tiles"
-   inkscape:version="0.43"
+   inkscape:version="0.44.1"
    sodipodi:version="0.32"
    id="svg15582"
    height="32px"
@@ -20,8 +20,8 @@
   <sodipodi:namedview
      inkscape:window-y="46"
      inkscape:window-x="29"
-     inkscape:window-height="569"
-     inkscape:window-width="722"
+     inkscape:window-height="620"
+     inkscape:window-width="906"
      inkscape:document-units="px"
      inkscape:grid-bbox="true"
      showgrid="true"
@@ -66,7 +66,7 @@
        id="path8872"
        sodipodi:nodetypes="cccccccccccccccccc" />
     <path
-       style="fill:#454545;fill-opacity:1"
+       style="fill:#3b3b3b;fill-opacity:1"
        d="M 2,30.49998 C 2.7149,29.63857 4.89568,28.99998 7.12244,28.99998 L 11,28.99998 L 11,16.08177 C 11,8.97675 11.27314,2.45175 11.60699,1.58177 C 12.01665,0.51421 13.47956,0.26788972 16.10699,0.26788972 L 20,0.26788972 L 20,14.75719 L 20,29.51439 L 24.5,29.15649 L 29,28.79859 L 29,16.02173 C 29,5.88447 29.30989,2.98768 30.5,1.99998 C 31.82245,0.90245 32,2.6043 32,16.37753 L 32,31.99998 L 16.37756,31.99998 C 2.60432,31.99998 0.90247,31.82243 2,30.49998 z "
        id="path8870"
        sodipodi:nodetypes="ccccscccccccscccc" />
