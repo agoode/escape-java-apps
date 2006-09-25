@@ -271,7 +271,7 @@ public class AStarSearch implements Runnable {
 
     }
 
-    private class AStarPQComparator implements Comparator<AStarNode> {
+    class AStarPQComparator implements Comparator<AStarNode> {
         public int compare(AStarNode o1, AStarNode o2) {
             if (o1.f < o2.f) {
                 return -1;
@@ -285,7 +285,7 @@ public class AStarSearch implements Runnable {
 
     private List<Byte> solution;
 
-    private class TimingPrinter implements Runnable {
+    class TimingPrinter implements Runnable {
         volatile boolean done;
 
         public void run() {

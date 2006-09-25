@@ -100,10 +100,10 @@ public class TestSolutions {
                 for (Iterator<Level> i = levelsToSolutions.keySet().iterator(); i
                         .hasNext();) {
                     Level l = i.next();
-                    List sols = levelsToSolutions.get(l);
+                    List<Solution> sols = levelsToSolutions.get(l);
 
-                    for (Iterator iter = sols.iterator(); iter.hasNext();) {
-                        final Solution sol = (Solution) iter.next();
+                    for (Iterator<Solution> iter = sols.iterator(); iter.hasNext();) {
+                        final Solution sol = iter.next();
                         
                         // ignore bookmarks
                         if (sol.isBookmark()) {

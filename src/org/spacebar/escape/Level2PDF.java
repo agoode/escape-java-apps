@@ -1570,11 +1570,11 @@ public class Level2PDF {
         for (List<Point> path : simplePaths) {
             System.out.println("simple path: " + path);
 
-            Iterator i = path.iterator();
-            Point p = (Point) i.next();
+            Iterator<Point> i = path.iterator();
+            Point p = i.next();
             cb.moveTo(p.x * BASE_TILE_SIZE, (h - p.y) * BASE_TILE_SIZE);
             while (i.hasNext()) {
-                p = (Point) i.next();
+                p = i.next();
                 cb.lineTo(p.x * BASE_TILE_SIZE, (h - p.y) * BASE_TILE_SIZE);
             }
             cb.closePath();
@@ -1587,19 +1587,19 @@ public class Level2PDF {
         List<List<Point>> simplePaths = new ArrayList<List<Point>>();
         // now, we have the segments, so get it down to corners
         for (Iterator<List<Point>> iter = paths.iterator(); iter.hasNext();) {
-            List path = iter.next();
+            List<Point> path = iter.next();
             List<Point> newPath = new ArrayList<Point>();
             simplePaths.add(newPath);
 
-            Iterator iter2 = path.iterator();
+            Iterator<Point> iter2 = path.iterator();
             Point prev;
-            Point current = (Point) iter2.next();
+            Point current = iter2.next();
             newPath.add(current);
 
             byte oldDir = DIR_NONE;
             while (iter2.hasNext()) {
                 prev = current;
-                current = (Point) iter2.next();
+                current = iter2.next();
 
                 if (current == null) {
                     // special case where we are signifying closed path
