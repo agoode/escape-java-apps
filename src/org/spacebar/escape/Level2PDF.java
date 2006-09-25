@@ -1626,25 +1626,28 @@ public class Level2PDF {
                 final int dx = x - px;
                 final int dy = y - py;
 
-                byte dir;
-                if (dy == 0) {
-                    if (dx < 0) {
-                        dir = DIR_LEFT;
+                // ignore repeated points
+                if (!(dx == 0 && dy == 0)) {
+                    byte dir;
+                    if (dy == 0) {
+                        if (dx < 0) {
+                            dir = DIR_LEFT;
+                        } else {
+                            dir = DIR_RIGHT;
+                        }
                     } else {
-                        dir = DIR_RIGHT;
+                        if (dy < 0) {
+                            dir = DIR_UP;
+                        } else {
+                            dir = DIR_DOWN;
+                        }
                     }
-                } else {
-                    if (dy < 0) {
-                        dir = DIR_UP;
-                    } else {
-                        dir = DIR_DOWN;
-                    }
-                }
 
-                // only add a point if it's in a new direction
-                if (oldDir != dir) {
-                    newPath.add(prev);
-                    oldDir = dir;
+                    // only add a point if it's in a new direction
+                    if (oldDir != dir) {
+                        newPath.add(prev);
+                        oldDir = dir;
+                    }
                 }
             }
 
