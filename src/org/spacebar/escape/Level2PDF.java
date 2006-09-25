@@ -765,6 +765,7 @@ public class Level2PDF {
 
         // simplify
         List<List<Point>> simplePaths = simplifyPaths(paths);
+        System.out.println("simple wire paths: " + simplePaths);
 
         // rounded
         cb.setLineJoin(PdfContentByte.LINE_JOIN_ROUND);
@@ -772,12 +773,12 @@ public class Level2PDF {
         // draw outer
         cb.setColorStroke(new Color(47, 47, 47));
         cb.setLineWidth(BASE_TILE_SIZE / 4f);
-        strokeWire(cb, paths, h);
+        strokeWire(cb, simplePaths, h);
 
         // draw inner
         cb.setColorStroke(new Color(35, 35, 35));
         cb.setLineWidth(BASE_TILE_SIZE / 8f);
-        strokeWire(cb, paths, h);
+        strokeWire(cb, simplePaths, h);
     }
 
     private static boolean markFirstRemainingWire(byte[][] endpointMap,
@@ -1575,13 +1576,19 @@ public class Level2PDF {
             cb.moveTo(p.x * BASE_TILE_SIZE, (h - p.y) * BASE_TILE_SIZE);
             while (i.hasNext()) {
                 p = i.next();
-                cb.lineTo(p.x * BASE_TILE_SIZE, (h - p.y) * BASE_TILE_SIZE);
+                if (p == null) {
+                    // we're done
+                    cb.closePath();
+                } else {
+                    cb.lineTo(p.x * BASE_TILE_SIZE, (h - p.y) * BASE_TILE_SIZE);
+                }
             }
-            cb.closePath();
         }
         return map;
     }
 
+    // this can be used for simplifying paths consisting only of
+    // horizontal and vertical lines
     private static List<List<Point>> simplifyPaths(
             java.util.List<List<Point>> paths) {
         List<List<Point>> simplePaths = new ArrayList<List<Point>>();
@@ -1591,19 +1598,22 @@ public class Level2PDF {
             List<Point> newPath = new ArrayList<Point>();
             simplePaths.add(newPath);
 
-            Iterator<Point> iter2 = path.iterator();
+            // start on a path
+            Iterator<Point> pathIter = path.iterator();
             Point prev;
-            Point current = iter2.next();
-            newPath.add(current);
+            Point current = pathIter.next();
 
+            boolean closed = false;
             byte oldDir = DIR_NONE;
-            while (iter2.hasNext()) {
+            while (pathIter.hasNext()) {
+                // get a point
                 prev = current;
-                current = iter2.next();
+                current = pathIter.next();
 
                 if (current == null) {
                     // special case where we are signifying closed path
                     newPath.add(null);
+                    closed = true;
                     break;
                 }
 
@@ -1612,6 +1622,7 @@ public class Level2PDF {
                 final int px = prev.x;
                 final int py = prev.y;
 
+                // compute direction between current and previous
                 final int dx = x - px;
                 final int dy = y - py;
 
@@ -1629,13 +1640,17 @@ public class Level2PDF {
                         dir = DIR_DOWN;
                     }
                 }
-                if (oldDir == DIR_NONE) {
-                    oldDir = dir;
-                }
+
+                // only add a point if it's in a new direction
                 if (oldDir != dir) {
                     newPath.add(prev);
                     oldDir = dir;
                 }
+            }
+
+            // add the last point if we're not closed
+            if (!closed) {
+                newPath.add(current);
             }
         }
         return simplePaths;
@@ -1689,6 +1704,8 @@ public class Level2PDF {
                 }
                 path.add(new Point(x, y));
             }
+            // this is a closed path
+            path.add(null);
         }
         return paths;
     }
