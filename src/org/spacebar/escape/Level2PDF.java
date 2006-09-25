@@ -1076,8 +1076,8 @@ public class Level2PDF {
                 } else {
                     // this point
                     Point tP = transformForWire(h, p);
-                    final double tX = tP.getX();
-                    final double tY = tP.getY();
+                    final int tX = tP.x;
+                    final int tY = tP.y;
 
                     Point2D curveTo1 = null;
                     Point2D curveTo2 = null;
@@ -1091,10 +1091,10 @@ public class Level2PDF {
                             // previous point
                             Point pP = transformForWire(h, path.get(i - 1));
 
-                            final double pX = pP.getX();
-                            final double pY = pP.getY();
-                            final double nX = nP.getX();
-                            final double nY = nP.getY();
+                            final int pX = pP.x;
+                            final int pY = pP.y;
+                            final int nX = nP.x;
+                            final int nY = nP.y;
 
                             // closeness of control points to this point
                             // a = 1.0: close, a = 0.0: far
