@@ -811,16 +811,19 @@ public class Level2PDF {
                 // follow
                 System.out.println("going to start following from (" + x + ","
                         + y + ")");
-                List<Point> path = followWire(l, endpointMap, remainingWires,
+                List<List<Point>> newPaths = followWire(l, endpointMap, remainingWires,
                         y, x);
-                paths.add(path);
+                paths.addAll(newPaths);
             }
         }
     }
 
-    private static List<Point> followWire(Level l, byte[][] endpointMap,
+    private static List<List<Point>> followWire(Level l, byte[][] endpointMap,
             boolean[][] remainingWires, int y, int x) {
+        List<List<Point>> paths = new ArrayList<List<Point>>();
         List<Point> path = new ArrayList<Point>();
+        paths.add(path);
+        
         byte lastDir = Entity.DIR_NONE;
         do {
             // move onto the next tile
@@ -995,7 +998,7 @@ public class Level2PDF {
         // add last point
         path.add(new Point(x, y));
 
-        return path;
+        return paths;
     }
 
     private static void checkTermination(Level l, byte[][] endpointMap,
