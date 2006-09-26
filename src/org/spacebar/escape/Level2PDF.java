@@ -11,7 +11,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Rectangle2D;
 import java.io.*;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -46,12 +45,11 @@ public class Level2PDF {
     final static BaseFont BASE_FONT;
     static {
         ByteBuffer.HIGH_PRECISION = true;
-        // Document.compress = false; // XXX
 
         // get the font
         BaseFont f = null;
         {
-            final String fontName = "Fixedsys500c.ttf";
+            final String fontName = "Fixedsys500c.ttf";  // the best font
             InputStream font = ResourceUtil.getLocalResourceAsStream(fontName);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             int d;
@@ -71,12 +69,7 @@ public class Level2PDF {
         BASE_FONT = f;
     }
 
-    final static String parser = XMLResourceDescriptor.getXMLParserClassName();
-
-    final static SAXSVGDocumentFactory svgDocFactory = new SAXSVGDocumentFactory(
-            parser);
-
-    final public static void main(String[] args) {
+    public static void main(String[] args) {
         try {
             // get level
             File f = new File(args[0]);
@@ -393,14 +386,21 @@ public class Level2PDF {
         }
     }
 
-    private static Map<String, SVGDocument> svgDocMap = new HashMap<String, SVGDocument>();
+    final private static Map<String, SVGDocument> svgDocMap = new HashMap<String, SVGDocument>();
+    final private static SAXSVGDocumentFactory svgDocFactory;
+    static {
+        final String parser = XMLResourceDescriptor.getXMLParserClassName();
+        svgDocFactory = new SAXSVGDocumentFactory(parser);
+    }
 
     private static SVGDocument loadSVG(String name) throws IOException {
-        if (!svgDocMap.containsKey(name)) {
-            System.out.println("reading " + name);
-            SVGDocument doc = (SVGDocument) svgDocFactory.createDocument(null,
-                    ResourceUtil.getLocalResourceAsStream(name));
-            svgDocMap.put(name, doc);
+        synchronized (svgDocMap) {
+            if (!svgDocMap.containsKey(name)) {
+                System.out.println("reading " + name);
+                SVGDocument doc = (SVGDocument) svgDocFactory.createDocument(
+                        null, ResourceUtil.getLocalResourceAsStream(name));
+                svgDocMap.put(name, doc);
+            }
         }
         return svgDocMap.get(name);
     }
@@ -1331,8 +1331,6 @@ public class Level2PDF {
         cb.fill();
     }
 
-    final static DecimalFormat svgFileFormatter = new DecimalFormat("00");
-
     private static void layDownBlockTile(Level l, PdfContentByte cb, byte tile,
             Color colors[], PdfTemplate temps[]) {
         if (!l.hasTile(tile)) {
@@ -1489,8 +1487,11 @@ public class Level2PDF {
 
     private static PdfTemplate createTileTemplate(PdfContentByte cb, byte tile) {
         try {
-            SVGDocument doc = loadSVG("tiles/" + svgFileFormatter.format(tile)
-                    + ".svg");
+            String tileNumber = Byte.toString(tile);
+            if (tile < 10) {
+                tileNumber = "0" + tileNumber;
+            }
+            SVGDocument doc = loadSVG("tiles/" + tileNumber + ".svg");
             PdfTemplate t = createTileTemplate(cb, doc);
             return t;
         } catch (IOException e) {
@@ -1760,7 +1761,7 @@ public class Level2PDF {
         return null;
     }
 
-    static void printMap(boolean[][] map) {
+    private static void printMap(boolean[][] map) {
         for (int y = 0; y < map.length; y++) {
             boolean[] row = map[y];
             for (int x = 0; x < row.length; x++) {
@@ -1770,7 +1771,7 @@ public class Level2PDF {
         }
     }
 
-    static void printMap(byte[][] map) {
+    private static void printMap(byte[][] map) {
         for (int y = 0; y < map.length; y++) {
             byte[] row = map[y];
             for (int x = 0; x < row.length; x++) {
@@ -1780,7 +1781,7 @@ public class Level2PDF {
         }
     }
 
-    static void printMap(byte[][] edges, boolean[][] map) {
+    private static void printMap(byte[][] edges, boolean[][] map) {
         for (int y = 0; y < edges.length; y++) {
             byte[] row = edges[y];
             for (int x = 0; x < row.length; x++) {
@@ -1873,7 +1874,7 @@ public class Level2PDF {
         cb.fill();
     }
 
-    static Phrase formatText(String text, Font f) {
+    private static Phrase formatText(String text, Font f) {
         StyleStack2 s = new StyleStack2();
         Phrase p = new Phrase();
 
