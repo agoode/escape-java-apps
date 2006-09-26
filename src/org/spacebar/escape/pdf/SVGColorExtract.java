@@ -1,4 +1,4 @@
-package org.spacebar.escape;
+package org.spacebar.escape.pdf;
 
 import java.awt.Color;
 import java.awt.Graphics2D;

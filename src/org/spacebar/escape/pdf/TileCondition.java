@@ -1,4 +1,4 @@
-package org.spacebar.escape;
+package org.spacebar.escape.pdf;
 
 import org.spacebar.escape.common.Level;
 
