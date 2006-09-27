@@ -773,12 +773,12 @@ public class Level2PDF {
         // draw outer
         cb.setColorStroke(new Color(47, 47, 47));
         cb.setLineWidth(BASE_TILE_SIZE / 4f);
-        strokeWire(cb, simplePaths, h);
+        strokeWire(cb, simplePaths);
 
         // draw inner
         cb.setColorStroke(new Color(35, 35, 35));
         cb.setLineWidth(BASE_TILE_SIZE / 8f);
-        strokeWire(cb, simplePaths, h);
+        strokeWire(cb, simplePaths);
     }
 
     private static boolean markFirstRemainingWire(byte[][] endpointMap,
@@ -824,6 +824,8 @@ public class Level2PDF {
         List<Point> path = new ArrayList<Point>();
         paths.add(path);
         
+        int h = l.getHeight();
+        
         byte lastDir = Entity.DIR_NONE;
         do {
             // move onto the next tile
@@ -853,7 +855,7 @@ public class Level2PDF {
             remainingWires[y][x] = false;
 
             // add this point
-            path.add(new Point(x, y));
+            path.add(transformForWire(h, x, y));
 
             // get the new tile
             byte t = l.tileAt(x / 3, y / 3);
@@ -872,23 +874,23 @@ public class Level2PDF {
                     y -= 2;
                     lastDir = Entity.DIR_UP;
                 }
-                path.add(new Point(x, y));
+                path.add(transformForWire(h, x, y));
                 break;
 
             case T_NE:
                 if (y % 3 == 0) {
                     // top, moving down, then right
                     y += 1;
-                    path.add(new Point(x, y));
+                    path.add(transformForWire(h, x, y));
                     x += 1;
-                    path.add(new Point(x, y));
+                    path.add(transformForWire(h, x, y));
                     lastDir = Entity.DIR_RIGHT;
                 } else {
                     // right, moving left, then up
                     x -= 1;
-                    path.add(new Point(x, y));
+                    path.add(transformForWire(h, x, y));
                     y -= 1;
-                    path.add(new Point(x, y));
+                    path.add(transformForWire(h, x, y));
                     lastDir = Entity.DIR_UP;
                 }
                 break;
@@ -897,16 +899,16 @@ public class Level2PDF {
                 if (y % 3 == 0) {
                     // top, moving down, then left
                     y += 1;
-                    path.add(new Point(x, y));
+                    path.add(transformForWire(h, x, y));
                     x -= 1;
-                    path.add(new Point(x, y));
+                    path.add(transformForWire(h, x, y));
                     lastDir = Entity.DIR_LEFT;
                 } else {
                     // left, moving right, then up
                     x += 1;
-                    path.add(new Point(x, y));
+                    path.add(transformForWire(h, x, y));
                     y -= 1;
-                    path.add(new Point(x, y));
+                    path.add(transformForWire(h, x, y));
                     lastDir = Entity.DIR_UP;
                 }
                 break;
@@ -915,16 +917,16 @@ public class Level2PDF {
                 if (y % 3 == 2) {
                     // bottom, moving up, then right
                     y -= 1;
-                    path.add(new Point(x, y));
+                    path.add(transformForWire(h, x, y));
                     x += 1;
-                    path.add(new Point(x, y));
+                    path.add(transformForWire(h, x, y));
                     lastDir = Entity.DIR_RIGHT;
                 } else {
                     // right, moving left, then down
                     x -= 1;
-                    path.add(new Point(x, y));
+                    path.add(transformForWire(h, x, y));
                     y += 1;
-                    path.add(new Point(x, y));
+                    path.add(transformForWire(h, x, y));
                     lastDir = Entity.DIR_DOWN;
                 }
                 break;
@@ -933,16 +935,16 @@ public class Level2PDF {
                 if (y % 3 == 2) {
                     // bottom, moving up, then left
                     y -= 1;
-                    path.add(new Point(x, y));
+                    path.add(transformForWire(h, x, y));
                     x -= 1;
-                    path.add(new Point(x, y));
+                    path.add(transformForWire(h, x, y));
                     lastDir = Entity.DIR_LEFT;
                 } else {
                     // left, moving right, then down
                     x += 1;
-                    path.add(new Point(x, y));
+                    path.add(transformForWire(h, x, y));
                     y += 1;
-                    path.add(new Point(x, y));
+                    path.add(transformForWire(h, x, y));
                     lastDir = Entity.DIR_DOWN;
                 }
                 break;
@@ -957,7 +959,7 @@ public class Level2PDF {
                     x -= 2;
                     lastDir = Entity.DIR_LEFT;
                 }
-                path.add(new Point(x, y));
+                path.add(transformForWire(h, x, y));
                 break;
 
             case T_BUTTON:
@@ -983,7 +985,7 @@ public class Level2PDF {
                     y -= 2;
                     lastDir = Entity.DIR_UP;
                 }
-                path.add(new Point(x, y));
+                path.add(transformForWire(h, x, y));
                 break;
 
             default:
@@ -996,7 +998,7 @@ public class Level2PDF {
         endpointMap[y][x]--;
 
         // add last point
-        path.add(new Point(x, y));
+        path.add(transformForWire(h, x, y));
 
         return paths;
     }
@@ -1074,10 +1076,9 @@ public class Level2PDF {
         return l.tileAt(x, y);
     }
 
-    private static void strokeWire(PdfContentByte cb, List<List<Point>> paths,
-            int h) {
+    private static void strokeWire(PdfContentByte cb, List<List<Point>> paths) {
         for (List<Point> path : paths) {
-            Point p = transformForWire(h, path.get(0));
+            Point p = path.get(0);
             cb.moveTo(p.x, p.y);
             for (int i = 1; i < path.size(); i++) {
                 p = path.get(i);
@@ -1086,16 +1087,11 @@ public class Level2PDF {
                     cb.closePath();
                 } else {
                     // this point
-                    Point tP = transformForWire(h, p);
-                    cb.lineTo(tP.x, tP.y);
+                    cb.lineTo(p.x, p.y);
                 }
             }
         }
         cb.stroke();
-    }
-
-    private static Point transformForWire(int h, Point p) {
-        return transformForWire(h, p.x, p.y);
     }
 
     private static Point transformForWire(int h, int x, int y) {
