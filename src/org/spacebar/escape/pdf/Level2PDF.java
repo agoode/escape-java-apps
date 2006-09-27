@@ -756,11 +756,15 @@ public class Level2PDF {
         // follow for open-loop wires
         followAllWireEndpoints(l, remainingWires, endpointMap, paths);
 
+        printMap(endpointMap);
+        System.out.println();
         printMap(remainingWires);
 
         // go back, find all wires missed
         while (markFirstRemainingWire(endpointMap, remainingWires)) {
             followAllWireEndpoints(l, remainingWires, endpointMap, paths);
+            printMap(endpointMap);
+            System.out.println();
             printMap(remainingWires);
         }
 
@@ -771,6 +775,8 @@ public class Level2PDF {
         // rounded
         cb.setLineJoin(PdfContentByte.LINE_JOIN_ROUND);
 
+//        cb.setLineCap(PdfContentByte.LINE_CAP_ROUND);
+        
         // draw outer
         cb.setColorStroke(new Color(47, 47, 47));
         cb.setLineWidth(BASE_TILE_SIZE / 4f);
@@ -815,6 +821,11 @@ public class Level2PDF {
                 List<List<Point>> newPaths = followWire(l, endpointMap,
                         remainingWires, y, x);
                 paths.addAll(newPaths);
+                
+                if (endpointMap[y][x] != 0) {
+                    // follow again!
+                    x--;
+                }
             }
         }
     }
@@ -848,15 +859,20 @@ public class Level2PDF {
                 break;
             }
 
-            if (!remainingWires[y][x]) {
-                // we are at the end of a closed loop
-                path.add(null);
-                break;
+            boolean inCenter = x % 3 == 1 && y % 3 == 1;
+            // add this point
+            if (!inCenter) {
+                path.add(transformForWire(h, x, y));
+                
+                if (!remainingWires[y][x]) {
+                    // we are at the end of a closed loop
+                    path.add(null);
+                    break;
+                }
             }
+
             remainingWires[y][x] = false;
 
-            // add this point
-            path.add(transformForWire(h, x, y));
 
             // get the new tile
             byte t = l.tileAt(x / 3, y / 3);
@@ -969,24 +985,39 @@ public class Level2PDF {
             case T_GLIGHT:
             case T_NSWE:
             case T_TRANSPONDER:
-                if (x % 3 == 0) {
+                // this is special because it is always a path endpoint
+                if (inCenter) {
+                    // in the center (this is an endpoint)
+                    assert path.isEmpty() : "path should be empty: " + path;
+                    Point start = transformForWire(h, x, y);
+
+                    if (remainingWires[y][x + 1]) {
+                        // moving right
+                        start.x += 5 * (32 / BASE_TILE_SIZE);
+                        path.add(start);
+
+                        x += 1;
+                        lastDir = Entity.DIR_RIGHT;
+                    } else {
+                        // moving left
+                        start.x -= 6 * (32 / BASE_TILE_SIZE);
+                        path.add(start);
+
+                        x -= 1;
+                        lastDir = Entity.DIR_LEFT;
+                    }
+                } else if (x % 3 == 0) {
                     // left, moving right
                     x += 1;
-                    Point midL = transformForWire(h, x, y);
+                    Point mid = transformForWire(h, x, y);
                     // adjust for break
-                    midL.x -= 6 * (BASE_TILE_SIZE / 32);
-                    path.add(midL);
-
-                    // start new path
-                    path = new ArrayList<Point>();
-                    paths.add(path);
-
-                    Point midR = midL.getLocation();
-                    midR.x += 11 * (BASE_TILE_SIZE / 32);
-                    path.add(midR);
-
-                    x += 1;
-                    lastDir = Entity.DIR_RIGHT;
+                    mid.x -= 6 * (32 / BASE_TILE_SIZE);
+                    path.add(mid);
+                    endpointMap[y][x]--;
+                    if (endpointMap[y][x] == 0) {
+                        remainingWires[y][x] = false;
+                    }
+                    return paths;
                 } else if (y % 3 == 0) {
                     // top, moving down
                     y += 2;
@@ -994,21 +1025,15 @@ public class Level2PDF {
                 } else if (x % 3 == 2) {
                     // right, moving left
                     x -= 1;
-                    Point midR = transformForWire(h, x, y);
+                    Point mid = transformForWire(h, x, y);
                     // adjust for break
-                    midR.x += 5 * (BASE_TILE_SIZE / 32);
-                    path.add(midR);
-
-                    // start new path
-                    path = new ArrayList<Point>();
-                    paths.add(path);
-
-                    Point midL = midR.getLocation();
-                    midL.x -= 11 * (BASE_TILE_SIZE / 32);
-                    path.add(midL);
-
-                    x -= 1;
-                    lastDir = Entity.DIR_LEFT;
+                    mid.x += 5 * (32 / BASE_TILE_SIZE);
+                    path.add(mid);
+                    endpointMap[y][x]--;
+                    if (endpointMap[y][x] == 0) {
+                        remainingWires[y][x] = false;
+                    }
+                    return paths;
                 } else {
                     // bottom, moving up
                     y -= 2;
@@ -1062,6 +1087,12 @@ public class Level2PDF {
             if (!wireConnects(t, Entity.DIR_RIGHT)) {
                 setWest(endpointMap, y, x);
             }
+        }
+
+        if (north && south && east && west) {
+            setCenter(remainingWires, y, x);
+            setCenter(endpointMap, y, x);
+            setCenter(endpointMap, y, x);
         }
     }
 
@@ -1150,6 +1181,10 @@ public class Level2PDF {
         map[y][x + 1]++;
     }
 
+    private static void setCenter(byte[][] map, int y, int x) {
+        map[y + 1][x + 1]++;
+    }
+
     private static void setWest(boolean[][] map, int y, int x) {
         map[y + 1][x] = true;
     }
@@ -1164,6 +1199,10 @@ public class Level2PDF {
 
     private static void setNorth(boolean[][] map, int y, int x) {
         map[y][x + 1] = true;
+    }
+
+    private static void setCenter(boolean[][] map, int y, int x) {
+        map[y + 1][x + 1] = true;
     }
 
     private static PdfTemplate[] createSteelTemplates(PdfContentByte cb) {
@@ -1803,7 +1842,7 @@ public class Level2PDF {
         for (int y = 0; y < map.length; y++) {
             byte[] row = map[y];
             for (int x = 0; x < row.length; x++) {
-                System.out.print(row[x] > 0 ? "X " : ". ");
+                System.out.print(row[x] > 0 ? row[x] + " " : ". ");
             }
             System.out.println();
         }
