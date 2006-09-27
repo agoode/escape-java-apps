@@ -49,7 +49,7 @@ public class Level2PDF {
         // get the font
         BaseFont f = null;
         {
-            final String fontName = "Fixedsys500c.ttf";  // the best font
+            final String fontName = "Fixedsys500c.ttf"; // the best font
             InputStream font = ResourceUtil.getLocalResourceAsStream(fontName);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             int d;
@@ -387,6 +387,7 @@ public class Level2PDF {
     }
 
     final private static Map<String, SVGDocument> svgDocMap = new HashMap<String, SVGDocument>();
+
     final private static SAXSVGDocumentFactory svgDocFactory;
     static {
         final String parser = XMLResourceDescriptor.getXMLParserClassName();
@@ -811,8 +812,8 @@ public class Level2PDF {
                 // follow
                 System.out.println("going to start following from (" + x + ","
                         + y + ")");
-                List<List<Point>> newPaths = followWire(l, endpointMap, remainingWires,
-                        y, x);
+                List<List<Point>> newPaths = followWire(l, endpointMap,
+                        remainingWires, y, x);
                 paths.addAll(newPaths);
             }
         }
@@ -823,9 +824,9 @@ public class Level2PDF {
         List<List<Point>> paths = new ArrayList<List<Point>>();
         List<Point> path = new ArrayList<Point>();
         paths.add(path);
-        
+
         int h = l.getHeight();
-        
+
         byte lastDir = Entity.DIR_NONE;
         do {
             // move onto the next tile
@@ -970,7 +971,21 @@ public class Level2PDF {
             case T_TRANSPONDER:
                 if (x % 3 == 0) {
                     // left, moving right
-                    x += 2;
+                    x += 1;
+                    Point midL = transformForWire(h, x, y);
+                    // adjust for break
+                    midL.x -= 6 * (BASE_TILE_SIZE / 32);
+                    path.add(midL);
+
+                    // start new path
+                    path = new ArrayList<Point>();
+                    paths.add(path);
+
+                    Point midR = midL.getLocation();
+                    midR.x += 11 * (BASE_TILE_SIZE / 32);
+                    path.add(midR);
+
+                    x += 1;
                     lastDir = Entity.DIR_RIGHT;
                 } else if (y % 3 == 0) {
                     // top, moving down
@@ -978,7 +993,21 @@ public class Level2PDF {
                     lastDir = Entity.DIR_DOWN;
                 } else if (x % 3 == 2) {
                     // right, moving left
-                    x -= 2;
+                    x -= 1;
+                    Point midR = transformForWire(h, x, y);
+                    // adjust for break
+                    midR.x += 5 * (BASE_TILE_SIZE / 32);
+                    path.add(midR);
+
+                    // start new path
+                    path = new ArrayList<Point>();
+                    paths.add(path);
+
+                    Point midL = midR.getLocation();
+                    midL.x -= 11 * (BASE_TILE_SIZE / 32);
+                    path.add(midL);
+
+                    x -= 1;
                     lastDir = Entity.DIR_LEFT;
                 } else {
                     // bottom, moving up
