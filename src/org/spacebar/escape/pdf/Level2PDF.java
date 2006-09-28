@@ -680,10 +680,17 @@ public class Level2PDF {
         layDownTilesByName(l, cb, new byte[] { T_BUTTON, T_BLIGHT, T_RLIGHT,
                 T_GLIGHT, T_NSWE, T_TRANSPONDER }, "crossover.svg");
 
+        // now the continuous wire paths
         drawWire(l, cb);
 
         // then the things on top
-
+        layDownSimpleTile(l, cb, T_BUTTON);
+        layDownTilesByName(l, cb, new byte[] { T_BLIGHT, T_RLIGHT, T_GLIGHT },
+                "common-light.svg"); // XXX fix svg
+        layDownSimpleTile(l, cb, T_BLIGHT);
+        layDownSimpleTile(l, cb, T_RLIGHT);
+        layDownSimpleTile(l, cb, T_GLIGHT);
+        layDownSimpleTile(l, cb, T_TRANSPONDER);
     }
 
     private static void drawWire(Level l, PdfContentByte cb) {
@@ -775,8 +782,8 @@ public class Level2PDF {
         // rounded
         cb.setLineJoin(PdfContentByte.LINE_JOIN_ROUND);
 
-//        cb.setLineCap(PdfContentByte.LINE_CAP_ROUND);
-        
+        // cb.setLineCap(PdfContentByte.LINE_CAP_ROUND);
+
         // draw outer
         cb.setColorStroke(new Color(47, 47, 47));
         cb.setLineWidth(BASE_TILE_SIZE / 4f);
@@ -821,7 +828,7 @@ public class Level2PDF {
                 List<List<Point>> newPaths = followWire(l, endpointMap,
                         remainingWires, y, x);
                 paths.addAll(newPaths);
-                
+
                 if (endpointMap[y][x] != 0) {
                     // follow again!
                     x--;
@@ -863,7 +870,7 @@ public class Level2PDF {
             // add this point
             if (!inCenter) {
                 path.add(transformForWire(h, x, y));
-                
+
                 if (!remainingWires[y][x]) {
                     // we are at the end of a closed loop
                     path.add(null);
@@ -872,7 +879,6 @@ public class Level2PDF {
             }
 
             remainingWires[y][x] = false;
-
 
             // get the new tile
             byte t = l.tileAt(x / 3, y / 3);
