@@ -75,7 +75,10 @@ public class Level2PDF {
                 // get level
                 File f = new File(filename);
                 Level l = new Level(new BitInputStream(new FileInputStream(f)));
-                l.print(System.out);
+                // l.print(System.out);
+                System.out.print(l.getTitle() + " by " + l.getAuthor() + " ("
+                        + l.getWidth() + "x" + l.getHeight() + ") [");
+                System.out.flush();
 
                 String basename = f.getName().replaceFirst("\\.esx$", "");
 
@@ -102,7 +105,7 @@ public class Level2PDF {
 
         // XXX: take into account title block?
         boolean landscape = levAspect >= 1.0;
-        System.out.println("landscape: " + landscape);
+        // System.out.println("landscape: " + landscape);
 
         if (landscape && page.height() > page.width()) {
             page = page.rotate();
@@ -150,12 +153,13 @@ public class Level2PDF {
                     - t.getRowHeight(0);
             float rWidth = document.right() - document.left();
 
-            System.out.println("rHeight: " + rHeight + ", rWidth: " + rWidth);
+            // System.out.println("rHeight: " + rHeight + ", rWidth: " +
+            // rWidth);
 
             // figure out how big to be
-            System.out.println("level aspect: " + levAspect);
+            // System.out.println("level aspect: " + levAspect);
             float sAspect = rWidth / rHeight;
-            System.out.println("space aspect: " + sAspect);
+            // System.out.println("space aspect: " + sAspect);
             boolean widthConstrained = levAspect > sAspect;
 
             float tileSize;
@@ -175,12 +179,12 @@ public class Level2PDF {
 
             float masterScale = tileSize / BASE_TILE_SIZE;
 
-            System.out.println("masterScale: " + masterScale);
+            // System.out.println("masterScale: " + masterScale);
 
             // one of the next two should be 0
             xOff = (rWidth - (w + 2 * padding)) / 2;
             yOff = (rHeight - (h + 2 * padding)) / 2;
-            System.out.println("xOff: " + xOff + ", yOff: " + yOff);
+            // System.out.println("xOff: " + xOff + ", yOff: " + yOff);
 
             PdfContentByte cb = writer.getDirectContent();
             cb.saveState();
@@ -214,10 +218,19 @@ public class Level2PDF {
             }
 
             layDownTransparency(l, levelField);
+            System.out.print(" floor");
+            System.out.flush();
+
             layDownTiles(l, levelField);
             levelField.restoreState();
+
             drawLaser(l, levelField);
+            System.out.print(" laser");
+            System.out.flush();
+
             layDownSprites(l, levelField);
+            System.out.print(" sprites");
+            System.out.flush();
 
             // hit it
             af = new AffineTransform();
@@ -234,6 +247,7 @@ public class Level2PDF {
             levelField.restoreState();
 
             document.close();
+            System.out.println(" ]");
         } catch (DocumentException de) {
             System.err.println(de.getMessage());
         }
@@ -400,7 +414,7 @@ public class Level2PDF {
     private static SVGDocument loadSVG(String name) throws IOException {
         synchronized (svgDocMap) {
             if (!svgDocMap.containsKey(name)) {
-                System.out.println("reading " + name);
+                // System.out.println(" reading " + name);
                 SVGDocument doc = (SVGDocument) svgDocFactory.createDocument(
                         null, ResourceUtil.getLocalResourceAsStream(name));
                 svgDocMap.put(name, doc);
@@ -599,6 +613,9 @@ public class Level2PDF {
             layDownBlockTile(l, cb, T_BROKEN, grayColors, blockTemps);
             layDownTilesByName(l, cb, new byte[] { T_BROKEN },
                     "broken-pieces.svg");
+
+            System.out.print(" blocks");
+            System.out.flush();
         }
 
         // spheres
@@ -609,6 +626,9 @@ public class Level2PDF {
             layDownSphereTile(l, cb, T_RSPHERE, redSColors, sphereTemps);
             layDownSphereTile(l, cb, T_GSPHERE, greenSColors, sphereTemps);
             layDownSphereTile(l, cb, T_BSPHERE, blueSColors, sphereTemps);
+
+            System.out.print(" spheres");
+            System.out.flush();
         }
 
         // steel
@@ -619,6 +639,9 @@ public class Level2PDF {
             layDownBlockTile(l, cb, T_RSTEEL, redStColors, steelTemps);
             layDownBlockTile(l, cb, T_GSTEEL, greenStColors, steelTemps);
             layDownBlockTile(l, cb, T_BSTEEL, blueStColors, steelTemps);
+
+            System.out.print(" steel");
+            System.out.flush();
         }
 
         // simple overlay
@@ -666,6 +689,9 @@ public class Level2PDF {
         layDownSimpleTile(l, cb, T_0);
         layDownSimpleTile(l, cb, T_1);
 
+        System.out.print(" tiles");
+        System.out.flush();
+
         // for wires, complex:
 
         // must draw the individual tiles
@@ -696,6 +722,9 @@ public class Level2PDF {
         layDownSimpleTile(l, cb, T_RLIGHT);
         layDownSimpleTile(l, cb, T_GLIGHT);
         layDownSimpleTile(l, cb, T_TRANSPONDER);
+
+        System.out.print(" wires");
+        System.out.flush();
 
         // done?!
     }
@@ -760,9 +789,9 @@ public class Level2PDF {
             }
         }
 
-        printMap(endpointMap);
-        System.out.println();
-        printMap(remainingWires);
+        // printMap(endpointMap);
+        // System.out.println();
+        // printMap(remainingWires);
 
         // now, we have wire endpoints, so follow them
         List<List<Point>> paths = new ArrayList<List<Point>>();
@@ -770,21 +799,21 @@ public class Level2PDF {
         // follow for open-loop wires
         followAllWireEndpoints(l, remainingWires, endpointMap, paths);
 
-        printMap(endpointMap);
-        System.out.println();
-        printMap(remainingWires);
+        // printMap(endpointMap);
+        // System.out.println();
+        // printMap(remainingWires);
 
         // go back, find all wires missed
         while (markFirstRemainingWire(endpointMap, remainingWires)) {
             followAllWireEndpoints(l, remainingWires, endpointMap, paths);
-            printMap(endpointMap);
-            System.out.println();
-            printMap(remainingWires);
+            // printMap(endpointMap);
+            // System.out.println();
+            // printMap(remainingWires);
         }
 
         // simplify
         List<List<Point>> simplePaths = simplifyPaths(paths);
-        System.out.println("simple wire paths: " + simplePaths);
+        // System.out.println("simple wire paths: " + simplePaths);
 
         // rounded
         cb.setLineJoin(PdfContentByte.LINE_JOIN_ROUND);
@@ -830,8 +859,9 @@ public class Level2PDF {
                 endpointMap[y][x]--;
 
                 // follow
-                System.out.println("going to start following from (" + x + ","
-                        + y + ")");
+                // System.out.println("going to start following from (" + x +
+                // ","
+                // + y + ")");
                 List<List<Point>> newPaths = followWire(l, endpointMap,
                         remainingWires, y, x);
                 paths.addAll(newPaths);
@@ -1643,8 +1673,8 @@ public class Level2PDF {
 
         byte[][] edges = findEdges(map);
 
-        System.out.println();
-        printMap(edges, map);
+        // System.out.println();
+        // printMap(edges, map);
 
         java.util.List<List<Point>> paths = makePathsFromEdges(edges);
 
@@ -1652,7 +1682,7 @@ public class Level2PDF {
 
         int h = l.getHeight();
         for (List<Point> path : simplePaths) {
-            System.out.println("simple path: " + path);
+            // System.out.println("simple path: " + path);
 
             Iterator<Point> i = path.iterator();
             Point p = i.next();
@@ -1841,7 +1871,7 @@ public class Level2PDF {
         return null;
     }
 
-    private static void printMap(boolean[][] map) {
+    static void printMap(boolean[][] map) {
         for (int y = 0; y < map.length; y++) {
             boolean[] row = map[y];
             for (int x = 0; x < row.length; x++) {
@@ -1851,7 +1881,7 @@ public class Level2PDF {
         }
     }
 
-    private static void printMap(byte[][] map) {
+    static void printMap(byte[][] map) {
         for (int y = 0; y < map.length; y++) {
             byte[] row = map[y];
             for (int x = 0; x < row.length; x++) {
@@ -1861,7 +1891,7 @@ public class Level2PDF {
         }
     }
 
-    private static void printMap(byte[][] edges, boolean[][] map) {
+    static void printMap(byte[][] edges, boolean[][] map) {
         for (int y = 0; y < edges.length; y++) {
             byte[] row = edges[y];
             for (int x = 0; x < row.length; x++) {
@@ -1988,7 +2018,7 @@ public class Level2PDF {
     private static void addToPhrase(Font f, StyleStack2 s, Phrase p,
             StringBuilder str) {
         if (str.length() != 0) {
-            System.out.println("making new chunk: " + str);
+            // System.out.println("making new chunk: " + str);
             Font f2 = new Font(f);
             f2.setColor(s.getAWTColor());
             Chunk c = new Chunk(str.toString(), f2);
