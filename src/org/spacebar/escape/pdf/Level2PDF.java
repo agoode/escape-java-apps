@@ -687,10 +687,14 @@ public class Level2PDF {
         layDownSimpleTile(l, cb, T_BUTTON);
         layDownTilesByName(l, cb, new byte[] { T_BLIGHT, T_RLIGHT, T_GLIGHT },
                 "common-light.svg"); // XXX fix svg
+
+        // XXX convert to template
         layDownSimpleTile(l, cb, T_BLIGHT);
         layDownSimpleTile(l, cb, T_RLIGHT);
         layDownSimpleTile(l, cb, T_GLIGHT);
         layDownSimpleTile(l, cb, T_TRANSPONDER);
+        
+        // done?!
     }
 
     private static void drawWire(Level l, PdfContentByte cb) {
