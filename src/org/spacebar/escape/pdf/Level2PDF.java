@@ -70,19 +70,22 @@ public class Level2PDF {
     }
 
     public static void main(String[] args) {
-        try {
-            // get level
-            File f = new File(args[0]);
-            Level l = new Level(new BitInputStream(new FileInputStream(f)));
-            l.print(System.out);
+        for (String filename : args) {
+            try {
+                // get level
+                File f = new File(filename);
+                Level l = new Level(new BitInputStream(new FileInputStream(f)));
+                l.print(System.out);
 
-            String basename = f.getName().replaceFirst("\\.esx$", "");
+                String basename = f.getName().replaceFirst("\\.esx$", "");
 
-            makePDF(l, PageSize.LETTER, new FileOutputStream(basename + ".pdf"));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+                makePDF(l, PageSize.LETTER, new FileOutputStream(basename
+                        + ".pdf"));
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -693,7 +696,7 @@ public class Level2PDF {
         layDownSimpleTile(l, cb, T_RLIGHT);
         layDownSimpleTile(l, cb, T_GLIGHT);
         layDownSimpleTile(l, cb, T_TRANSPONDER);
-        
+
         // done?!
     }
 
