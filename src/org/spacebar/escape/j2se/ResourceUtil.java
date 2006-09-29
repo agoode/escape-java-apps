@@ -6,6 +6,7 @@ package org.spacebar.escape.j2se;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -16,7 +17,7 @@ import javax.sound.sampled.*;
  * @author adam
  */
 public class ResourceUtil {
-    //    private final static Mixer mixer = AudioSystem.getMixer(null);
+    // private final static Mixer mixer = AudioSystem.getMixer(null);
 
     public static InputStream getLocalResourceAsStream(String name) {
         return ResourceUtil.class.getResourceAsStream("resources/" + name);
@@ -32,7 +33,7 @@ public class ResourceUtil {
             DataLine.Info dlInfo = new DataLine.Info(Clip.class, a.getFormat(),
                     10);
 
-            //            clip = (Clip) mixer.getLine(dlInfo);
+            // clip = (Clip) mixer.getLine(dlInfo);
             clip = (Clip) AudioSystem.getLine(dlInfo);
 
             System.out.print(" " + clip.getLineInfo() + "...");
@@ -109,8 +110,8 @@ public class ResourceUtil {
         System.arraycopy(biggerImgs, 0, imgs, smaller, bigger);
 
         for (int i = 0; i < imgs.length; i++) {
-            //            System.out.println("w: " + imgs[i].getWidth() + ", h: "
-            //                    + imgs[i].getHeight());
+            // System.out.println("w: " + imgs[i].getWidth() + ", h: "
+            // + imgs[i].getHeight());
         }
 
         return imgs;
@@ -132,7 +133,7 @@ public class ResourceUtil {
         g.drawImage(img, 0, 0, null);
         g.dispose();
 
-        //        System.out.println(img2);
+        // System.out.println(img2);
 
         return img2;
     }
@@ -144,7 +145,7 @@ public class ResourceUtil {
         }
         return stitchHoriz(imgs);
     }
-    
+
     public static BufferedImage stitchHoriz(BufferedImage imgs[]) {
         int height = 0;
         int maxWidth = 0;
@@ -155,9 +156,9 @@ public class ResourceUtil {
             maxWidth = Math.max(maxWidth, imgs[i].getWidth());
         }
 
-        BufferedImage newImg = createCompatibleImage(maxWidth * imgs.length, height,
-                Transparency.TRANSLUCENT);
-//        System.out.println(newImg);
+        BufferedImage newImg = createCompatibleImage(maxWidth * imgs.length,
+                height, Transparency.TRANSLUCENT);
+        // System.out.println(newImg);
         Graphics2D g2 = newImg.createGraphics();
         int dx = 0;
         for (int i = 0; i < imgs.length; i++) {
@@ -181,5 +182,19 @@ public class ResourceUtil {
         BufferedImage img = gc.createCompatibleImage(width, height,
                 transparency);
         return img;
+    }
+
+    public static byte[] getLocalResourceAsBytes(String name) throws IOException {
+        InputStream in = getLocalResourceAsStream(name);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        int d;
+        while ((d = in.read()) != -1) {
+            baos.write(d);
+        }
+        byte data[] = baos.toByteArray();
+        in.close();
+
+        return data;
     }
 }
