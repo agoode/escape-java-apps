@@ -134,7 +134,7 @@ public class Level2PDF {
             PdfWriter writer = PdfWriter.getInstance(document, out);
 
             // colorspace
-            writer.setDefaultColorspace(PdfName.DEFAULTRGB, sRGBColorProfile);
+//            writer.setDefaultColorspace(PdfName.DEFAULTRGB, sRGBColorProfile);
             
             // metadata
             document.addAuthor(StyleStack.removeStyle(l.getAuthor()));
@@ -149,6 +149,7 @@ public class Level2PDF {
             // title and author
             Font font = new Font(BASE_FONT, 16);
 
+            // XXX alpha and symbols
             String text = Characters.WHITE + l.getTitle() + Characters.GRAY
                     + " by " + Characters.BLUE + l.getAuthor();
 
@@ -330,7 +331,7 @@ public class Level2PDF {
     private static void layDownTransparency(Level l, PdfTemplate levelField) {
         /*
          * create the knockout layer, and paint electric, up blocks, down
-         * blocks, and transporter (later arrows?)
+         * blocks, and transporter
          */
 
         if (!(l.hasTile(T_ELECTRIC) || l.hasTile(T_BUP) || l.hasTile(T_BDOWN)
