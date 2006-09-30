@@ -585,7 +585,7 @@ public class Level2PDF {
     final static Color grayStColors[] = new Color[] { new Color(255, 255, 255),
             new Color(131, 131, 131), new Color(101, 101, 101),
             new Color(76, 76, 76), new Color(56, 56, 56),
-            new Color(14, 14, 14), new Color(249, 249, 249) };
+            new Color(14, 14, 14), new Color(220, 220, 220) };
 
     final static Color blueStColors[] = new Color[] { new Color(255, 255, 255),
             new Color(61, 50, 212), new Color(43, 34, 165),
