@@ -45,14 +45,15 @@ public class Level2PDF {
     final static BaseFont BASE_FONT;
     static {
         ByteBuffer.HIGH_PRECISION = true;
-        Document.compress = false;
+//        Document.compress = false;
 
         // get the font
         BaseFont f = null;
         {
             final String fontName = "Fixedsys500c.ttf"; // the best font
             try {
-                byte fontData[] = ResourceUtil.getLocalResourceAsBytes(fontName);
+                byte fontData[] = ResourceUtil
+                        .getLocalResourceAsBytes(fontName);
                 f = BaseFont.createFont(fontName, BaseFont.CP1252, true, true,
                         fontData, null);
             } catch (IOException e) {
@@ -64,25 +65,6 @@ public class Level2PDF {
         BASE_FONT = f;
     }
 
-    final private static PdfArray sRGBColorProfile = new PdfArray(PdfName.ICCBASED);
-    static {
-        byte data[];
-        PdfStream tmp = null;
-        
-        try {
-            data = ResourceUtil.getLocalResourceAsBytes("sRGB.icc");
-            tmp = new PdfStream(data);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        
-        tmp.put(PdfName.N, new PdfNumber(3));
-        tmp.put(PdfName.ALTERNATE, PdfName.DEVICERGB);
-        tmp.flateCompress();
-        
-        sRGBColorProfile.add(tmp);
-    }
-    
     public static void main(String[] args) {
         for (String filename : args) {
             try {
@@ -133,9 +115,6 @@ public class Level2PDF {
             // and directs a PDF-stream to a stream
             PdfWriter writer = PdfWriter.getInstance(document, out);
 
-            // colorspace
-//            writer.setDefaultColorspace(PdfName.DEFAULTRGB, sRGBColorProfile);
-            
             // metadata
             document.addAuthor(StyleStack.removeStyle(l.getAuthor()));
             document.addTitle(StyleStack.removeStyle(l.getTitle()));
@@ -145,6 +124,11 @@ public class Level2PDF {
             // TODO add keywords
 
             document.open();
+
+            // set blending color space
+            PdfTransparencyGroup group = new PdfTransparencyGroup();
+            group.put(PdfName.CS, PdfName.DEVICERGB);
+            writer.setGroup(group);
 
             // title and author
             Font font = new Font(BASE_FONT, 16);
