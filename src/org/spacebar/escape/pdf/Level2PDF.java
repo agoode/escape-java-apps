@@ -45,7 +45,7 @@ public class Level2PDF {
     final static BaseFont BASE_FONT;
     static {
         ByteBuffer.HIGH_PRECISION = true;
-//        Document.compress = false;
+        // Document.compress = false;
 
         // get the font
         BaseFont f = null;
@@ -71,10 +71,6 @@ public class Level2PDF {
                 // get level
                 File f = new File(filename);
                 Level l = new Level(new BitInputStream(new FileInputStream(f)));
-                // l.print(System.out);
-                System.out.print(l.getTitle() + " by " + l.getAuthor() + " ("
-                        + l.getWidth() + "x" + l.getHeight() + ") [");
-                System.out.flush();
 
                 String basename = f.getName().replaceFirst("\\.esx$", "");
 
@@ -94,6 +90,10 @@ public class Level2PDF {
      * @param out
      */
     public static void makePDF(Level l, Rectangle page, OutputStream out) {
+        System.out.print(l.getTitle() + " by " + l.getAuthor() + " ("
+                + l.getWidth() + "x" + l.getHeight() + ") [");
+        System.out.flush();
+
         float levAspect = (float) l.getWidth() / (float) l.getHeight();
 
         // do PDF stuff
@@ -110,7 +110,6 @@ public class Level2PDF {
         Document document = new Document(page, margin, margin, margin, margin);
 
         try {
-
             // we create a writer that listens to the document
             // and directs a PDF-stream to a stream
             PdfWriter writer = PdfWriter.getInstance(document, out);
@@ -151,6 +150,10 @@ public class Level2PDF {
             t.addCell(cell);
 
             document.add(t);
+            
+            System.out.print(" title");
+            System.out.flush();
+            
             float rHeight = document.top() - document.bottom()
                     - t.getRowHeight(0);
             float rWidth = document.right() - document.left();
@@ -616,7 +619,7 @@ public class Level2PDF {
             layDownTilesByName(l, cb, new byte[] { T_BROKEN },
                     "broken-pieces.svg");
 
-            System.out.print(" blocks");
+            System.out.print(" solid");
             System.out.flush();
         }
 
