@@ -150,10 +150,10 @@ public class Level2PDF {
             t.addCell(cell);
 
             document.add(t);
-            
+
             System.out.print(" title");
             System.out.flush();
-            
+
             float rHeight = document.top() - document.bottom()
                     - t.getRowHeight(0);
             float rWidth = document.right() - document.left();
@@ -206,7 +206,8 @@ public class Level2PDF {
             // create the level as a form XObject, so that patterns come out
             // nice
             PdfTemplate levelField = cb.createTemplate(l.getWidth()
-                    * BASE_TILE_SIZE, l.getHeight() * BASE_TILE_SIZE);
+                    * BASE_TILE_SIZE, l.getHeight() * BASE_TILE_SIZE
+                    + BASE_TILE_SIZE / 2);
             levelField.saveState();
 
             // every level has T_FLOOR, if it has T_EXIT
