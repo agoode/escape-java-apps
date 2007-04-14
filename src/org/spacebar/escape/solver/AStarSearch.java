@@ -250,8 +250,11 @@ public class AStarSearch implements Runnable {
             }
 
             f = g + h(l);
+
+            // TODO: lev1464.esx
             if (f < parentF) {
                 // so important, that we never want to disable
+                printSolution(constructSolution(this));
                 throw new AssertionError("pathmax active! " + parent + " "
                         + this);
             }
