@@ -1,10 +1,6 @@
 package org.spacebar.escape;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -18,9 +14,9 @@ public class TestSolutions {
 
     private static Set<MD5> rejectures = new HashSet<MD5>();
     static {
-//        rejectures.add(new MD5("75b45c8e3fb338ba80cf69352e425508"));
-    	rejectures.add(new MD5("a76ee47cd952e5bb05a20ca4738810b1"));
-//    	rejectures.add(new MD5("5b76e676e670fe3395b57553bfacb59a"));
+        // rejectures.add(new MD5("75b45c8e3fb338ba80cf69352e425508"));
+        rejectures.add(new MD5("a76ee47cd952e5bb05a20ca4738810b1"));
+        // rejectures.add(new MD5("5b76e676e670fe3395b57553bfacb59a"));
     }
 
     private static FileFilter ff = new FileFilter() {
@@ -102,9 +98,10 @@ public class TestSolutions {
                     Level l = i.next();
                     List<Solution> sols = levelsToSolutions.get(l);
 
-                    for (Iterator<Solution> iter = sols.iterator(); iter.hasNext();) {
+                    for (Iterator<Solution> iter = sols.iterator(); iter
+                            .hasNext();) {
                         final Solution sol = iter.next();
-                        
+
                         // ignore bookmarks
                         if (sol.isBookmark()) {
                             continue;
@@ -170,15 +167,16 @@ public class TestSolutions {
         }
     }
 
-    private static String getStringForLevel(Level l, Map<Level, File> levelsToFiles) {
+    private static String getStringForLevel(Level l,
+            Map<Level, File> levelsToFiles) {
         File f = levelsToFiles.get(l);
         return l.toString() + " [" + f.getName() + "]";
     }
 
-    private static void getAllStuff(File f, Map<MD5, Level> levels, Map<Level, MD5> md5s,
-            Map<Level, File> levelsToFiles) throws IOException {
-//    	System.out.println("checking " + f);
-    	if (f.isDirectory()) {
+    private static void getAllStuff(File f, Map<MD5, Level> levels,
+            Map<Level, MD5> md5s, Map<Level, File> levelsToFiles) {
+        System.out.println("checking " + f);
+        if (f.isDirectory()) {
             File files[] = f.listFiles(ff);
 
             for (int i = 0; i < files.length; i++) {
@@ -186,23 +184,28 @@ public class TestSolutions {
             }
         } else {
             // level
-            FileInputStream fis = new FileInputStream(f);
-            byte l[] = Misc.getByteArrayFromInputStream(fis);
-            fis.close();
-            MessageDigest m = null;
-
+            FileInputStream fis;
             try {
-                m = MessageDigest.getInstance("MD5");
-            } catch (NoSuchAlgorithmException e) {
+                fis = new FileInputStream(f);
+                byte l[] = Misc.getByteArrayFromInputStream(fis);
+                fis.close();
+                MessageDigest m = null;
+
+                try {
+                    m = MessageDigest.getInstance("MD5");
+                } catch (NoSuchAlgorithmException e) {
+                    e.printStackTrace();
+                }
+
+                MD5 md5 = new MD5(m.digest(l));
+                Level ll = new EquateableLevel(new BitInputStream(
+                        new ByteArrayInputStream(l)));
+                levels.put(md5, ll);
+                md5s.put(ll, md5);
+                levelsToFiles.put(ll, f);
+            } catch (IOException e) {
                 e.printStackTrace();
             }
-
-            MD5 md5 = new MD5(m.digest(l));
-            Level ll = new EquateableLevel(
-                    new BitInputStream(new ByteArrayInputStream(l)));
-            levels.put(md5, ll);
-            md5s.put(ll, md5);
-            levelsToFiles.put(ll, f);
         }
     }
 }
