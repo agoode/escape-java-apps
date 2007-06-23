@@ -2,7 +2,6 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/Escape"/>
 	<classpathentry kind="lib" path="lib/batik-svg-dom.jar"/>
 	<classpathentry kind="lib" path="lib/batik-util.jar"/>
 	<classpathentry kind="lib" path="lib/batik-xml.jar"/>
@@ -15,6 +14,7 @@
 	<classpathentry kind="lib" path="lib/batik-parser.jar"/>
 	<classpathentry kind="lib" path="lib/batik-awt-util.jar"/>
 	<classpathentry kind="lib" path="lib/xerces_2_5_0.jar"/>
-	<classpathentry sourcepath="/iText/src" kind="lib" path="lib/itext-1.4.5.jar"/>
+	<classpathentry kind="lib" path="lib/itext-1.4.5.jar" sourcepath="/iText/src"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/escape-java"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
