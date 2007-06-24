@@ -1477,11 +1477,11 @@ public class Level2PDF {
                     final int tx = x * BASE_TILE_SIZE;
                     final int ty = (l.getHeight() - 1) * BASE_TILE_SIZE - y
                             * BASE_TILE_SIZE;
-                    
+
                     cb.saveState();
                     if (clip != null) {
-                        cb.rectangle(clip.x + tx, clip.y + ty, clip.width,
-                                clip.height);
+                        cb.rectangle(clip.x + tx, ty + BASE_TILE_SIZE - clip.y
+                                - clip.height, clip.width, clip.height);
                         cb.clip();
                         cb.newPath();
                     }
