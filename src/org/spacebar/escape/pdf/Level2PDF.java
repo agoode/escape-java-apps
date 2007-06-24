@@ -364,7 +364,7 @@ public class Level2PDF {
 
         // colored shadow
         layDownTilesByName(l, ct, new byte[] { T_BUP, T_RUP, T_GUP },
-                "up-shadow.svg");
+                "up-shadow.svg", null);
 
         // add this group to the knockout group
         t.addTemplate(ct, 0, 0);
@@ -377,7 +377,7 @@ public class Level2PDF {
 
         // now, knockout the color with this!
         layDownTilesByName(l, t, new byte[] { T_BUP, T_RUP, T_GUP },
-                "up-pieces.svg");
+                "up-pieces.svg", null);
 
         // bam
         levelField.addTemplate(t, 0, 0);
@@ -618,7 +618,7 @@ public class Level2PDF {
             // broken is gray + extra stuff
             layDownBlockTile(l, cb, T_BROKEN, grayColors, blockTemps);
             layDownTilesByName(l, cb, new byte[] { T_BROKEN },
-                    "broken-pieces.svg");
+                    "broken-pieces.svg", null);
 
             System.out.print(" solid");
             System.out.flush();
@@ -668,7 +668,7 @@ public class Level2PDF {
         // arrows
         byte arrowTiles[] = new byte[] { T_RIGHT, T_LEFT, T_UP, T_DOWN };
         drawSolid(l, cb, arrowTiles, new Color(177, 177, 177));
-        layDownTilesByName(l, cb, arrowTiles, "arrow-back.svg");
+        layDownTilesByName(l, cb, arrowTiles, "arrow-back.svg", null);
         layDownSimpleTile(l, cb, T_RIGHT);
         layDownSimpleTile(l, cb, T_LEFT);
         layDownSimpleTile(l, cb, T_UP);
@@ -677,21 +677,21 @@ public class Level2PDF {
         // electric box
         byte onOffTiles[] = new byte[] { T_ON, T_OFF };
         drawSolid(l, cb, onOffTiles, new Color(142, 142, 142));
-        layDownTilesByName(l, cb, onOffTiles, "on-off-common.svg");
+        layDownTilesByName(l, cb, onOffTiles, "on-off-common.svg", null);
         layDownSimpleTile(l, cb, T_ON);
         layDownSimpleTile(l, cb, T_OFF);
 
         // twisty
         byte twistTiles[] = new byte[] { T_LR, T_UD };
         drawSolid(l, cb, twistTiles, new Color(85, 85, 85));
-        layDownTilesByName(l, cb, twistTiles, "twist-back.svg");
+        layDownTilesByName(l, cb, twistTiles, "twist-back.svg", null);
         layDownSimpleTile(l, cb, T_LR);
         layDownSimpleTile(l, cb, T_UD);
 
         // 0/1
         byte numTiles[] = new byte[] { T_0, T_1 };
         drawSolid(l, cb, numTiles, new Color(142, 142, 142));
-        layDownTilesByName(l, cb, numTiles, "num-back.svg");
+        layDownTilesByName(l, cb, numTiles, "num-back.svg", null);
         layDownSimpleTile(l, cb, T_0);
         layDownSimpleTile(l, cb, T_1);
 
@@ -713,14 +713,15 @@ public class Level2PDF {
         layDownSimpleTile(l, cb, T_WE);
 
         layDownTilesByName(l, cb, new byte[] { T_BUTTON, T_BLIGHT, T_RLIGHT,
-                T_GLIGHT, T_NSWE, T_TRANSPONDER }, "crossover.svg");
+                T_GLIGHT, T_NSWE, T_TRANSPONDER }, "crossover.svg", null);
 
         // now the continuous wire paths
         drawWire(l, cb);
 
         // then the things on top
+        java.awt.Rectangle checkerClip = new java.awt.Rectangle(6, 6, 20, 20);
         layDownTilesByName(l, cb, new byte[] { T_BLIGHT, T_RLIGHT, T_GLIGHT,
-                T_BUTTON, T_TRANSPONDER }, "common-light.svg"); // XXX fix svg
+                T_BUTTON, T_TRANSPONDER }, "common-light.svg", checkerClip);
 
         // XXX convert to template
         layDownSimpleTile(l, cb, T_BLIGHT);
@@ -1325,7 +1326,7 @@ public class Level2PDF {
         boolean whereToDraw[][] = makeTileMap(l, TileCondition
                 .createTileMatchCondition(tile));
 
-        drawTiles(l, cb, tileTemplate, whereToDraw);
+        drawTiles(l, cb, tileTemplate, whereToDraw, null);
     }
 
     private static void drawPanelPath(PdfTemplate tileTemplate, float radius) {
@@ -1366,7 +1367,7 @@ public class Level2PDF {
         boolean whereToDraw[][] = makeTileMap(l, TileCondition
                 .createTileMatchCondition(tile));
 
-        drawTiles(l, cb, tileTemplate, whereToDraw);
+        drawTiles(l, cb, tileTemplate, whereToDraw, null);
     }
 
     private static void layDownSphereTile(Level l, PdfContentByte cb,
@@ -1383,7 +1384,7 @@ public class Level2PDF {
                 .createTileMatchCondition(tile));
 
         // draw each tile
-        drawTiles(l, cb, tileTemplate, whereToDraw);
+        drawTiles(l, cb, tileTemplate, whereToDraw, null);
 
         cb.restoreState();
     }
@@ -1404,7 +1405,7 @@ public class Level2PDF {
     }
 
     private static void layDownTilesByName(Level l, PdfContentByte cb,
-            byte tiles[], String name) {
+            byte tiles[], String name, java.awt.Rectangle clip) {
 
         // check
         boolean hasTiles = false;
@@ -1423,7 +1424,7 @@ public class Level2PDF {
         boolean whereToDraw[][] = makeTileMap(l, TileCondition
                 .createTileMatchCondition(tiles));
 
-        drawTiles(l, cb, tileTemplate, whereToDraw);
+        drawTiles(l, cb, tileTemplate, whereToDraw, clip);
     }
 
     private static PdfTemplate createTileTemplate(PdfContentByte cb, String name) {
@@ -1461,20 +1462,31 @@ public class Level2PDF {
                 colors[colors.length - 1]);
 
         // draw each tile
-        drawTiles(l, cb, tileTemplate, whereToDraw);
+        drawTiles(l, cb, tileTemplate, whereToDraw, null);
 
         cb.restoreState();
     }
 
     private static void drawTiles(Level l, PdfContentByte cb,
-            PdfTemplate tileTemplate, boolean[][] whereToDraw) {
+            PdfTemplate tileTemplate, boolean[][] whereToDraw,
+            java.awt.Rectangle clip) {
         for (int y = 0; y < whereToDraw.length; y++) {
             boolean[] row = whereToDraw[y];
             for (int x = 0; x < row.length; x++) {
                 if (row[x]) {
-                    cb.addTemplate(tileTemplate, x * BASE_TILE_SIZE, (l
-                            .getHeight() - 1)
-                            * BASE_TILE_SIZE - y * BASE_TILE_SIZE);
+                    final int tx = x * BASE_TILE_SIZE;
+                    final int ty = (l.getHeight() - 1) * BASE_TILE_SIZE - y
+                            * BASE_TILE_SIZE;
+                    
+                    cb.saveState();
+                    if (clip != null) {
+                        cb.rectangle(clip.x + tx, clip.y + ty, clip.width,
+                                clip.height);
+                        cb.clip();
+                        cb.newPath();
+                    }
+                    cb.addTemplate(tileTemplate, tx, ty);
+                    cb.restoreState();
                 }
             }
         }
@@ -1489,7 +1501,7 @@ public class Level2PDF {
         boolean whereToDraw[][] = makeTileMap(l, TileCondition
                 .createTileMatchCondition(tile));
 
-        drawTiles(l, cb, tileTemplate, whereToDraw);
+        drawTiles(l, cb, tileTemplate, whereToDraw, null);
     }
 
     private static void layDownExit(Level l, PdfContentByte cb) {
@@ -1525,12 +1537,12 @@ public class Level2PDF {
 
         if (nonEntExit) {
             PdfTemplate tileTemplate = createTileTemplate(cb, T_EXIT);
-            drawTiles(l, cb, tileTemplate, whereToDraw);
+            drawTiles(l, cb, tileTemplate, whereToDraw, null);
         }
         if (entExit) {
             PdfTemplate tileTemplate = createTileTemplate(cb,
                     "animation/door_opens2.svg");
-            drawTiles(l, cb, tileTemplate, whereToDraw2);
+            drawTiles(l, cb, tileTemplate, whereToDraw2, null);
         }
     }
 
