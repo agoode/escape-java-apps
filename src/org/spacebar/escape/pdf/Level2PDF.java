@@ -703,7 +703,7 @@ public class Level2PDF {
         // must draw the individual tiles
         drawSolid(l, cb,
                 new byte[] { T_NS, T_NE, T_NW, T_SE, T_SW, T_WE, T_BUTTON,
-                        T_BLIGHT, T_RLIGHT, T_GLIGHT, T_NSWE, T_TRANSPONDER },
+                        T_BLIGHT, T_RLIGHT, T_GLIGHT, T_NSWE, T_TRANSPONDER, T_REMOTE },
                 new Color(140, 140, 140));
         layDownSimpleTile(l, cb, T_NS);
         layDownSimpleTile(l, cb, T_NE);
@@ -713,7 +713,7 @@ public class Level2PDF {
         layDownSimpleTile(l, cb, T_WE);
 
         layDownTilesByName(l, cb, new byte[] { T_BUTTON, T_BLIGHT, T_RLIGHT,
-                T_GLIGHT, T_NSWE, T_TRANSPONDER }, "crossover.svg", null);
+                T_GLIGHT, T_NSWE, T_TRANSPONDER, T_REMOTE }, "crossover.svg", null);
 
         // now the continuous wire paths
         drawWire(l, cb);
@@ -723,12 +723,14 @@ public class Level2PDF {
         layDownTilesByName(l, cb, new byte[] { T_BLIGHT, T_RLIGHT, T_GLIGHT,
                 T_BUTTON, T_TRANSPONDER }, "checkerboard.svg", checkerClip);
 
-        // XXX convert to template
-        layDownSimpleTile(l, cb, T_BLIGHT);
-        layDownSimpleTile(l, cb, T_RLIGHT);
-        layDownSimpleTile(l, cb, T_GLIGHT);
         layDownSimpleTile(l, cb, T_TRANSPONDER);
         layDownSimpleTile(l, cb, T_BUTTON);
+
+        // light
+        layDownTilesByName(l, cb, new byte[] { T_BLIGHT ,T_RLIGHT, T_GLIGHT}, "light-common.svg", null);
+//        layDownSimpleTile(l, cb, T_BLIGHT);
+//        layDownSimpleTile(l, cb, T_RLIGHT);
+//        layDownSimpleTile(l, cb, T_GLIGHT);
 
         System.out.print(" wires");
         System.out.flush();
@@ -786,6 +788,7 @@ public class Level2PDF {
                 case T_GLIGHT:
                 case T_NSWE:
                 case T_TRANSPONDER:
+                case T_REMOTE:
                     checkTermination(l, endpointMap, remainingWires, y, x,
                             true, true, true, true);
                     break;
@@ -1035,6 +1038,7 @@ public class Level2PDF {
             case T_GLIGHT:
             case T_NSWE:
             case T_TRANSPONDER:
+            case T_REMOTE:
                 // this is special because it is always a path endpoint
                 if (inCenter) {
                     // in the center (this is an endpoint)
@@ -1172,6 +1176,7 @@ public class Level2PDF {
         case T_GLIGHT:
         case T_NSWE:
         case T_TRANSPONDER:
+        case T_REMOTE:
             return true;
 
         default:
