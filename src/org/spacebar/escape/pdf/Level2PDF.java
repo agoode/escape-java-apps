@@ -721,7 +721,7 @@ public class Level2PDF {
         // then the things on top
         java.awt.Rectangle checkerClip = new java.awt.Rectangle(6, 6, 20, 20);
         layDownTilesByName(l, cb, new byte[] { T_BLIGHT, T_RLIGHT, T_GLIGHT,
-                T_BUTTON, T_TRANSPONDER }, "common-light.svg", checkerClip);
+                T_BUTTON, T_TRANSPONDER }, "checkerboard.svg", checkerClip);
 
         // XXX convert to template
         layDownSimpleTile(l, cb, T_BLIGHT);
