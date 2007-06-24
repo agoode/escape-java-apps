@@ -719,9 +719,15 @@ public class Level2PDF {
         drawWire(l, cb);
 
         // then the things on top
-        java.awt.Rectangle checkerClip = new java.awt.Rectangle(6, 6, 20, 20);
+        Clipper checkerClip = new Clipper() {
+            @Override
+            protected void clipImpl(PdfContentByte cb, int tx, int ty) {
+                cb.rectangle(6 + tx, ty + BASE_TILE_SIZE - 6
+                        - 20, 20, 20);
+            }
+        };
         layDownTilesByName(l, cb, new byte[] { T_BLIGHT, T_RLIGHT, T_GLIGHT,
-                T_BUTTON, T_TRANSPONDER }, "checkerboard.svg", checkerClip);
+                T_BUTTON, T_TRANSPONDER, T_REMOTE }, "checkerboard.svg", checkerClip);
 
         layDownSimpleTile(l, cb, T_TRANSPONDER);
         layDownSimpleTile(l, cb, T_BUTTON);
@@ -1410,7 +1416,7 @@ public class Level2PDF {
     }
 
     private static void layDownTilesByName(Level l, PdfContentByte cb,
-            byte tiles[], String name, java.awt.Rectangle clip) {
+            byte tiles[], String name, Clipper clip) {
 
         // check
         boolean hasTiles = false;
@@ -1474,7 +1480,7 @@ public class Level2PDF {
 
     private static void drawTiles(Level l, PdfContentByte cb,
             PdfTemplate tileTemplate, boolean[][] whereToDraw,
-            java.awt.Rectangle clip) {
+            Clipper clip) {
         for (int y = 0; y < whereToDraw.length; y++) {
             boolean[] row = whereToDraw[y];
             for (int x = 0; x < row.length; x++) {
@@ -1485,10 +1491,7 @@ public class Level2PDF {
 
                     cb.saveState();
                     if (clip != null) {
-                        cb.rectangle(clip.x + tx, ty + BASE_TILE_SIZE - clip.y
-                                - clip.height, clip.width, clip.height);
-                        cb.clip();
-                        cb.newPath();
+                        clip.clip(cb, tx, ty);
                     }
                     cb.addTemplate(tileTemplate, tx, ty);
                     cb.restoreState();
