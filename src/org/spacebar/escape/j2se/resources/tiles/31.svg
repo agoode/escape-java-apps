@@ -9,12 +9,13 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    sodipodi:docname="31.svg"
-   sodipodi:docbase="/home/adam/workspace/Escape-j2se/src/org/spacebar/escape/j2se/resources/tiles"
-   inkscape:version="0.44.1"
+   sodipodi:docbase="/home/adam/workspace/escape-java-apps/src/org/spacebar/escape/j2se/resources/tiles"
+   inkscape:version="0.45.1"
    sodipodi:version="0.32"
    id="svg15582"
    height="32px"
-   width="32px">
+   width="32px"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape">
   <defs
      id="defs3" />
   <sodipodi:namedview
@@ -25,7 +26,7 @@
      inkscape:document-units="px"
      inkscape:grid-bbox="true"
      showgrid="true"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="g14056"
      inkscape:cy="14.649023"
      inkscape:cx="11.776262"
      inkscape:zoom="15.836083"
@@ -53,144 +54,6 @@
     <g
        id="g14056"
        transform="translate(-480,-780.3622)">
-      <g
-         id="g13880"
-         transform="translate(-35,-39.98718)">
-        <path
-           style="color:black;fill:black;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.79999995;stroke-linecap:square;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
-           d="M 521,826.34937 L 521,846.34937 L 541,846.34937 L 541,826.34937 L 521,826.34937 z M 523,828.34937 L 539,828.34937 L 539,844.34937 L 523,844.34937 L 523,828.34937 z "
-           id="path13723" />
-        <rect
-           style="color:black;fill:#fff700;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.79999995;stroke-linecap:square;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
-           id="rect13725"
-           width="2"
-           height="2"
-           x="521"
-           y="826.34937"
-           inkscape:tile-w="2.0000000"
-           inkscape:tile-h="2.0000000"
-           inkscape:tile-cx="635.00000"
-           inkscape:tile-cy="826.36218" />
-        <rect
-           style="color:black;fill:#fff700;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.79999995;stroke-linecap:square;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
-           id="use13729"
-           width="2"
-           height="2"
-           x="521"
-           y="830.34937" />
-        <rect
-           style="color:black;fill:#fff700;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.79999995;stroke-linecap:square;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
-           id="use13733"
-           width="2"
-           height="2"
-           x="521"
-           y="834.34937" />
-        <rect
-           style="color:black;fill:#fff700;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.79999995;stroke-linecap:square;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
-           id="use13737"
-           width="2"
-           height="2"
-           x="521"
-           y="838.34937" />
-        <rect
-           style="color:black;fill:#fff700;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.79999995;stroke-linecap:square;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
-           id="use13741"
-           width="2"
-           height="2"
-           x="521"
-           y="842.34937" />
-        <rect
-           style="color:black;fill:#fff700;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.79999995;stroke-linecap:square;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
-           id="use13743"
-           width="2"
-           height="2"
-           x="523"
-           y="844.34937" />
-        <rect
-           style="color:black;fill:#fff700;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.79999995;stroke-linecap:square;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
-           id="use13745"
-           width="2"
-           height="2"
-           x="525"
-           y="826.34937" />
-        <rect
-           style="color:black;fill:#fff700;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.79999995;stroke-linecap:square;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
-           id="use13751"
-           width="2"
-           height="2"
-           x="527"
-           y="844.34937" />
-        <rect
-           style="color:black;fill:#fff700;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.79999995;stroke-linecap:square;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
-           id="use13753"
-           width="2"
-           height="2"
-           x="529"
-           y="826.34937" />
-        <rect
-           style="color:black;fill:#fff700;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.79999995;stroke-linecap:square;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
-           id="use13759"
-           width="2"
-           height="2"
-           x="531"
-           y="844.34937" />
-        <rect
-           style="color:black;fill:#fff700;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.79999995;stroke-linecap:square;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
-           id="use13761"
-           width="2"
-           height="2"
-           x="533"
-           y="826.34937" />
-        <rect
-           style="color:black;fill:#fff700;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.79999995;stroke-linecap:square;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
-           id="use13767"
-           width="2"
-           height="2"
-           x="535"
-           y="844.34937" />
-        <rect
-           style="color:black;fill:#fff700;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.79999995;stroke-linecap:square;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
-           id="use13769"
-           width="2"
-           height="2"
-           x="537"
-           y="826.34937" />
-        <rect
-           style="color:black;fill:#fff700;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.79999995;stroke-linecap:square;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
-           id="use13771"
-           width="2"
-           height="2"
-           x="539"
-           y="828.34937" />
-        <rect
-           style="color:black;fill:#fff700;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.79999995;stroke-linecap:square;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
-           id="use13775"
-           width="2"
-           height="2"
-           x="539"
-           y="832.34937" />
-        <rect
-           style="color:black;fill:#fff700;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.79999995;stroke-linecap:square;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
-           id="use13779"
-           width="2"
-           height="2"
-           x="539"
-           y="836.34937" />
-        <rect
-           style="color:black;fill:#fff700;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.79999995;stroke-linecap:square;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
-           id="use13781"
-           width="2"
-           height="2"
-           x="539"
-           y="840.34937" />
-        <rect
-           style="color:black;fill:#fff700;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.79999995;stroke-linecap:square;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
-           id="use13785"
-           width="2"
-           height="2"
-           x="539"
-           y="844.34937" />
-      </g>
       <g
          id="g14029"
          transform="translate(-8,-40.00465)">

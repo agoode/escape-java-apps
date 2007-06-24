@@ -719,15 +719,15 @@ public class Level2PDF {
         drawWire(l, cb);
 
         // then the things on top
-        layDownSimpleTile(l, cb, T_BUTTON);
-        layDownTilesByName(l, cb, new byte[] { T_BLIGHT, T_RLIGHT, T_GLIGHT },
-                "common-light.svg"); // XXX fix svg
+        layDownTilesByName(l, cb, new byte[] { T_BLIGHT, T_RLIGHT, T_GLIGHT,
+                T_BUTTON, T_TRANSPONDER }, "common-light.svg"); // XXX fix svg
 
         // XXX convert to template
         layDownSimpleTile(l, cb, T_BLIGHT);
         layDownSimpleTile(l, cb, T_RLIGHT);
         layDownSimpleTile(l, cb, T_GLIGHT);
         layDownSimpleTile(l, cb, T_TRANSPONDER);
+        layDownSimpleTile(l, cb, T_BUTTON);
 
         System.out.print(" wires");
         System.out.flush();
