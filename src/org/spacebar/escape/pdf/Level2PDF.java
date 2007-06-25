@@ -101,7 +101,7 @@ public class Level2PDF {
         boolean landscape = levAspect >= 1.0;
         // System.out.println("landscape: " + landscape);
 
-        if (landscape && page.height() > page.width()) {
+        if (landscape && page.getHeight() > page.getWidth()) {
             page = page.rotate();
         }
 
