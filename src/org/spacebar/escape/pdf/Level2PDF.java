@@ -604,6 +604,15 @@ public class Level2PDF {
             new Color(35, 102, 22), new Color(12, 36, 8),
             new Color(210, 244, 204) };
 
+    final static Color blueLColors[] = new Color[] { new Color(0, 0, 255),
+            new Color(0, 0, 189), new Color(67, 67, 255) };
+
+    final static Color redLColors[] = new Color[] { new Color(203, 0, 0),
+            new Color(167, 0, 0), new Color(255, 0, 0) };
+
+    final static Color greenLColors[] = new Color[] { new Color(7, 203, 0),
+            new Color(8, 156, 0), new Color(0, 239, 0) };
+
     private void layDownTiles(Level l, PdfContentByte cb) {
         // blocks
         if (l.hasTile(T_GREY) || l.hasTile(T_RED) || l.hasTile(T_BLUE)
@@ -746,6 +755,12 @@ public class Level2PDF {
         // light
         layDownTilesByName(l, cb, new byte[] { T_BLIGHT, T_RLIGHT, T_GLIGHT },
                 "light-common.svg", null);
+        if (l.hasTile(T_BLIGHT) || l.hasTile(T_RLIGHT) || l.hasTile(T_GLIGHT)) {
+            PdfTemplate lightTemps[] = createLightTemplates(cb);
+            layDownSphereTile(l, cb, T_BLIGHT, blueLColors, lightTemps);
+            layDownSphereTile(l, cb, T_RLIGHT, redLColors, lightTemps);
+            layDownSphereTile(l, cb, T_GLIGHT, greenLColors, lightTemps);
+        }
         // layDownSimpleTile(l, cb, T_BLIGHT);
         // layDownSimpleTile(l, cb, T_RLIGHT);
         // layDownSimpleTile(l, cb, T_GLIGHT);
@@ -1427,6 +1442,21 @@ public class Level2PDF {
         }
     }
 
+    private static PdfTemplate[] createLightTemplates(PdfContentByte cb) {
+        try {
+            SVGDocument doc = loadSVG("light-center-pieces.svg");
+
+            PdfTemplate temps[] = new PdfTemplate[3];
+
+            createSteelOrBlockTemplates(cb, doc, temps);
+
+            return temps;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     private void layDownTilesByName(Level l, PdfContentByte cb, byte tiles[],
             String name, Clipper clip) {
 
@@ -1652,8 +1682,8 @@ public class Level2PDF {
         PdfTemplate t = templateCache.get(doc);
 
         if (t != null) {
-            System.out.println();
-            System.out.println("*** cache hit: " + doc.getNodeName());
+            // System.out.println();
+            // System.out.println("*** cache hit: " + doc.getNodeName());
             return t;
         }
 
