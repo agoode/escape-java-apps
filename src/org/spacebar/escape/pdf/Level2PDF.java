@@ -11,11 +11,8 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Rectangle2D;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.batik.bridge.BridgeContext;
 import org.apache.batik.bridge.GVTBuilder;
@@ -74,7 +71,8 @@ public class Level2PDF {
 
                 String basename = f.getName().replaceFirst("\\.esx$", "");
 
-                makePDF(l, PageSize.LETTER, new FileOutputStream(basename
+                Level2PDF l2p = new Level2PDF();
+                l2p.makePDF(l, PageSize.LETTER, new FileOutputStream(basename
                         + ".pdf"));
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
@@ -89,7 +87,7 @@ public class Level2PDF {
      * @param page
      * @param out
      */
-    public static void makePDF(Level l, Rectangle page, OutputStream out) {
+    public void makePDF(Level l, Rectangle page, OutputStream out) {
         System.out.print(l.getTitle() + " by " + l.getAuthor() + " ("
                 + l.getWidth() + "x" + l.getHeight() + ") [");
         System.out.flush();
@@ -316,7 +314,7 @@ public class Level2PDF {
         cb.stroke();
     }
 
-    private static void layDownTransparency(Level l, PdfTemplate levelField) {
+    private void layDownTransparency(Level l, PdfTemplate levelField) {
         /*
          * create the knockout layer, and paint electric, up blocks, down
          * blocks, and transporter
@@ -409,7 +407,12 @@ public class Level2PDF {
         }
     }
 
-    final private static Map<String, SVGDocument> svgDocMap = new HashMap<String, SVGDocument>();
+    // static and synchronized, will fill up with SVG documents
+    final private static Map<String, SVGDocument> svgDocMap = Collections
+            .synchronizedMap(new HashMap<String, SVGDocument>());
+
+    // not static, PdfTemplate is valid only for a particular PDF document
+    final private Map<SVGDocument, PdfTemplate> templateCache = new HashMap<SVGDocument, PdfTemplate>();
 
     final private static SAXSVGDocumentFactory svgDocFactory;
     static {
@@ -418,13 +421,11 @@ public class Level2PDF {
     }
 
     private static SVGDocument loadSVG(String name) throws IOException {
-        synchronized (svgDocMap) {
-            if (!svgDocMap.containsKey(name)) {
-                // System.out.println(" reading " + name);
-                SVGDocument doc = (SVGDocument) svgDocFactory.createDocument(
-                        null, ResourceUtil.getLocalResourceAsStream(name));
-                svgDocMap.put(name, doc);
-            }
+        if (!svgDocMap.containsKey(name)) {
+            // System.out.println(" reading " + name);
+            SVGDocument doc = (SVGDocument) svgDocFactory.createDocument(null,
+                    ResourceUtil.getLocalResourceAsStream(name));
+            svgDocMap.put(name, doc);
         }
         return svgDocMap.get(name);
     }
@@ -603,7 +604,7 @@ public class Level2PDF {
             new Color(35, 102, 22), new Color(12, 36, 8),
             new Color(210, 244, 204) };
 
-    private static void layDownTiles(Level l, PdfContentByte cb) {
+    private void layDownTiles(Level l, PdfContentByte cb) {
         // blocks
         if (l.hasTile(T_GREY) || l.hasTile(T_RED) || l.hasTile(T_BLUE)
                 || l.hasTile(T_GREEN) || l.hasTile(T_GOLD)
@@ -701,10 +702,9 @@ public class Level2PDF {
         // for wires, complex:
 
         // must draw the individual tiles
-        drawSolid(l, cb,
-                new byte[] { T_NS, T_NE, T_NW, T_SE, T_SW, T_WE, T_BUTTON,
-                        T_BLIGHT, T_RLIGHT, T_GLIGHT, T_NSWE, T_TRANSPONDER, T_REMOTE },
-                new Color(140, 140, 140));
+        drawSolid(l, cb, new byte[] { T_NS, T_NE, T_NW, T_SE, T_SW, T_WE,
+                T_BUTTON, T_BLIGHT, T_RLIGHT, T_GLIGHT, T_NSWE, T_TRANSPONDER,
+                T_REMOTE }, new Color(140, 140, 140));
         layDownSimpleTile(l, cb, T_NS);
         layDownSimpleTile(l, cb, T_NE);
         layDownSimpleTile(l, cb, T_NW);
@@ -713,7 +713,8 @@ public class Level2PDF {
         layDownSimpleTile(l, cb, T_WE);
 
         layDownTilesByName(l, cb, new byte[] { T_BUTTON, T_BLIGHT, T_RLIGHT,
-                T_GLIGHT, T_NSWE, T_TRANSPONDER, T_REMOTE }, "crossover.svg", null);
+                T_GLIGHT, T_NSWE, T_TRANSPONDER, T_REMOTE }, "crossover.svg",
+                null);
 
         // now the continuous wire paths
         drawWire(l, cb);
@@ -722,21 +723,32 @@ public class Level2PDF {
         Clipper checkerClip = new Clipper() {
             @Override
             protected void clipImpl(PdfContentByte cb, int tx, int ty) {
-                cb.rectangle(6 + tx, ty + BASE_TILE_SIZE - 6
-                        - 20, 20, 20);
+                cb.rectangle(6 + tx, ty + BASE_TILE_SIZE - 6 - 20, 20, 20);
             }
         };
         layDownTilesByName(l, cb, new byte[] { T_BLIGHT, T_RLIGHT, T_GLIGHT,
-                T_BUTTON, T_TRANSPONDER, T_REMOTE }, "checkerboard.svg", checkerClip);
+                T_BUTTON, T_TRANSPONDER }, "checkerboard.svg", checkerClip);
+
+        Clipper remoteClip = new Clipper() {
+            @Override
+            protected void clipImpl(PdfContentByte cb, int tx, int ty) {
+                cb.roundRectangle(6 + tx, ty + BASE_TILE_SIZE - 6 - 20, 20, 20,
+                        6);
+            }
+        };
+
+        layDownTilesByName(l, cb, new byte[] { T_REMOTE }, "checkerboard.svg",
+                remoteClip);
 
         layDownSimpleTile(l, cb, T_TRANSPONDER);
         layDownSimpleTile(l, cb, T_BUTTON);
 
         // light
-        layDownTilesByName(l, cb, new byte[] { T_BLIGHT ,T_RLIGHT, T_GLIGHT}, "light-common.svg", null);
-//        layDownSimpleTile(l, cb, T_BLIGHT);
-//        layDownSimpleTile(l, cb, T_RLIGHT);
-//        layDownSimpleTile(l, cb, T_GLIGHT);
+        layDownTilesByName(l, cb, new byte[] { T_BLIGHT, T_RLIGHT, T_GLIGHT },
+                "light-common.svg", null);
+        // layDownSimpleTile(l, cb, T_BLIGHT);
+        // layDownSimpleTile(l, cb, T_RLIGHT);
+        // layDownSimpleTile(l, cb, T_GLIGHT);
 
         System.out.print(" wires");
         System.out.flush();
@@ -1415,8 +1427,8 @@ public class Level2PDF {
         }
     }
 
-    private static void layDownTilesByName(Level l, PdfContentByte cb,
-            byte tiles[], String name, Clipper clip) {
+    private void layDownTilesByName(Level l, PdfContentByte cb, byte tiles[],
+            String name, Clipper clip) {
 
         // check
         boolean hasTiles = false;
@@ -1438,7 +1450,7 @@ public class Level2PDF {
         drawTiles(l, cb, tileTemplate, whereToDraw, clip);
     }
 
-    private static PdfTemplate createTileTemplate(PdfContentByte cb, String name) {
+    private PdfTemplate createTileTemplate(PdfContentByte cb, String name) {
         try {
             SVGDocument doc = loadSVG(name);
             PdfTemplate t = createTileTemplate(cb, doc);
@@ -1479,8 +1491,7 @@ public class Level2PDF {
     }
 
     private static void drawTiles(Level l, PdfContentByte cb,
-            PdfTemplate tileTemplate, boolean[][] whereToDraw,
-            Clipper clip) {
+            PdfTemplate tileTemplate, boolean[][] whereToDraw, Clipper clip) {
         for (int y = 0; y < whereToDraw.length; y++) {
             boolean[] row = whereToDraw[y];
             for (int x = 0; x < row.length; x++) {
@@ -1500,7 +1511,7 @@ public class Level2PDF {
         }
     }
 
-    private static void layDownSimpleTile(Level l, PdfContentByte cb, byte tile) {
+    private void layDownSimpleTile(Level l, PdfContentByte cb, byte tile) {
         if (!l.hasTile(tile)) {
             return;
         }
@@ -1512,7 +1523,7 @@ public class Level2PDF {
         drawTiles(l, cb, tileTemplate, whereToDraw, null);
     }
 
-    private static void layDownExit(Level l, PdfContentByte cb) {
+    private void layDownExit(Level l, PdfContentByte cb) {
         if (!l.hasTile(T_EXIT)) {
             return;
         }
@@ -1621,7 +1632,7 @@ public class Level2PDF {
         cb.fill();
     }
 
-    private static PdfTemplate createTileTemplate(PdfContentByte cb, byte tile) {
+    private PdfTemplate createTileTemplate(PdfContentByte cb, byte tile) {
         try {
             String tileNumber = Byte.toString(tile);
             if (tile < 10) {
@@ -1636,16 +1647,26 @@ public class Level2PDF {
         }
     }
 
-    private static PdfTemplate createTileTemplate(PdfContentByte cb,
-            SVGDocument doc) {
+    private PdfTemplate createTileTemplate(PdfContentByte cb, SVGDocument doc) {
+        // check cache
+        PdfTemplate t = templateCache.get(doc);
+
+        if (t != null) {
+            System.out.println();
+            System.out.println("*** cache hit: " + doc.getNodeName());
+            return t;
+        }
+
         BridgeContext bc = new BridgeContext(new UserAgentAdapter());
         GVTBuilder gvtb = new GVTBuilder();
 
         GraphicsNode gn = gvtb.build(bc, doc);
-        PdfTemplate t = cb.createTemplate(BASE_TILE_SIZE, BASE_TILE_SIZE);
+        t = cb.createTemplate(BASE_TILE_SIZE, BASE_TILE_SIZE);
         Graphics2D g2 = t.createGraphicsShapes(t.getWidth(), t.getHeight());
         gn.paint(g2);
         g2.dispose();
+
+        templateCache.put(doc, t);
         return t;
     }
 
