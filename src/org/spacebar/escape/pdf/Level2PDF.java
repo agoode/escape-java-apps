@@ -741,14 +741,17 @@ public class Level2PDF {
         Clipper remoteClip = new Clipper() {
             @Override
             protected void clipImpl(PdfContentByte cb, int tx, int ty) {
-                cb.roundRectangle(6 + tx, ty + BASE_TILE_SIZE - 6 - 20, 20, 20,
-                        6);
+                int x = 6 + tx;
+                int y = ty + BASE_TILE_SIZE - 6 - 20;
+                cb.roundRectangle(x, y, 20, 20, 6);
+                // cb.ellipse(x, y, x + 20, y + 20);
             }
         };
 
         // remote
         layDownTilesByName(l, cb, new byte[] { T_REMOTE }, "checkerboard.svg",
                 remoteClip);
+        layDownRemote(l, cb, T_REMOTE);
 
         // others
         layDownSimpleTile(l, cb, T_TRANSPONDER);
@@ -771,6 +774,35 @@ public class Level2PDF {
         System.out.flush();
 
         // done?!
+    }
+
+    private static void layDownRemote(Level l, PdfContentByte cb, byte tile) {
+        if (!l.hasTile(tile)) {
+            return;
+        }
+
+        PdfTemplate tileTemplate = cb.createTemplate(BASE_TILE_SIZE,
+                BASE_TILE_SIZE);
+
+        tileTemplate.saveState();
+        tileTemplate.setGrayFill(0.34f);
+        tileTemplate.setGrayStroke(0.0f);
+        tileTemplate.setLineWidth(0.6f);
+
+        int r = 6;
+        int x = BASE_TILE_SIZE / 2 - r;
+        tileTemplate.roundRectangle(x, x, 2 * r, 2 * r, 5);
+        tileTemplate.fillStroke();
+
+        tileTemplate.roundRectangle(6, 6, 20, 20, 6);
+        tileTemplate.stroke();
+
+        tileTemplate.restoreState();
+
+        boolean whereToDraw[][] = makeTileMap(l, TileCondition
+                .createTileMatchCondition(tile));
+
+        drawTiles(l, cb, tileTemplate, whereToDraw, null);
     }
 
     private static void drawWire(Level l, PdfContentByte cb) {
