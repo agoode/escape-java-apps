@@ -42,7 +42,7 @@ public class Level2PDF {
     final static BaseFont BASE_FONT;
     static {
         ByteBuffer.HIGH_PRECISION = true;
-        // Document.compress = false;
+//        Document.compress = false;
 
         // get the font
         BaseFont f = null;
@@ -226,7 +226,7 @@ public class Level2PDF {
             System.out.flush();
 
             layDownTiles(l, levelField);
-            levelField.restoreState();
+            levelField.restoreState();  // last restore state here
 
             drawLaser(l, levelField);
             System.out.print(" laser");
@@ -243,12 +243,9 @@ public class Level2PDF {
             double mat[] = new double[6];
             af.getMatrix(mat);
 
-            levelField.saveState();
-
             cb.addTemplate(levelField, (float) mat[0], (float) mat[1],
                     (float) mat[2], (float) mat[3], (float) mat[4],
                     (float) mat[5]);
-            levelField.restoreState();
 
             document.close();
             System.out.println(" ]");
@@ -784,7 +781,6 @@ public class Level2PDF {
         PdfTemplate tileTemplate = cb.createTemplate(BASE_TILE_SIZE,
                 BASE_TILE_SIZE);
 
-        tileTemplate.saveState();
         tileTemplate.setGrayFill(0.34f);
         tileTemplate.setGrayStroke(0.0f);
         tileTemplate.setLineWidth(0.6f);
@@ -796,8 +792,6 @@ public class Level2PDF {
 
         tileTemplate.roundRectangle(6, 6, 20, 20, 6);
         tileTemplate.stroke();
-
-        tileTemplate.restoreState();
 
         boolean whereToDraw[][] = makeTileMap(l, TileCondition
                 .createTileMatchCondition(tile));
@@ -1380,8 +1374,6 @@ public class Level2PDF {
         PdfTemplate tileTemplate = cb.createTemplate(BASE_TILE_SIZE,
                 BASE_TILE_SIZE);
 
-        tileTemplate.saveState();
-
         // set up the colors
         // alpha is for fill, but not stroke
         tileTemplate.setColorFill(color);
@@ -1391,8 +1383,6 @@ public class Level2PDF {
         tileTemplate.setGState(gs);
 
         drawPanelPath(tileTemplate, 8.5f);
-
-        tileTemplate.restoreState();
 
         // go
         boolean whereToDraw[][] = makeTileMap(l, TileCondition
@@ -1420,7 +1410,6 @@ public class Level2PDF {
         // create tile
         PdfTemplate tileTemplate = cb.createTemplate(BASE_TILE_SIZE,
                 BASE_TILE_SIZE);
-        tileTemplate.saveState();
 
         // set up the colors
         float gray = 0;
@@ -1433,7 +1422,6 @@ public class Level2PDF {
         tileTemplate.setGState(gs);
 
         drawPanelPath(tileTemplate, 9.5f);
-        tileTemplate.restoreState();
 
         // go
         boolean whereToDraw[][] = makeTileMap(l, TileCondition
