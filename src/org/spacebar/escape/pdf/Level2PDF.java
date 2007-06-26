@@ -746,9 +746,11 @@ public class Level2PDF {
             }
         };
 
+        // remote
         layDownTilesByName(l, cb, new byte[] { T_REMOTE }, "checkerboard.svg",
                 remoteClip);
 
+        // others
         layDownSimpleTile(l, cb, T_TRANSPONDER);
         layDownSimpleTile(l, cb, T_BUTTON);
 
@@ -1372,9 +1374,9 @@ public class Level2PDF {
         tg.setKnockout(true);
         tileTemplate.setGroup(tg);
 
-        tileTemplate.arc(-radius + BASE_TILE_SIZE / 2, -radius + BASE_TILE_SIZE
-                / 2, radius + BASE_TILE_SIZE / 2, radius + BASE_TILE_SIZE / 2,
-                0, 360);
+        tileTemplate.ellipse(-radius + BASE_TILE_SIZE / 2, -radius
+                + BASE_TILE_SIZE / 2, radius + BASE_TILE_SIZE / 2, radius
+                + BASE_TILE_SIZE / 2);
         tileTemplate.fillStroke();
     }
 
