@@ -102,7 +102,7 @@ public class PlayerInfo {
                 addSolution(md5, new Solution(str, true), true);
 
                 // read rest of lines until !
-                while (!(s = br.readLine().trim()).equals("!")) {
+                while (((s = br.readLine()) != null) && !(s.trim()).equals("!")) {
                     addSolution(md5, new Solution(s, true), true);
                 }
             } else {
