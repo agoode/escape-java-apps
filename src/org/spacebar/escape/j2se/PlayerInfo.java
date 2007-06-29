@@ -1,6 +1,7 @@
 package org.spacebar.escape.j2se;
 
 import java.io.BufferedReader;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -76,13 +77,20 @@ public class PlayerInfo {
         // name
         name = br.readLine();
 
+
+        String line;
+        
         // all solutions
-        if (!br.readLine().equals(SOL_MARKER)) {
+        line = br.readLine();
+        if (line == null || !line.equals(SOL_MARKER)) {
             throw new IOException("Solution marker not found");
         }
 
         for (;;) {
             s = br.readLine();
+            if (s == null) {
+                throw new EOFException();
+            }
             //            System.out.println("'" + s + "'");
             if (s.equals(RAT_MARKER)) {
                 break;
