@@ -9,6 +9,7 @@ import java.awt.event.KeyEvent;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 
 import javax.swing.JOptionPane;
@@ -274,7 +275,7 @@ public class AStarSearch implements Runnable {
 
     }
 
-    class AStarPQComparator implements Comparator<AStarNode> {
+    static class AStarPQComparator implements Comparator<AStarNode>, Serializable {
         public int compare(AStarNode o1, AStarNode o2) {
             if (o1.f < o2.f) {
                 return -1;
