@@ -20,13 +20,12 @@ public class EscapeMain {
         try {
             fis = new FileInputStream(f);
             level = new Level(new BitInputStream(fis));
+            new EscapeFrame(level);
         } catch (FileNotFoundException e1) {
             e1.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        
-        new EscapeFrame(level);
     }
 
     public static void main(String[] args) {
