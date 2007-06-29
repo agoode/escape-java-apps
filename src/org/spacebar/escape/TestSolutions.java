@@ -189,16 +189,15 @@ public class TestSolutions {
 
                 try {
                     m = MessageDigest.getInstance("MD5");
+                    MD5 md5 = new MD5(m.digest(l));
+                    Level ll = new EquateableLevel(new BitInputStream(
+                            new ByteArrayInputStream(l)));
+                    levels.put(md5, ll);
+                    md5s.put(ll, md5);
+                    levelsToFiles.put(ll, f);
                 } catch (NoSuchAlgorithmException e) {
                     e.printStackTrace();
                 }
-
-                MD5 md5 = new MD5(m.digest(l));
-                Level ll = new EquateableLevel(new BitInputStream(
-                        new ByteArrayInputStream(l)));
-                levels.put(md5, ll);
-                md5s.put(ll, md5);
-                levelsToFiles.put(ll, f);
             } catch (IOException e) {
                 e.printStackTrace();
             }
