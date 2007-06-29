@@ -73,7 +73,8 @@ public class TestSolutions {
                 Map<Level, List<Solution>> levelsToSolutions = new HashMap<Level, List<Solution>>();
 
                 // the levels we have solutions for
-                for (MD5 md5 : s.keySet()) {
+                for (Map.Entry<MD5, List<Solution>> e : s.entrySet()) {
+                    MD5 md5 = e.getKey();
                     Level l = levels.get(md5);
 
                     if (l == null) {
@@ -82,7 +83,7 @@ public class TestSolutions {
                         continue; // solution for unknown level?
                     }
 
-                    List<Solution> sols = s.get(md5);
+                    List<Solution> sols = e.getValue();
                     levelsToSolutions.put(l, sols);
                     String str = getStringForLevel(l, levelsToFiles);
                     maxLevelString = Math.max(maxLevelString, str.length());
@@ -91,8 +92,10 @@ public class TestSolutions {
                 final int mls = maxLevelString;
 
                 // the solutions for this level
-                for (Level l : levelsToSolutions.keySet()) {
-                    List<Solution> sols = levelsToSolutions.get(l);
+                for (Map.Entry<Level, List<Solution>> e : levelsToSolutions
+                        .entrySet()) {
+                    Level l = e.getKey();
+                    List<Solution> sols = e.getValue();
 
                     for (Solution sol : sols) {
                         // ignore bookmarks
