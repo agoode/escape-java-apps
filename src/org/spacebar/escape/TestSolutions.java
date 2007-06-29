@@ -73,9 +73,7 @@ public class TestSolutions {
                 Map<Level, List<Solution>> levelsToSolutions = new HashMap<Level, List<Solution>>();
 
                 // the levels we have solutions for
-                for (Iterator<MD5> iterator = s.keySet().iterator(); iterator
-                        .hasNext();) {
-                    MD5 md5 = iterator.next();
+                for (MD5 md5 : s.keySet()) {
                     Level l = levels.get(md5);
 
                     if (l == null) {
@@ -93,15 +91,10 @@ public class TestSolutions {
                 final int mls = maxLevelString;
 
                 // the solutions for this level
-                for (Iterator<Level> i = levelsToSolutions.keySet().iterator(); i
-                        .hasNext();) {
-                    Level l = i.next();
+                for (Level l : levelsToSolutions.keySet()) {
                     List<Solution> sols = levelsToSolutions.get(l);
 
-                    for (Iterator<Solution> iter = sols.iterator(); iter
-                            .hasNext();) {
-                        final Solution sol = iter.next();
-
+                    for (Solution sol : sols) {
                         // ignore bookmarks
                         if (sol.isBookmark()) {
                             continue;
