@@ -34,11 +34,6 @@ public class Level2PDF {
 
     private static final float PAD_FACTOR = 0.25f;
 
-    final public static String id = "$Id$";
-
-    final public static String creator = id
-            .replaceAll("^\\$Id: (.*)\\$$", "$1");
-
     final static BaseFont BASE_FONT;
     static {
         ByteBuffer.HIGH_PRECISION = true;
@@ -115,7 +110,7 @@ public class Level2PDF {
             // metadata
             document.addAuthor(StyleStack.removeStyle(l.getAuthor()));
             document.addTitle(StyleStack.removeStyle(l.getTitle()));
-            document.addCreator(creator);
+            document.addCreator("http://repo.or.cz/w/escape-java-apps.git");
             document.addSubject("Escape");
 
             // TODO add keywords
