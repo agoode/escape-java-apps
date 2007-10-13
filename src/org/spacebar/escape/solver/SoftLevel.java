@@ -20,7 +20,7 @@ public class SoftLevel {
 
     private boolean validHashCode;
 
-    public static int regenCount;
+    static int regenCount;
 
     public SoftLevel(EquateableLevel baseLevel) {
         this.baseLevel = baseLevel;
