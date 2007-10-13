@@ -8,43 +8,46 @@ import org.spacebar.escape.common.EquateableLevel;
 import org.spacebar.escape.common.IntTriple;
 
 public class SoftLevel {
-    private static EquateableLevel baseLevel;
+    final private EquateableLevel baseLevel;
 
     final SoftLevel parent;
-    
+
     private SoftReference<EquateableLevel> levelRef;
 
     private int hashVal;
 
-    final byte dirToHere;
-    
+    final private byte dirToHere;
+
     private boolean validHashCode;
-    
+
     public static int regenCount;
 
     public SoftLevel(EquateableLevel baseLevel) {
-        SoftLevel.baseLevel = baseLevel;
+        this.baseLevel = baseLevel;
         parent = null;
         dirToHere = Entity.DIR_NONE;
+        levelRef = new SoftReference<EquateableLevel>(null);
     }
 
     private SoftLevel(SoftLevel level, EquateableLevel l, byte dir) {
+        this.baseLevel = level.baseLevel;
         parent = level;
         dirToHere = dir;
         levelRef = new SoftReference<EquateableLevel>(l);
     }
 
     private EquateableLevel getLevel() {
-        if (levelRef == null) {
+        if (dirToHere == Entity.DIR_NONE) {
             return baseLevel;
         }
+        // EquateableLevel l = null;
         EquateableLevel l = levelRef.get();
-//        l = null;
+
         if (l == null) {
             regenCount++;
             // replay
-//            System.out.print(".");
-//            System.out.flush();
+            // System.out.print(".");
+            // System.out.flush();
             l = recursiveRebuild();
             levelRef = new SoftReference<EquateableLevel>(l);
         }
@@ -61,18 +64,23 @@ public class SoftLevel {
         }
     }
 
+    public void flush() {
+        levelRef.clear();
+    }
+
     public int destAt(int x, int y) {
         return getLevel().destAt(x, y);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof SoftLevel) {
-            SoftLevel s = (SoftLevel) obj;
-//            System.out.println(this + " ?= " + s);
-            return getLevel().equals(s.getLevel());
+        if (!(obj instanceof SoftLevel)) {
+            return false;
         }
-        return false;
+
+        SoftLevel s = (SoftLevel) obj;
+        // System.out.println(this + " ?= " + s);
+        return getLevel().equals(s.getLevel());
     }
 
     public byte flagAt(int x, int y) {
@@ -159,10 +167,11 @@ public class SoftLevel {
     public SoftLevel move(byte d) {
         EquateableLevel l = new EquateableLevel(getLevel());
         if (l.move(d)) {
-//            System.out.println("move: " + d + "(" + getLevel().getPlayerX() + "," + getLevel().getPlayerY() + ")");
+            // System.out.println("move: " + d + "(" + getLevel().getPlayerX() +
+            // "," + getLevel().getPlayerY() + ")");
             return new SoftLevel(this, l, d);
         }
-//        System.out.println("!move: " + d);
+        // System.out.println("!move: " + d);
         return null;
     }
 
@@ -185,5 +194,9 @@ public class SoftLevel {
     @Override
     public String toString() {
         return getLevel().toString();
+    }
+
+    public byte getDirToHere() {
+        return dirToHere;
     }
 }
