@@ -84,6 +84,7 @@ public class AStarSearch implements Runnable {
         // }
         // assert sanityCheck();
 
+//        level.flush();
         open.add(a);
         openMap.put(level, a);
         assert open.size() >= openMap.size();
@@ -346,6 +347,7 @@ public class AStarSearch implements Runnable {
                     // System.out.println(" ***** closed: " + closed);
                     generateChildren(a);
                     // System.out.println(" ***** closed: " + closed);
+//                    level.flush();
 
                     // Collections.shuffle(children);
                     for (int i = 0; i < tmpChildCount; i++) {
@@ -382,13 +384,14 @@ public class AStarSearch implements Runnable {
                 + " + " + h(level);
 
         greatestG = 0;
+        died = 0;
     }
 
     List<Byte> constructSolution(AStarNode a) {
         List<Byte> moves = new ArrayList<Byte>();
         SoftLevel l = a.level;
         while (l != null) {
-            moves.add(l.dirToHere);
+            moves.add(l.getDirToHere());
             l = l.parent;
         }
         Collections.reverse(moves);
@@ -510,6 +513,7 @@ public class AStarSearch implements Runnable {
                     System.out.println(l);
                     search.printDeaths();
                     search.printSolution();
+                    search.initialize();
                     robot(search.solution);
                     break;
                 }
