@@ -55,7 +55,7 @@ public class SoftLevel {
     }
 
     private EquateableLevel recursiveRebuild() {
-        if (parent != null) {
+        if (dirToHere != Entity.DIR_NONE) {
             EquateableLevel l = parent.recursiveRebuild();
             l.move(dirToHere);
             return l;
