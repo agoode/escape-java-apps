@@ -139,9 +139,6 @@ public class Drawing {
         // compute z-ordering based on y
         s[theLevel.getPlayerY()][0] = 999; // 1000 - 1
         for (int i = 0; i < theLevel.getBotCount(); i++) {
-            if (theLevel.isBotDeleted(i)) {
-                continue;
-            }
             int z = 1000 + i; // avoid re-initializing array
             int y = theLevel.getBotY(i);
 
@@ -307,10 +304,6 @@ public class Drawing {
 
     private static void paintBot(Graphics2D g2, Level theLevel, int xScroll,
             int yScroll, int botIndex, int scale) {
-        if (theLevel.isBotDeleted(botIndex)) {
-            return;
-        }
-
         BufferedImage imgs[][];
         int botType = theLevel.getBotType(botIndex);
 

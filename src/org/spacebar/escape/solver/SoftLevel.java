@@ -152,10 +152,6 @@ public class SoftLevel {
         return hashVal;
     }
 
-    public boolean isBotDeleted(int botIndex) {
-        return getLevel().isBotDeleted(botIndex);
-    }
-
     public boolean isDead() {
         return getLevel().isDead();
     }
