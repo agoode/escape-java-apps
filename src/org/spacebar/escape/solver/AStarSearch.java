@@ -442,12 +442,12 @@ public class AStarSearch implements Runnable {
     }
 
     public static void main(String[] args) {
-        // dummy
-        try {
-            new Robot();
-        } catch (AWTException e1) {
-            e1.printStackTrace();
-        }
+//        // dummy
+//        try {
+//            new Robot();
+//        } catch (AWTException e1) {
+//            e1.printStackTrace();
+//        }
 
 
         try {
