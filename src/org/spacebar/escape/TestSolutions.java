@@ -123,7 +123,7 @@ public class TestSolutions {
                             if (result > 0) {
                                 System.out.println("FAILURE");
                                 failure++;
-                                new EscapeFrame(l, sol);
+//                                new EscapeFrame(l, sol);
                             } else if (result == -sol.length()) {
                                 System.out.println("REJECTURE at "
                                         + sol.length() + " (end)");
@@ -139,16 +139,16 @@ public class TestSolutions {
                             } else if (result > 0) {
                                 System.out.println("DUBIOUS at " + result);
                                 dubious++;
-                                new EscapeFrame(l, sol);
+//                                new EscapeFrame(l, sol);
                             } else if (result == -sol.length()) {
                                 System.out.println("BAD at " + sol.length()
                                         + " (end)");
                                 bad++;
-                                new EscapeFrame(l, sol);
+//                                new EscapeFrame(l, sol);
                             } else {
                                 System.out.println("BAD at " + -result);
                                 bad++;
-                                new EscapeFrame(l, sol);
+//                                new EscapeFrame(l, sol);
                             }
                         }
                     }
