@@ -429,8 +429,9 @@ public class Level2PDF {
             entityList.add(new ArrayList<Entity>());
         }
 
-        for (int i = 0; i < l.getBotCount(); i++) {
-            Bot b = l.getBot(i);
+        Bot bots[] = l.getBots();
+        for (int i = 0; i < bots.length; i++) {
+            Bot b = bots[i];
             entityList.get(b.getY()).add(b);
         }
 

@@ -95,26 +95,6 @@ public class SoftLevel {
         return getLevel().getAuthor();
     }
 
-    public int getBotCount() {
-        return getLevel().getBotCount();
-    }
-
-    public int getBotDir(int botIndex) {
-        return getLevel().getBotDir(botIndex);
-    }
-
-    public int getBotType(int index) {
-        return getLevel().getBotType(index);
-    }
-
-    public int getBotX(int index) {
-        return getLevel().getBotX(index);
-    }
-
-    public int getBotY(int index) {
-        return getLevel().getBotY(index);
-    }
-
     public int getHeight() {
         return getLevel().getHeight();
     }
