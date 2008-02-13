@@ -18,7 +18,7 @@ import org.spacebar.escape.common.BitInputStream;
 import org.spacebar.escape.common.Entity;
 import org.spacebar.escape.common.EquateableLevel;
 import org.spacebar.escape.common.LevelManip;
-import org.spacebar.escape.common.Level.HeuristicData;
+import org.spacebar.escape.common.EquateableLevel.HeuristicData;
 
 /**
  * @author adam
