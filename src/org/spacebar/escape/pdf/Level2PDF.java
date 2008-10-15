@@ -432,11 +432,11 @@ public class Level2PDF {
         Bot bots[] = l.getBots();
         for (int i = 0; i < bots.length; i++) {
             Bot b = bots[i];
-            entityList.get(b.getY()).add(b);
+            entityList.get(b.y).add(b);
         }
 
         Player p = l.getPlayer();
-        entityList.get(p.getY()).add(p);
+        entityList.get(p.y).add(p);
 
         Map<String, PdfTemplate> sprites = new HashMap<String, PdfTemplate>();
 
@@ -444,7 +444,7 @@ public class Level2PDF {
         int y = l.getHeight() - 1;
         for (List<Entity> row : entityList) {
             for (Entity e : row) {
-                int x = e.getX();
+                int x = e.x;
                 if (e.isPlayer()) {
                     // draw player
                     if (l.isDead()) {
