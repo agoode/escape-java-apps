@@ -8,7 +8,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
 import org.spacebar.escape.common.*;
-import org.spacebar.escape.common.Level.DirtyList;
 
 /**
  * @author adam
@@ -250,36 +249,16 @@ public class Drawing {
         // System.out.println("tilesize: " + tileSize);
         // System.out.println("zoom: " + zoom);
 
-        DirtyList d = theLevel.dirty;
-        if (d.isAnyDirty()) {
-            if (d.isAllDirty()) {
-                for (int j = 0; j < theLevel.getHeight() - yScroll; j++) {
-                    for (int i = 0; i < theLevel.getWidth() - xScroll; i++) {
-                        int dx = i * tileSize;
-                        int dy = j * tileSize;
+        for (int j = 0; j < theLevel.getHeight() - yScroll; j++) {
+            for (int i = 0; i < theLevel.getWidth() - xScroll; i++) {
+                int dx = i * tileSize;
+                int dy = j * tileSize;
 
-                        int tile;
-                        tile = getTile(theLevel, i + xScroll, j + yScroll,
-                                showBizarro);
+                int tile;
+                tile = getTile(theLevel, i + xScroll, j + yScroll, showBizarro);
 
-                        paintTile(g2, zoom, tileSize, dx, dy, tile);
-                    }
-                }
-            } else {
-                // some are dirty so just do those
-                for (int i = d.getNumDirty() - 1; i >= 0; i--) {
-                    int idx = d.getDirty(i);
-                    int x = idx % theLevel.getWidth();
-                    int y = idx / theLevel.getWidth();
-
-                    int dx = x * tileSize;
-                    int dy = y * tileSize;
-
-                    int tile = getTile(theLevel, x, y, showBizarro);
-                    paintTile(g2, zoom, tileSize, dx, dy, tile);
-                }
+                paintTile(g2, zoom, tileSize, dx, dy, tile);
             }
-            d.clearDirty();
         }
     }
 

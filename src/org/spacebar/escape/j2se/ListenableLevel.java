@@ -9,7 +9,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.spacebar.escape.common.BitInputStream;
-import org.spacebar.escape.common.Effects;
 import org.spacebar.escape.common.Level;
 
 public class ListenableLevel extends Level {
@@ -24,8 +23,8 @@ public class ListenableLevel extends Level {
     List<MoveListener> moveListeners = new ArrayList<MoveListener>();
     
     @Override
-	public boolean move(byte d, Effects e) {
-        boolean r = super.move(d, e);
+	public boolean move(byte d) {
+        boolean r = super.move(d);
         afterMove(r);
         return r;
     }

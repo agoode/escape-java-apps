@@ -121,12 +121,11 @@ public class PlayCanvas extends LevelCanvas {
                 return;
             }
 
-            if (theLevel.move(dir, effects)) {
+            if (theLevel.move(dir)) {
                 // append to solution
                 solution.addToSolution(dir);
             }
             if (theLevel.isDead()) {
-                effects.doLaser();
                 status = Characters.RED + "You died!" + Characters.POP;
 
                 // XXX: race condition
@@ -143,7 +142,6 @@ public class PlayCanvas extends LevelCanvas {
                     }
                 }.start();
             } else if (theLevel.isWon()) {
-                effects.doExit();
                 status = Characters.GREEN + "Solved!" + Characters.POP;
                 System.out.println("won in " + solution.length() + " steps");
                 System.out.println(solution);

@@ -22,8 +22,6 @@ public class LevelCanvas extends DoubleBufferCanvas {
      */
     private static final long serialVersionUID = 6295616802465884961L;
 
-    final static Effects effects;
-
     private final static int FONT_MARGIN = 2;
 
     private final static int PLAYER_BORDER = 2;
@@ -31,15 +29,6 @@ public class LevelCanvas extends DoubleBufferCanvas {
     private final static int LEVEL_MARGIN_X = 12;
 
     private final static int LEVEL_MARGIN_Y = 15;
-
-    static {
-        //        Effects e1 = new NESEffects();
-        Effects e2 = new TextEffects();
-        CompoundEffects e = new CompoundEffects();
-        //        e.add(e1);
-        e.add(e2);
-        effects = e;
-    }
 
     //    boolean done;
 
@@ -123,12 +112,9 @@ public class LevelCanvas extends DoubleBufferCanvas {
     private void paintLevel(Graphics2D g) {
         if (levelSurface == null) {
             initLevelSurface();
-            theLevel.dirty.setAllDirty();
         }
 //        System.out.println(theLevel.dirty);
-        if (theLevel.dirty.isAnyDirty()) {
-            paintLevelToSurface();
-        }
+        paintLevelToSurface();
         int sx1 = xScroll * Drawing.getTileSize(scale);
         int sy1 = yScroll * Drawing.getTileSize(scale);
         int w = theLevel.getWidth() * Drawing.getTileSize(scale);
@@ -307,7 +293,6 @@ public class LevelCanvas extends DoubleBufferCanvas {
 
     public void setLevel(Level l) {
         this.theLevel = new ListenableLevel(l);
-        theLevel.trackDirty(true);
         theLevel.addMoveListener(new MoveListener() {
             public void moveOccurred(boolean success) {
                 bufferRepaint();
@@ -319,7 +304,6 @@ public class LevelCanvas extends DoubleBufferCanvas {
 
     public void swapWithBizarro() {
         showBizarro = !showBizarro;
-        theLevel.dirty.setAllDirty();
     }
 
     public void setRelativeScale(int s) {
@@ -334,7 +318,6 @@ public class LevelCanvas extends DoubleBufferCanvas {
             s = -Drawing.SCALE_UP_FACTORS;
         }
         scale = s;
-        theLevel.dirty.setAllDirty();
 
         bufferRepaint();
     }
